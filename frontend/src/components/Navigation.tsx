@@ -83,35 +83,60 @@ export function Navigation() {
 
           {/* Wallet Section */}
           <div className="flex items-center space-x-4">
-            {isConnected && (
-              <div className="hidden sm:flex items-center space-x-3 glass px-3 py-2 rounded-lg">
-                <div className="text-sm">
-                  <div className="text-neon-cyan font-mono">
-                    {formatAddress(address!)}
-                  </div>
-                  <div className="text-xs text-gray-400">{balance} ETH</div>
-                </div>
-              </div>
-            )}
+            {isConnected ? (
+              <>
+                <Link
+                  to="/profile"
+                  className={cn(
+                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200",
+                    location.pathname === "/profile"
+                      ? "text-neon-cyan neon-glow"
+                      : "text-gray-300 hover:text-white",
+                  )}
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">Profile</span>
+                </Link>
 
-            <button
-              onClick={handleWalletAction}
-              className={cn(
-                "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200",
-                isConnected
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-gradient-to-r from-neon-purple to-neon-cyan hover:shadow-lg hover:shadow-neon-purple/25 text-white",
-              )}
-            >
-              <Wallet className="w-4 h-4" />
-              <span>
-                {isConnected
-                  ? "Disconnect"
-                  : !isMetaMaskInstalled
-                    ? "Install MetaMask"
-                    : "Connect Wallet"}
-              </span>
-            </button>
+                <div className="hidden sm:flex items-center space-x-3 glass px-3 py-2 rounded-lg">
+                  <div className="text-sm">
+                    <div className="text-neon-cyan font-mono">
+                      {formatAddress(address!)}
+                    </div>
+                    <div className="text-xs text-gray-400">{balance} ETH</div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleWalletAction}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span className="hidden sm:inline">Disconnect</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/auth"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
+
+                <button
+                  onClick={handleWalletAction}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-neon-purple to-neon-cyan hover:shadow-lg hover:shadow-neon-purple/25 text-white"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>
+                    {!isMetaMaskInstalled
+                      ? "Install MetaMask"
+                      : "Connect Wallet"}
+                  </span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
