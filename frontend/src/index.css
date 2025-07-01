@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-700;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: radial-gradient(
+      ellipse at center,
+      hsl(240 10% 3.9%) 0%,
+      hsl(240 10% 1%) 100%
+    );
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-hover {
+    @apply glass transition-all duration-300;
+  }
+
+  .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .neon-glow {
+    box-shadow:
+      0 0 20px hsl(var(--neon-cyan)),
+      0 0 40px hsl(var(--neon-cyan) / 0.5);
+  }
+
+  .neon-glow-purple {
+    box-shadow:
+      0 0 20px hsl(var(--neon-purple)),
+      0 0 40px hsl(var(--neon-purple) / 0.5);
+  }
+}
