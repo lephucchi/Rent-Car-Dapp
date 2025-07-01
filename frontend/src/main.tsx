@@ -4,11 +4,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
 
-import Landing from "./pages/landing";
+import Landing from "./pages/Landing";
 import Marketplace from "./pages/Marketplace";
 import LendCar from "./pages/LentCar";
 import ActiveRentals from "./pages/ActiveRental";
 import Transactions from "./pages/Transaction";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/lend" element={<LendCar />} />
           <Route path="/active-rentals" element={<ActiveRentals />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
