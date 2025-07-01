@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
 
-import Landing from "./pages/landing";
+import Landing from "./pages/Landing";
 import Marketplace from "./pages/Marketplace";
 import LendCar from "./pages/LentCar";
 import ActiveRentals from "./pages/ActiveRental";
