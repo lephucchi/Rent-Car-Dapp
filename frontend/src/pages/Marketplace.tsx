@@ -5,7 +5,10 @@ import Navigation from "../components/Navigation";
 import CarCard from "../components/CarCard";
 import Button from "../components/Button";
 import Input from "../components/Input";
+import ContractFactory from "../components/ContractFactory";
+import ContractDetails from "../components/ContractDetails";
 import { useWeb3Store } from "../stores/web3Store";
+import { web3Service } from "../lib/web3";
 
 export default function Marketplace() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,6 +16,11 @@ export default function Marketplace() {
   const [priceRange, setPriceRange] = useState([0, 1]);
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [account, setAccount] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [network, setNetwork] = useState<string | null>(null);
+  const [contractAddress, setContractAddress] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState<boolean>(false);
 
   const { isConnected } = useWeb3Store();
 

@@ -1,10 +1,17 @@
 {
-  "name": "voting",
+  "name": "carrental-smartcontract",
   "version": "1.0.0",
-  "description": "",
+  "description": "Smart contract for car rental DApp",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy:local": "npx hardhat run scripts/deploy-carrental.js --network localhost",
+    "deploy:sepolia": "npx hardhat run scripts/deploy-carrental.js --network sepolia",
+    "deploy:mumbai": "npx hardhat run scripts/deploy-carrental.js --network mumbai",
+    "verify:sepolia": "npx hardhat verify --network sepolia",
+    "node": "npx hardhat node",
+    "clean": "npx hardhat clean"
   },
   "author": "",
   "license": "ISC",

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Car, Home, BarChart3, User, Wallet } from "lucide-react";
+import { Car, Home, BarChart3, User, Wallet, ClipboardCheck } from "lucide-react";
 import { useWeb3Store } from "../stores/web3Store";
 import { formatAddress, cn } from "../lib/utils";
 
@@ -21,6 +21,7 @@ export function Navigation() {
     { href: "/lend", label: "Lend Car", icon: User },
     { href: "/active-rentals", label: "Active Rentals", icon: BarChart3 },
     { href: "/transactions", label: "Transactions", icon: BarChart3 },
+    { href: "/inspector", label: "Inspector", icon: ClipboardCheck },
   ];
 
   const handleWalletAction = async () => {

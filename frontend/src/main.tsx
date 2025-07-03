@@ -11,6 +11,7 @@ import ActiveRentals from "./pages/ActiveRental";
 import Transactions from "./pages/Transaction";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Inspector from "./pages/Inspector";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/inspector" element={<Inspector />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
