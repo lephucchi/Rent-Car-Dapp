@@ -1,189 +1,170 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// SPDX-License-Identifier: MIT
-
-contract CarRental {
+contract FixedRentalContract {
     address public lessor;
     address public lessee;
-    address public inspector;
-    
-    // Địa chỉ inspector cố định (có thể thay đổi bởi admin nếu cần)
-    address public constant DEFAULT_INSPECTOR = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
-    
-    struct Car {
-        string make;
-        string model;
-        uint256 year;
-    }
-    
-    Car public car;
-    uint256 public pricePerDay;
-    uint256 public rentalDuration;
-    uint256 public depositAmount;
-    uint256 public latePenaltyRate;
-    uint256 public earlyDepreciationRate;
-    uint256 public startTime;
-    uint256 public dueTime;
-    uint256 public returnTime;
+
+    string public assetName;
+    uint public rentalFeePerMinute;
+    uint public durationMinutes;
+    uint public insuranceFee;
+    uint public insuranceCompensation;
+
+    uint public startTime;
+    bool public isRented;
     bool public isDamaged;
-    uint256 public compensationAmount;
-    
-    enum Status { Pending, Active, Returned, Completed, Canceled }
-    Status public status;
-    
-    event ContractInitiated(address lessor, uint256 timestamp);
-    event ContractActivated(address lessee, uint256 timestamp);
-    event CarReturned(address lessee, uint256 timestamp);
-    event InspectionCompleted(bool isDamaged, uint256 compensation);
-    event ContractFinalized(uint256 totalAmount);
-    event ContractCanceled(address user, uint256 timestamp);
-    event InspectionRequested(address contractAddress, address lessee, uint256 timestamp);
-    
-    modifier onlyLessor() {
-        require(msg.sender == lessor, "Only lessor can call this function");
-        _;
-    }
-    
-    modifier onlyLessee() {
-        require(msg.sender == lessee, "Only lessee can call this function");
-        _;
-    }
-    
-    modifier onlyInspector() {
-        require(msg.sender == inspector, "Only inspector can call this function");
-        _;
-    }
-    
-    modifier inStatus(Status _status) {
-        require(status == _status, "Invalid contract status");
-        _;
-    }
-    
+
+    bool public renterRequestedReturn;
+    bool public ownerConfirmedReturn;
+
+    uint public actualMinutes;
+
+    // Events
+    event RentalStarted(address lessee, uint deposit);
+    event RentalCancelled(address lessee);
+    event DamageReported(address lessor);
+    event FundsTransferred(address to, uint amount);
+    event RenterRequestedReturn(address lessee);
+    event OwnerConfirmedReturn(address lessor);
+    event ActualUsageSet(uint minutesUsed);
+
     constructor(
-        string memory _make,
-        string memory _model,
-        uint256 _year,
-        uint256 _pricePerDay,
-        uint256 _rentalDuration,
-        uint256 _depositAmount,
-        uint256 _latePenaltyRate,
-        uint256 _earlyDepreciationRate
+        string memory _assetName,
+        uint _rentalFeePerMinute,
+        uint _durationMinutes,
+        uint _insuranceFee,
+        uint _insuranceCompensation
     ) {
         lessor = msg.sender;
-        inspector = DEFAULT_INSPECTOR; // Sử dụng inspector cố định
-        car = Car(_make, _model, _year);
-        pricePerDay = _pricePerDay;
-        rentalDuration = _rentalDuration;
-        depositAmount = _depositAmount;
-        latePenaltyRate = _latePenaltyRate;
-        earlyDepreciationRate = _earlyDepreciationRate;
-        status = Status.Pending;
-        emit ContractInitiated(lessor, block.timestamp);
+        assetName = _assetName;
+        rentalFeePerMinute = _rentalFeePerMinute;
+        durationMinutes = _durationMinutes;
+        insuranceFee = _insuranceFee;
+        insuranceCompensation = _insuranceCompensation;
     }
-    
-    function activateContract() external payable inStatus(Status.Pending) {
-        require(msg.value >= depositAmount, "Insufficient deposit");
+
+    function getTotalRentalFee() public view returns (uint) {
+        return (rentalFeePerMinute * durationMinutes) + insuranceFee;
+    }
+
+    function getDeposit() public view returns (uint) {
+        return (getTotalRentalFee() * 50) / 100;
+    }
+
+    function rent() external payable {
+        require(msg.sender != lessor, "Owner cannot rent own asset");
+        require(!isRented, "Asset already rented");
+        require(msg.value == getDeposit() * 1 ether, "Incorrect deposit");
+
         lessee = msg.sender;
+        isRented = true;
         startTime = block.timestamp;
-        dueTime = startTime + (rentalDuration * 1 days);
-        status = Status.Active;
-        emit ContractActivated(lessee, block.timestamp);
+
+        emit RentalStarted(lessee, msg.value / 1 ether);
     }
-    
-    function returnCar() external onlyLessee inStatus(Status.Active) {
-        returnTime = block.timestamp;
-        status = Status.Returned;
-        
-        // Emit event để thông báo cho inspector
-        emit InspectionRequested(address(this), lessee, block.timestamp);
-        emit CarReturned(lessee, block.timestamp);
+
+    function cancelRental() external {
+        require(msg.sender == lessee, "Only lessee can cancel");
+        require(isRented, "Not rented");
+
+        uint refund = (getDeposit() * 1 ether) / 2;
+
+        payable(lessee).transfer(refund);
+        payable(lessor).transfer(refund);
+
+        emit RentalCancelled(lessee);
+        reset();
     }
-    
-    function inspectCar(bool _isDamaged, uint256 _compensationAmount) external onlyInspector inStatus(Status.Returned) {
-        isDamaged = _isDamaged;
-        compensationAmount = _isDamaged ? _compensationAmount : 0;
-        status = Status.Completed;
-        emit InspectionCompleted(_isDamaged, _compensationAmount);
+
+    function setActualUsage(uint _actualMinutes) external {
+        require(msg.sender == lessor, "Only lessor can set actual usage");
+        require(isRented, "Asset not rented");
+        actualMinutes = _actualMinutes;
+
+        emit ActualUsageSet(_actualMinutes);
     }
-    
-    function finalizeContract() external onlyLessor inStatus(Status.Completed) {
-        uint256 rentalFee = pricePerDay * rentalDuration;
-        uint256 penalty = 0;
-        
-        if (returnTime > dueTime) {
-            uint256 daysLate = (returnTime - dueTime) / 1 days;
-            penalty = daysLate * latePenaltyRate;
-        } else if (returnTime < dueTime) {
-            uint256 daysEarly = (dueTime - returnTime) / 1 days;
-            penalty = daysEarly * earlyDepreciationRate;
+
+    function reportDamage() external {
+        require(msg.sender == lessor, "Only lessor can report");
+        require(isRented, "Not rented");
+        isDamaged = true;
+
+        emit DamageReported(lessor);
+    }
+
+    function requestReturn() external {
+        require(msg.sender == lessee, "Only lessee can request return");
+        require(isRented, "Not rented");
+        renterRequestedReturn = true;
+
+        emit RenterRequestedReturn(msg.sender);
+    }
+
+    function confirmReturn() external {
+        require(msg.sender == lessor, "Only lessor can confirm return");
+        require(isRented, "Not rented");
+        ownerConfirmedReturn = true;
+
+        emit OwnerConfirmedReturn(msg.sender);
+    }
+
+    function getRemainingPayment() public view returns (uint) {
+        require(isRented, "Asset is not rented");
+
+        uint usedMinutes = actualMinutes > 0 ? actualMinutes : durationMinutes;
+        uint baseFee;
+        uint overdueFee = 0;
+
+        if (usedMinutes <= durationMinutes) {
+            baseFee = rentalFeePerMinute * usedMinutes;
+        } else {
+            uint overdue = usedMinutes - durationMinutes;
+            baseFee = rentalFeePerMinute * durationMinutes;
+            overdueFee = (rentalFeePerMinute * 150 / 100) * overdue;
         }
-        
-        uint256 totalCharges = rentalFee + penalty + compensationAmount;
-        
-        // Transfer rental fee + penalties + compensation to lessor
-        if (totalCharges > 0) {
-            if (totalCharges <= address(this).balance) {
-                payable(lessor).transfer(totalCharges);
-            } else {
-                payable(lessor).transfer(address(this).balance);
-            }
+
+        uint finalRentalFee = baseFee + overdueFee + insuranceFee;
+
+        if (isDamaged) {
+            finalRentalFee += insuranceCompensation;
         }
-        
-        // Return remaining deposit to lessee if any
-        uint256 remainingBalance = address(this).balance;
-        if (remainingBalance > 0) {
-            payable(lessee).transfer(remainingBalance);
-        }
-        
-        emit ContractFinalized(totalCharges);
+
+        uint deposit = getDeposit();
+        uint remaining = finalRentalFee > deposit ? finalRentalFee - deposit : 0;
+        return remaining;
     }
-    
-    function cancelContract() external inStatus(Status.Pending) {
-        require(msg.sender == lessee || msg.sender == lessor, "Only lessee or lessor can cancel");
-        
-        status = Status.Canceled;
-        
-        // Return deposit to lessee if contract is canceled
-        if (address(this).balance > 0) {
-            payable(lessee).transfer(address(this).balance);
-        }
-        
-        emit ContractCanceled(msg.sender, block.timestamp);
+
+    function getFinalPaymentAmount() external view returns (uint) {
+        return getRemainingPayment() * 1 ether;
     }
-    
-    function calculateTotalAmount() internal view returns (uint256) {
-        uint256 rentalFee = pricePerDay * rentalDuration;
-        uint256 penalty = 0;
-        
-        if (returnTime > dueTime) {
-            uint256 daysLate = (returnTime - dueTime) / 1 days;
-            penalty = daysLate * latePenaltyRate;
-        } else if (returnTime < dueTime) {
-            uint256 daysEarly = (dueTime - returnTime) / 1 days;
-            penalty = daysEarly * earlyDepreciationRate;
-        }
-        
-        return rentalFee + penalty + compensationAmount;
+
+    function completeRental() external payable {
+        require(isRented, "Not rented");
+        require(msg.sender == lessee || msg.sender == lessor, "Not authorized");
+        require(renterRequestedReturn && ownerConfirmedReturn, "Both parties must confirm return");
+
+        uint remaining = getRemainingPayment();
+        require(msg.value == remaining * 1 ether, "Incorrect payment for remaining + damage");
+
+        uint deposit = getDeposit();
+        uint totalPaid = msg.value + deposit * 1 ether;
+        payable(lessor).transfer(totalPaid);
+
+        emit FundsTransferred(lessor, totalPaid / 1 ether);
+
+        reset();
     }
-    
-    // Getter functions for frontend
-    function getCarInfo() external view returns (string memory, string memory, uint256) {
-        return (car.make, car.model, car.year);
+
+    function reset() internal {
+        lessee = address(0);
+        isRented = false;
+        isDamaged = false;
+        startTime = 0;
+        renterRequestedReturn = false;
+        ownerConfirmedReturn = false;
+        actualMinutes = 0;
     }
-    
-    function getRentalInfo() external view returns (uint256, uint256, uint256, uint256, uint256) {
-        return (pricePerDay, rentalDuration, depositAmount, latePenaltyRate, earlyDepreciationRate);
-    }
-    
-    function getTimeInfo() external view returns (uint256, uint256, uint256) {
-        return (startTime, dueTime, returnTime);
-    }
-    
-    function getContractBalance() external view returns (uint256) {
-        return address(this).balance;
-    }
-    
-    function getInspectionInfo() external view returns (bool, uint256) {
-        return (isDamaged, compensationAmount);
-    }
+
+    receive() external payable {}
 }

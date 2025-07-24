@@ -1,0 +1,31 @@
+# FastAPI Backend Requirements
+# Car Rental DApp - Production Ready
+
+# Core FastAPI
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+
+# Database
+sqlalchemy>=2.0.23
+asyncpg>=0.29.0
+
+# Data Validation & Settings
+pydantic>=2.5.0
+pydantic[email]>=2.5.0
+pydantic-settings>=2.1.0
+
+# Authentication & Security
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Web3 Integration
+web3>=6.11.3
+
+# Form Data
+python-multipart>=0.0.6
+
+# HTTP Client (for Web3/external APIs)
+httpx>=0.25.2
+
+# Development/Testing (optional)
+requests>=2.31.0
