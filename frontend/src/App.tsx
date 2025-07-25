@@ -3,6 +3,7 @@ import { useAuthStore } from './stores/authStore';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { RentalContractDashboard } from './components/RentalContractDashboard';
+import { ContractDeployment } from './components/ContractDeployment';
 import './global.css';
 
 type AuthMode = 'login' | 'register';
