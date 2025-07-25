@@ -22,7 +22,7 @@ interface AuthState {
     displayName: string;
   }) => Promise<void>;
   logout: () => void;
-  connectMetamask: (metamaskId: string) => Promise<void>;
+  connectMetamask: (metamaskAddress: string) => Promise<void>;
   loadProfile: () => Promise<void>;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
@@ -40,21 +40,26 @@ export const useAuthStore = create<AuthState>()(
 
       // Actions
       login: async (username: string, password: string) => {
+        console.log('AuthStore: Login function called with:', { username, password: '***' });
         try {
           set({ isLoading: true, error: null });
           
+          console.log('AuthStore: Calling API login...');
           const response = await apiService.login({ username, password });
+          console.log('AuthStore: API login response:', response);
           
           // Store token in localStorage
-          localStorage.setItem('auth_token', response.token);
+          localStorage.setItem('access_token', response.access_token);
           
           set({
             isAuthenticated: true,
             user: response.user,
-            token: response.token,
+            token: response.access_token,
             isLoading: false
           });
+          console.log('AuthStore: Login state updated successfully');
         } catch (error) {
+          console.error('AuthStore: Login error:', error);
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
           set({ 
             error: errorMessage, 
@@ -74,12 +79,12 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiService.register(userData);
           
           // Store token in localStorage
-          localStorage.setItem('auth_token', response.token);
+          localStorage.setItem('access_token', response.access_token);
           
           set({
             isAuthenticated: true,
             user: response.user,
-            token: response.token,
+            token: response.access_token,
             isLoading: false
           });
         } catch (error) {
@@ -96,7 +101,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('access_token');
         set({
           isAuthenticated: false,
           user: null,
@@ -105,11 +110,11 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      connectMetamask: async (metamaskId: string) => {
+      connectMetamask: async (metamaskAddress: string) => {
         try {
           set({ isLoading: true, error: null });
           
-          const response = await apiService.connectMetamask(metamaskId);
+          const response = await apiService.connectMetamask(metamaskAddress);
           
           set({
             user: response.user,
@@ -124,24 +129,28 @@ export const useAuthStore = create<AuthState>()(
 
       loadProfile: async () => {
         try {
-          const token = localStorage.getItem('auth_token');
+          console.log('AuthStore: Loading profile...');
+          const token = localStorage.getItem('access_token');
           if (!token) {
+            console.log('AuthStore: No token found');
             return;
           }
 
           set({ isLoading: true, error: null });
           
-          const response = await apiService.getProfile();
+          const user = await apiService.getProfile();
+          console.log('AuthStore: Profile loaded:', user);
           
           set({
             isAuthenticated: true,
-            user: response.user,
+            user,
             token,
             isLoading: false
           });
         } catch (error) {
+          console.error('AuthStore: Failed to load profile:', error);
           // Token might be expired or invalid
-          localStorage.removeItem('auth_token');
+          localStorage.removeItem('access_token');
           set({
             isAuthenticated: false,
             user: null,

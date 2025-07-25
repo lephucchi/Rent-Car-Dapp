@@ -15,10 +15,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegis
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('LoginForm: Submit clicked with:', { username, password: '***' });
+    
     try {
+      console.log('LoginForm: Calling login...');
       await login(username, password);
+      console.log('LoginForm: Login successful');
       onSuccess?.();
     } catch (error) {
+      console.error('LoginForm: Login failed:', error);
       // Error is handled by the store
     }
   };

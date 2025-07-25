@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Frontend</title>
+</head>
+<body>
+    <h1>Frontend Debug Tools</h1>
+    
+    <div>
+        <h2>Clear localStorage</h2>
+        <button onclick="clearStorage()">Clear All Storage</button>
+        <div id="storageResult"></div>
+    </div>
+    
+    <div>
+        <h2>Check Current State</h2>
+        <button onclick="checkState()">Check State</button>
+        <div id="stateResult"></div>
+    </div>
+    
+    <div>
+        <h2>Manual Login Test</h2>
+        <input type="text" id="testUsername" placeholder="Username" value="testuser123">
+        <input type="password" id="testPassword" placeholder="Password" value="testpassword123">
+        <button onclick="testLogin()">Test Login</button>
+        <div id="loginTestResult"></div>
+    </div>
+
+    <script>
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('storageResult').innerHTML = '<p style="color: green;">Storage cleared!</p>';
+        }
+        
+        function checkState() {
+            const token = localStorage.getItem('access_token');
+            const authStorage = localStorage.getItem('auth-storage');
+            
+            document.getElementById('stateResult').innerHTML = `
+                <p><strong>Token:</strong> ${token ? 'Present' : 'Missing'}</p>
+                <p><strong>Auth Storage:</strong> ${authStorage ? 'Present' : 'Missing'}</p>
+                <pre>${authStorage || 'No auth storage'}</pre>
+            `;
+        }
+        
+        async function testLogin() {
+            const username = document.getElementById('testUsername').value;
+            const password = document.getElementById('testPassword').value;
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username_or_email: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('loginTestResult').innerHTML = `
+                    <p style="color: green;"><strong>Success!</strong></p>
+                    <p><strong>User:</strong> ${data.user?.display_name}</p>
+                    <p><strong>Token:</strong> ${data.access_token ? 'Present' : 'Missing'}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('loginTestResult').innerHTML = `
+                    <p style="color: red;"><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

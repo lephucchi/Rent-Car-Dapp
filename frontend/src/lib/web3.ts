@@ -8,6 +8,10 @@ import type {
   ContractStatus 
 } from "../types";
 
+// Re-export types for convenience
+export type { ContractData as ContractInfo, CarInfo, RentalInfo, TimeInfo, InspectionInfo };
+export { ContractStatus } from "../types";
+
 // Default contract address (will be updated after deployment)
 let CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 

@@ -25,6 +25,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchT
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('RegisterForm: Submit clicked with:', { 
+      username: formData.username, 
+      email: formData.email,
+      displayName: formData.displayName
+    });
+    
     if (formData.password !== formData.confirmPassword) {
       // You might want to add local error handling here
       alert('Passwords do not match');
@@ -32,14 +38,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchT
     }
 
     try {
+      console.log('RegisterForm: Calling register...');
       await register({
         username: formData.username,
         email: formData.email,
         password: formData.password,
         displayName: formData.displayName
       });
+      console.log('RegisterForm: Register successful');
       onSuccess?.();
     } catch (error) {
+      console.error('RegisterForm: Register failed:', error);
       // Error is handled by the store
     }
   };
