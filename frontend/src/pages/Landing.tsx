@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet } from 'lucide-react';
-import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected } from '../stores/rentalContractStore';
+import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/rentalContractStore';
 import { rentalContractService } from '../services/rentalContractService';
 import { ContractStatus } from '../components/ContractStatus';
+import { MetaMaskConnect } from '../components/MetaMaskConnect';
 
 export default function Landing() {
   const {
