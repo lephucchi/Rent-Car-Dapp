@@ -78,7 +78,7 @@ export default function Landing() {
               <button
                 onClick={handleConnectWallet}
                 disabled={connecting}
-                className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2"
+                className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 disabled:bg-gray-400"
               >
                 <Wallet className="w-4 h-4" />
                 <span>{connecting ? 'Connecting...' : 'Connect Wallet'}</span>
