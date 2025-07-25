@@ -1,11 +1,12 @@
 import { ethers } from "ethers";
-import type { 
-  ContractInfo as ContractData, 
-  CarInfo, 
-  RentalInfo, 
-  TimeInfo, 
-  InspectionInfo, 
-  ContractStatus 
+import { checkMetaMaskStatus, getMetaMaskErrorMessage, waitForMetaMask } from "./metamaskDetection";
+import type {
+  ContractInfo as ContractData,
+  CarInfo,
+  RentalInfo,
+  TimeInfo,
+  InspectionInfo,
+  ContractStatus
 } from "../types";
 
 // Re-export types for convenience
