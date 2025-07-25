@@ -99,7 +99,12 @@ export class Web3Service {
 
   private initializeProvider() {
     if (typeof window !== "undefined" && window.ethereum) {
-      this.provider = new ethers.BrowserProvider(window.ethereum as any);
+      try {
+        this.provider = new ethers.BrowserProvider(window.ethereum as any);
+      } catch (error) {
+        console.warn("Failed to initialize provider:", error);
+        this.provider = null;
+      }
     }
   }
 
