@@ -127,10 +127,15 @@ export const MetaMaskConnect: React.FC<MetaMaskConnectProps> = ({
           )}
         </div>
 
+        {/* Diagnostic Tool */}
+        <div className="mt-6">
+          <MetaMaskDiagnostic />
+        </div>
+
         {/* Help Text */}
-        <div className="mt-6 text-xs text-muted-foreground">
+        <div className="mt-4 text-xs text-muted-foreground">
           <p>
-            Having trouble? Try refreshing the page or restarting your browser.
+            Having trouble? Use the diagnostic tool above or try refreshing the page.
           </p>
           {!metaMaskStatus.isInstalled && (
             <p className="mt-2">
