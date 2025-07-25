@@ -88,16 +88,16 @@ export default function Landing() {
         )}
 
         {/* Hero Section */}
-        <section className="bg-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="luxury-section">
+          <div className="luxury-container">
             <div className="text-center">
-              <h1 className="text-5xl md:text-7xl font-light text-black mb-6">
+              <h1 className="luxury-heading mb-6">
                 Luxury Car Rental
                 <br />
                 <span className="font-bold">Reimagined</span>
               </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-                Experience premium car rental with blockchain security. 
+              <p className="luxury-subheading max-w-3xl mx-auto mb-12">
+                Experience premium car rental with blockchain security.
                 Connect your wallet to rent luxury vehicles with transparent pricing and instant confirmations.
               </p>
               
