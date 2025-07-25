@@ -402,8 +402,15 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* Contract Status */}
+        <ContractStatus
+          isConnected={isConnected}
+          userRole={userRole}
+          contractAddress={rentalContractService.getContractAddress()}
+        />
+
         {/* Contract Information */}
-        <div className="bg-gray-50 p-6 rounded-lg">
+        <div className="bg-gray-50 p-6 rounded-lg mt-4">
           <h3 className="text-lg font-semibold text-black mb-4">Contract Information</h3>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between">
