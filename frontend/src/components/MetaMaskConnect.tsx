@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './Button';
+import { MetaMaskDiagnostic } from './MetaMaskDiagnostic';
 import { checkMetaMaskStatus, getMetaMaskErrorMessage } from '../lib/metamaskDetection';
 
 interface MetaMaskConnectProps {
