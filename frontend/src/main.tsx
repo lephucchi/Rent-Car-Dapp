@@ -2,18 +2,16 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import "./index.css";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LuxuryNavigation } from "./components/LuxuryNavigation";
+import "./global.css";
 
 import Landing from "./pages/Landing";
-import Marketplace from "./pages/Marketplace";
-import LendCar from "./pages/LentCar";
-import ActiveRentals from "./pages/ActiveRental";
+import RentCar from "./pages/RentCar";
+import LendCar from "./pages/LendCar";
 import Transactions from "./pages/Transaction";
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
 import Inspector from "./pages/Inspector";
 import Admin from "./pages/Admin";
-import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
