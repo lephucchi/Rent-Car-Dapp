@@ -22,11 +22,7 @@ interface AuthState {
     display_name: string;
   }) => Promise<void>;
   logout: () => void;
-<<<<<<< HEAD
-  connectMetamask: (metamaskAddress: string) => Promise<void>;
-=======
   connectMetamask: (metamask_address: string) => Promise<void>;
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
   loadProfile: () => Promise<void>;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
@@ -48,19 +44,12 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
           
-<<<<<<< HEAD
           console.log('AuthStore: Calling API login...');
-          const response = await apiService.login({ username, password });
+          const response = await apiService.login({ username_or_email: username, password });
           console.log('AuthStore: API login response:', response);
           
           // Store token in localStorage
           localStorage.setItem('access_token', response.access_token);
-=======
-          const response = await apiService.login({ username_or_email: username, password });
-          
-          // Store token in localStorage
-          localStorage.setItem('auth_token', response.access_token);
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
           
           set({
             isAuthenticated: true,
@@ -90,11 +79,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiService.register(userData);
           
           // Store token in localStorage
-<<<<<<< HEAD
           localStorage.setItem('access_token', response.access_token);
-=======
-          localStorage.setItem('auth_token', response.access_token);
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
           
           set({
             isAuthenticated: true,
@@ -125,19 +110,11 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-<<<<<<< HEAD
-      connectMetamask: async (metamaskAddress: string) => {
-        try {
-          set({ isLoading: true, error: null });
-          
-          const response = await apiService.connectMetamask(metamaskAddress);
-=======
       connectMetamask: async (metamask_address: string) => {
         try {
           set({ isLoading: true, error: null });
           
           const response = await apiService.connectMetamask(metamask_address);
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
           
           set({
             user: response.user,
