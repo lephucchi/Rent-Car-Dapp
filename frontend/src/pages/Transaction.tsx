@@ -1,177 +1,185 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Calendar,
-  Filter,
-  ExternalLink,
-  Search,
-  Download,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
-import Navigation from "../components/Navigation";
-import Button from "../components/Button";
-import Input from "../components/Input";
-import { useWeb3Store } from "../stores/web3Store";
+import React, { useState, useEffect } from 'react';
+import { History, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import { useRentalContractStore, useContractState, useUserRole, useIsConnected } from '../stores/rentalContractStore';
+import { rentalContractService } from '../services/rentalContractService';
+import { MetaMaskConnect } from '../components/MetaMaskConnect';
 
 interface Transaction {
   id: string;
+  type: 'deposit' | 'payment' | 'refund' | 'damage_compensation';
+  amount: string;
+  timestamp: number;
+  status: 'pending' | 'confirmed' | 'failed';
   hash: string;
-  type: "rent" | "return" | "listing" | "payment" | "refund";
-  amount: number;
-  timestamp: string;
-  status: "confirmed" | "pending" | "failed";
-  carName?: string;
-  fromAddress: string;
-  toAddress: string;
-  gasUsed: number;
-  gasPrice: number;
-  blockNumber: number;
+  from: string;
+  to: string;
+  gasUsed?: string;
+  gasPrice?: string;
 }
 
-export default function Transactions() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [dateRange, setDateRange] = useState("all");
+// Mock transaction data - in a real app, this would come from blockchain events or backend
+const generateMockTransactions = (contractState: any, userRole: string): Transaction[] => {
+  const transactions: Transaction[] = [];
+  
+  if (contractState?.isRented) {
+    // Rental started transaction
+    transactions.push({
+      id: '1',
+      type: 'deposit',
+      amount: rentalContractService.formatEther(contractState.insuranceFee + (contractState.rentalFeePerMinute * contractState.durationMinutes / BigInt(2))),
+      timestamp: Date.now() - 86400000, // 1 day ago
+      status: 'confirmed',
+      hash: '0x1234567890abcdef1234567890abcdef12345678',
+      from: contractState.lessee,
+      to: contractState.lessor,
+      gasUsed: '21000',
+      gasPrice: '20'
+    });
+  }
 
-  const { isConnected, address } = useWeb3Store();
+  if (contractState?.isDamaged) {
+    // Damage compensation transaction
+    transactions.push({
+      id: '2',
+      type: 'damage_compensation',
+      amount: rentalContractService.formatEther(contractState.insuranceCompensation),
+      timestamp: Date.now() - 3600000, // 1 hour ago
+      status: 'confirmed',
+      hash: '0xabcdef1234567890abcdef1234567890abcdef12',
+      from: contractState.lessee,
+      to: contractState.lessor,
+      gasUsed: '25000',
+      gasPrice: '22'
+    });
+  }
 
-  // Mock transaction data
-  const [transactions] = useState<Transaction[]>([
+  // Add some historical transactions
+  transactions.push(
     {
-      id: "1",
-      hash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12",
-      type: "rent",
-      amount: 1.0,
-      timestamp: "2024-01-20T10:30:00Z",
-      status: "confirmed",
-      carName: "Tesla Model S",
-      fromAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-      toAddress: "0x1234567890abcdef1234567890abcdef12345678",
-      gasUsed: 21000,
-      gasPrice: 20,
-      blockNumber: 18500000,
+      id: '3',
+      type: 'payment',
+      amount: '2.5',
+      timestamp: Date.now() - 172800000, // 2 days ago
+      status: 'confirmed',
+      hash: '0x9876543210fedcba9876543210fedcba98765432',
+      from: '0x742d35Cc6644C3532C8FD2FE0c3e1234567890ab',
+      to: '0x8ba1f109551bD432803012645Hac189451c35',
+      gasUsed: '21000',
+      gasPrice: '18'
     },
     {
-      id: "2",
-      hash: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab",
-      type: "listing",
-      amount: 0.05,
-      timestamp: "2024-01-18T15:45:00Z",
-      status: "confirmed",
-      carName: "BMW M3 Competition",
-      fromAddress: "0x1234567890abcdef1234567890abcdef12345678",
-      toAddress: "0x0000000000000000000000000000000000000000",
-      gasUsed: 45000,
-      gasPrice: 25,
-      blockNumber: 18499500,
-    },
-    {
-      id: "3",
-      hash: "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba98",
-      type: "payment",
-      amount: 0.6,
-      timestamp: "2024-01-16T08:20:00Z",
-      status: "confirmed",
-      carName: "Audi A8 Quattro",
-      fromAddress: "0xfedcba9876543210fedcba9876543210fedcba98",
-      toAddress: "0x9876543210fedcba9876543210fedcba98765432",
-      gasUsed: 21000,
-      gasPrice: 18,
-      blockNumber: 18499000,
-    },
-    {
-      id: "4",
-      hash: "0x5555666677778888999900001111222233334444555566667777888899990000",
-      type: "return",
-      amount: 0.1,
-      timestamp: "2024-01-15T12:00:00Z",
-      status: "pending",
-      carName: "Mercedes S-Class",
-      fromAddress: "0x1111222233334444555566667777888899990000",
-      toAddress: "0x0000111122223333444455556666777788889999",
-      gasUsed: 35000,
-      gasPrice: 22,
-      blockNumber: 18498500,
-    },
-  ]);
+      id: '4',
+      type: 'refund',
+      amount: '1.2',
+      timestamp: Date.now() - 259200000, // 3 days ago
+      status: 'confirmed',
+      hash: '0xfedcba9876543210fedcba9876543210fedcba98',
+      from: '0x8ba1f109551bD432803012645Hac189451c35',
+      to: '0x742d35Cc6644C3532C8FD2FE0c3e1234567890ab',
+      gasUsed: '21000',
+      gasPrice: '15'
+    }
+  );
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "rent":
-        return "🚗";
-      case "return":
-        return "🔄";
-      case "listing":
-        return "📝";
-      case "payment":
-        return "💰";
-      case "refund":
-        return "💸";
-      default:
-        return "📄";
+  return transactions.sort((a, b) => b.timestamp - a.timestamp);
+};
+
+export default function Transaction() {
+  const { connectWallet } = useRentalContractStore();
+  const contractState = useContractState();
+  const userRole = useUserRole();
+  const isConnected = useIsConnected();
+  
+  const [connecting, setConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filter, setFilter] = useState<string>('all');
+
+  useEffect(() => {
+    if (isConnected && contractState) {
+      const mockTransactions = generateMockTransactions(contractState, userRole);
+      setTransactions(mockTransactions);
+    }
+  }, [isConnected, contractState, userRole]);
+
+  const handleConnectWallet = async () => {
+    try {
+      setConnecting(true);
+      setConnectionError(null);
+      await connectWallet();
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
+      setConnectionError(errorMessage);
+    } finally {
+      setConnecting(false);
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTransactionIcon = (type: string) => {
     switch (type) {
-      case "rent":
-        return "text-blue-400";
-      case "return":
-        return "text-green-400";
-      case "listing":
-        return "text-purple-400";
-      case "payment":
-        return "text-neon-cyan";
-      case "refund":
-        return "text-yellow-400";
+      case 'deposit':
+      case 'payment':
+        return <ArrowUpRight className="w-5 h-5 text-red-500" />;
+      case 'refund':
+        return <ArrowDownLeft className="w-5 h-5 text-green-500" />;
+      case 'damage_compensation':
+        return <XCircle className="w-5 h-5 text-orange-500" />;
       default:
-        return "text-gray-400";
+        return <History className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getTransactionTypeLabel = (type: string) => {
+    switch (type) {
+      case 'deposit':
+        return 'Rental Deposit';
+      case 'payment':
+        return 'Rental Payment';
+      case 'refund':
+        return 'Refund';
+      case 'damage_compensation':
+        return 'Damage Compensation';
+      default:
+        return 'Transaction';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return "text-green-400 bg-green-400/10 border-green-400/30";
-      case "pending":
-        return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
-      case "failed":
-        return "text-red-400 bg-red-400/10 border-red-400/30";
+      case 'confirmed':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'pending':
+        return <Clock className="w-4 h-4 text-yellow-500" />;
+      case 'failed':
+        return <XCircle className="w-4 h-4 text-red-500" />;
       default:
-        return "text-gray-400 bg-gray-400/10 border-gray-400/30";
+        return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
-  const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch =
-      tx.hash.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tx.carName?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === "all" || tx.type === filterType;
-    const matchesStatus = filterStatus === "all" || tx.status === filterStatus;
-
-    return matchesSearch && matchesType && matchesStatus;
-  });
-
-  const totalValue = transactions.reduce((sum, tx) => sum + tx.amount, 0);
-  const confirmedTransactions = transactions.filter(
-    (tx) => tx.status === "confirmed",
-  ).length;
+  const filteredTransactions = filter === 'all' 
+    ? transactions 
+    : transactions.filter(tx => tx.type === filter);
 
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="pt-20 pb-16 min-h-screen flex items-center justify-center">
-          <div className="text-center space-y-6">
-            <Calendar className="w-16 h-16 text-neon-cyan mx-auto" />
-            <h2 className="text-2xl font-bold text-white">
-              Connect Your Wallet
-            </h2>
-            <p className="text-gray-400 max-w-md">
-              Please connect your wallet to view your transaction history.
-            </p>
+        <div className="luxury-container py-16">
+          <div className="max-w-md mx-auto">
+            <div className="text-center mb-8">
+              <History className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h1 className="luxury-title mb-4">Transaction History</h1>
+              <p className="text-muted-foreground">
+                Connect your wallet to view your rental transaction history and ensure complete transparency.
+              </p>
+            </div>
+            
+            <MetaMaskConnect
+              onConnect={handleConnectWallet}
+              connecting={connecting}
+              error={connectionError}
+            />
           </div>
         </div>
       </div>
@@ -180,228 +188,191 @@ export default function Transactions() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      <div className="luxury-container py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <History className="w-8 h-8 text-primary" />
+            <h1 className="luxury-heading">Transaction History</h1>
+          </div>
+          <p className="luxury-subheading">
+            Complete transparency of all your rental transactions on the blockchain
+          </p>
+        </div>
 
-      <div className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Transaction{" "}
-              <span className="bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent">
-                History
-              </span>
-            </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Track all your blockchain transactions and smart contract
-              interactions
-            </p>
-          </motion.div>
-
-          {/* Stats Overview */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-          >
-            <div className="glass rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-white">
-                {transactions.length}
+        {/* Stats Cards */}
+        <div className="luxury-grid-4 mb-8">
+          <div className="luxury-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">Total Transactions</p>
+                <p className="text-2xl font-bold text-foreground">{transactions.length}</p>
               </div>
-              <div className="text-gray-400">Total Transactions</div>
+              <History className="w-8 h-8 text-blue-500" />
             </div>
-            <div className="glass rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-green-400">
-                {confirmedTransactions}
+          </div>
+
+          <div className="luxury-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">Total Spent</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {transactions
+                    .filter(tx => ['deposit', 'payment', 'damage_compensation'].includes(tx.type))
+                    .reduce((sum, tx) => sum + parseFloat(tx.amount), 0)
+                    .toFixed(2)} ETH
+                </p>
               </div>
-              <div className="text-gray-400">Confirmed</div>
+              <ArrowUpRight className="w-8 h-8 text-red-500" />
             </div>
-            <div className="glass rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-neon-cyan">
-                {totalValue.toFixed(2)}
+          </div>
+
+          <div className="luxury-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">Total Received</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {transactions
+                    .filter(tx => tx.type === 'refund')
+                    .reduce((sum, tx) => sum + parseFloat(tx.amount), 0)
+                    .toFixed(2)} ETH
+                </p>
               </div>
-              <div className="text-gray-400">Total ETH</div>
+              <ArrowDownLeft className="w-8 h-8 text-green-500" />
             </div>
-            <div className="glass rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-neon-purple">
-                {(
-                  transactions.reduce(
-                    (sum, tx) => sum + (tx.gasUsed * tx.gasPrice) / 1e9,
-                    0,
-                  ) / 1e9
-                ).toFixed(4)}
+          </div>
+
+          <div className="luxury-card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">Success Rate</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {transactions.length > 0 
+                    ? Math.round((transactions.filter(tx => tx.status === 'confirmed').length / transactions.length) * 100)
+                    : 0}%
+                </p>
               </div>
-              <div className="text-gray-400">Gas Used (ETH)</div>
+              <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
-          </motion.div>
+          </div>
+        </div>
 
-          {/* Filters */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="glass rounded-xl p-6 mb-8"
-          >
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search by transaction hash or car name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  icon={<Search className="w-5 h-5" />}
-                />
-              </div>
+        {/* Filters */}
+        <div className="luxury-card p-6 mb-8">
+          <h3 className="luxury-title mb-4">Filter Transactions</h3>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: 'all', label: 'All Transactions' },
+              { value: 'deposit', label: 'Deposits' },
+              { value: 'payment', label: 'Payments' },
+              { value: 'refund', label: 'Refunds' },
+              { value: 'damage_compensation', label: 'Damage Compensation' }
+            ].map((filterOption) => (
+              <button
+                key={filterOption.value}
+                onClick={() => setFilter(filterOption.value)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filter === filterOption.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                {filterOption.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="glass border border-gray-600 rounded-lg px-4 py-3 text-white bg-transparent focus:outline-none focus:ring-2 focus:ring-neon-cyan"
-                >
-                  <option value="all" className="bg-gray-900">
-                    All Types
-                  </option>
-                  <option value="rent" className="bg-gray-900">
-                    Rent
-                  </option>
-                  <option value="return" className="bg-gray-900">
-                    Return
-                  </option>
-                  <option value="listing" className="bg-gray-900">
-                    Listing
-                  </option>
-                  <option value="payment" className="bg-gray-900">
-                    Payment
-                  </option>
-                  <option value="refund" className="bg-gray-900">
-                    Refund
-                  </option>
-                </select>
-
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="glass border border-gray-600 rounded-lg px-4 py-3 text-white bg-transparent focus:outline-none focus:ring-2 focus:ring-neon-cyan"
-                >
-                  <option value="all" className="bg-gray-900">
-                    All Status
-                  </option>
-                  <option value="confirmed" className="bg-gray-900">
-                    Confirmed
-                  </option>
-                  <option value="pending" className="bg-gray-900">
-                    Pending
-                  </option>
-                  <option value="failed" className="bg-gray-900">
-                    Failed
-                  </option>
-                </select>
-
-                <Button variant="outline">
-                  <Download className="w-4 h-4" />
-                  Export
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Transactions List */}
-          {filteredTransactions.length > 0 ? (
-            <div className="space-y-4">
-              {filteredTransactions.map((tx, index) => (
-                <motion.div
-                  key={tx.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.05 }}
-                  className="glass rounded-xl p-6 hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                    <div className="flex items-start space-x-4 flex-1">
-                      <div className="text-2xl">{getTypeIcon(tx.type)}</div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3
-                            className={`font-semibold capitalize ${getTypeColor(tx.type)}`}
-                          >
-                            {tx.type} {tx.carName && `- ${tx.carName}`}
-                          </h3>
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(tx.status)}`}
-                          >
-                            {tx.status}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-400">
-                          <div>
-                            Hash: {tx.hash.slice(0, 10)}...{tx.hash.slice(-8)}
-                          </div>
-                          <div>Block: {tx.blockNumber.toLocaleString()}</div>
-                          <div>
-                            From: {tx.fromAddress.slice(0, 6)}...
-                            {tx.fromAddress.slice(-4)}
-                          </div>
-                          <div>
-                            To: {tx.toAddress.slice(0, 6)}...
-                            {tx.toAddress.slice(-4)}
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-gray-500 mt-1">
-                          Gas: {tx.gasUsed.toLocaleString()} units @{" "}
-                          {tx.gasPrice} gwei
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-white">
-                          {tx.amount.toFixed(4)} ETH
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {new Date(tx.timestamp).toLocaleDateString()}
-                        </div>
-                      </div>
-
-                      <a
-                        href={`https://etherscan.io/tx/${tx.hash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 text-neon-cyan hover:text-neon-purple transition-colors"
-                      >
-                        <ExternalLink className="w-5 h-5" />
-                      </a>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 glass rounded-xl">
-              <Calendar className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-gray-300 mb-2">
-                No transactions found
-              </h3>
-              <p className="text-gray-500">
-                Try adjusting your search criteria
+        {/* Transactions List */}
+        <div className="luxury-card">
+          <div className="p-6 border-b border-border">
+            <h3 className="luxury-title">Recent Transactions</h3>
+          </div>
+          
+          {filteredTransactions.length === 0 ? (
+            <div className="p-12 text-center">
+              <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Transactions Found</h3>
+              <p className="text-muted-foreground">
+                {filter === 'all' 
+                  ? 'You haven\'t made any transactions yet.' 
+                  : `No ${filter} transactions found.`}
               </p>
             </div>
-          )}
-
-          {/* Load More */}
-          {filteredTransactions.length > 0 && (
-            <div className="text-center mt-8">
-              <Button variant="outline">Load More Transactions</Button>
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredTransactions.map((transaction) => (
+                <div key={transaction.id} className="p-6 hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-shrink-0">
+                        {getTransactionIcon(transaction.type)}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-sm font-medium text-foreground">
+                            {getTransactionTypeLabel(transaction.type)}
+                          </h4>
+                          {getStatusIcon(transaction.status)}
+                        </div>
+                        
+                        <div className="mt-1 flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span>{new Date(transaction.timestamp).toLocaleString()}</span>
+                          <span className="font-mono">
+                            {transaction.hash.slice(0, 10)}...{transaction.hash.slice(-8)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4">
+                      <div className="text-right">
+                        <div className={`text-sm font-semibold ${
+                          ['deposit', 'payment', 'damage_compensation'].includes(transaction.type)
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-green-600 dark:text-green-400'
+                        }`}>
+                          {['deposit', 'payment', 'damage_compensation'].includes(transaction.type) ? '-' : '+'}
+                          {transaction.amount} ETH
+                        </div>
+                        
+                        {transaction.gasUsed && (
+                          <div className="text-xs text-muted-foreground">
+                            Gas: {transaction.gasUsed} @ {transaction.gasPrice} gwei
+                          </div>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={() => window.open(`https://etherscan.io/tx/${transaction.hash}`, '_blank')}
+                        className="p-2 rounded-lg hover:bg-accent transition-colors"
+                        title="View on Etherscan"
+                      >
+                        <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
+        </div>
+
+        {/* Transparency Note */}
+        <div className="luxury-card p-6 mt-8 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+          <div className="flex items-start space-x-3">
+            <CheckCircle className="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-1">
+                Blockchain Transparency
+              </h3>
+              <p className="text-sm text-blue-600 dark:text-blue-400">
+                All transactions are recorded on the blockchain and can be independently verified. 
+                This ensures complete transparency and immutable records of all rental activities.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from './stores/authStore';
-import { useWeb3Store } from './stores/web3Store';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
-import { WalletConnection } from './components/WalletConnection';
-import { ContractDisplay } from './components/ContractDisplay';
+import { RentalContractDashboard } from './components/RentalContractDashboard';
+import { ContractDeployment } from './components/ContractDeployment';
 import './global.css';
 
 type AuthMode = 'login' | 'register';
@@ -14,7 +13,6 @@ function App() {
   const [showAuth, setShowAuth] = useState(true);
   
   const { isAuthenticated, user, logout, loadProfile } = useAuthStore();
-  const { contractAddress } = useWeb3Store();
 
   console.log('App: Current state:', { 
     isAuthenticated, 
@@ -48,23 +46,23 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="glass border-b border-border/20">
+        <div className="container-responsive">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-semibold text-gray-900">
-              Car Rental DApp
+            <h1 className="text-xl font-semibold gradient-text">
+              Web3 Car Rental DApp
             </h1>
             
             {isAuthenticated && (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   Welcome, {user?.display_name}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                  className="text-sm bg-destructive hover:bg-destructive/90 text-destructive-foreground px-3 py-1 rounded focus-ring"
                 >
                   Logout
                 </button>
@@ -75,11 +73,20 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="container-responsive py-8">
         {showAuth ? (
           /* Authentication Modal */
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+            <div className="glass rounded-lg p-8 w-full max-w-md mx-4 neon-glow">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold gradient-text mb-2">
+                  Web3 Car Rental
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Secure, decentralized car rentals on the blockchain
+                </p>
+              </div>
+              
               {authMode === 'login' ? (
                 <LoginForm
                   onSuccess={handleAuthSuccess}
@@ -95,73 +102,91 @@ function App() {
           </div>
         ) : (
           /* Main Application */
-          <div className="px-4 py-6 sm:px-0">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Sidebar - User Info & Wallet */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* User Information */}
-                {user && (
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        User Information
-                      </h3>
-                      <div className="mt-3 space-y-2 text-sm">
-                        <p><span className="font-medium">Username:</span> {user.username}</p>
-                        <p><span className="font-medium">Email:</span> {user.email}</p>
-                        <p><span className="font-medium">Display Name:</span> {user.display_name}</p>
-                        <p><span className="font-medium">Role:</span> {user.role}</p>
-                        {user.metamask_address && (
-                          <p><span className="font-medium">Wallet:</span> {user.metamask_address}</p>
-                        )}
-                      </div>
+          <div className="space-y-8">
+            {/* Welcome Section */}
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold gradient-text mb-4">
+                Smart Contract Car Rental
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Experience the future of car rentals with our blockchain-powered platform. 
+                Secure deposits, transparent pricing, and decentralized ownership verification.
+              </p>
+            </div>
+
+            {/* User Information Card */}
+            {user && (
+              <div className="glass rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-semibold text-foreground mb-4">User Profile</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Username:</span>
+                      <span className="text-foreground font-medium">{user.username}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Email:</span>
+                      <span className="text-foreground font-medium">{user.email}</span>
                     </div>
                   </div>
-                )}
-
-                {/* Wallet Connection */}
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                      Wallet Connection
-                    </h3>
-                    <WalletConnection />
-                  </div>
-                </div>
-
-                {/* Contract Address Info */}
-                {contractAddress && (
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        Contract Address
-                      </h3>
-                      <p className="mt-2 text-sm text-gray-600 break-all">
-                        {contractAddress}
-                      </p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Display Name:</span>
+                      <span className="text-foreground font-medium">{user.display_name}</span>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Main Content - Contract Display */}
-              <div className="lg:col-span-2">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-6">
-                      Car Rental Contract
-                    </h3>
-                    
-                    {contractAddress ? (
-                      <ContractDisplay contractAddress={contractAddress} />
-                    ) : (
-                      <div className="text-center py-12">
-                        <p className="text-gray-500">
-                          No contract deployed yet. Please deploy a contract first.
-                        </p>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Role:</span>
+                      <span className="text-foreground font-medium capitalize">{user.role}</span>
+                    </div>
+                    {user.metamask_address && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Wallet:</span>
+                        <span className="text-foreground font-mono text-xs">
+                          {user.metamask_address.slice(0, 6)}...{user.metamask_address.slice(-4)}
+                        </span>
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rental Contract Dashboard */}
+            <RentalContractDashboard />
+
+            {/* Contract Deployment Helper */}
+            <ContractDeployment />
+
+            {/* Footer Information */}
+            <div className="glass rounded-lg p-6 text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">How It Works</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-neon-cyan/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-neon-cyan font-bold text-lg">1</span>
+                  </div>
+                  <h4 className="font-medium text-foreground mb-2">Connect Wallet</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Connect your MetaMask wallet to interact with the smart contract
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-neon-purple/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-neon-purple font-bold text-lg">2</span>
+                  </div>
+                  <h4 className="font-medium text-foreground mb-2">Rent or Lend</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Rent a car by paying the deposit, or manage your rental as the owner
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-neon-pink/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-neon-pink font-bold text-lg">3</span>
+                  </div>
+                  <h4 className="font-medium text-foreground mb-2">Complete Safely</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Return process with confirmation from both parties and automatic payment
+                  </p>
                 </div>
               </div>
             </div>

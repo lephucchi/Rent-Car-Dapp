@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "outline";
+  variant?: "primary" | "secondary" | "ghost" | "outline" | "destructive";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   children: React.ReactNode;
@@ -28,6 +28,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ghost: "hover:bg-white/5 text-gray-300 hover:text-white",
       outline:
         "border border-gray-600 hover:border-neon-cyan text-gray-300 hover:text-neon-cyan",
+      destructive: "bg-red-600 hover:bg-red-700 text-white hover:shadow-lg hover:shadow-red-600/25",
     };
 
     const sizes = {
@@ -61,4 +62,5 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = "Button";
 
+export { Button };
 export default Button;

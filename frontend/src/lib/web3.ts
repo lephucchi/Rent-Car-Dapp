@@ -1,11 +1,12 @@
 import { ethers } from "ethers";
-import type { 
-  ContractInfo as ContractData, 
-  CarInfo, 
-  RentalInfo, 
-  TimeInfo, 
-  InspectionInfo, 
-  ContractStatus 
+import { checkMetaMaskStatus, getMetaMaskErrorMessage, waitForMetaMask } from "./metamaskDetection";
+import type {
+  ContractInfo as ContractData,
+  CarInfo,
+  RentalInfo,
+  TimeInfo,
+  InspectionInfo,
+  ContractStatus
 } from "../types";
 
 // Re-export types for convenience
@@ -64,17 +65,7 @@ const loadContractInfo = async (): Promise<ContractData | null> => {
   }
 };
 
-interface EthereumProvider {
-  isMetaMask?: boolean;
-  request?: (args: any) => Promise<any>;
-  [key: string]: any;
-}
 
-declare global {
-  interface Window {
-    ethereum?: EthereumProvider;
-  }
-}
 
 // Extended contract information for UI display
 export interface ContractDetails {
@@ -99,18 +90,39 @@ export class Web3Service {
 
   private initializeProvider() {
     if (typeof window !== "undefined" && window.ethereum) {
-      this.provider = new ethers.BrowserProvider(window.ethereum as any);
+      try {
+        this.provider = new ethers.BrowserProvider(window.ethereum as any);
+      } catch (error) {
+        console.warn("Failed to initialize provider:", error);
+        this.provider = null;
+      }
     }
   }
 
   async connectWallet() {
+    // Check MetaMask status
+    const metaMaskStatus = checkMetaMaskStatus();
+    if (!metaMaskStatus.isAvailable) {
+      throw new Error(getMetaMaskErrorMessage(metaMaskStatus));
+    }
+
+    // Wait for MetaMask to be fully available (sometimes needed after page load)
+    const isReady = await waitForMetaMask(3000);
+    if (!isReady) {
+      throw new Error("MetaMask is not responding. Please refresh the page and try again.");
+    }
+
+    // Initialize provider if not already done
     if (!this.provider) {
-      throw new Error("MetaMask not found. Please install MetaMask.");
+      try {
+        this.provider = new ethers.BrowserProvider(window.ethereum as any);
+      } catch (error) {
+        throw new Error("Failed to initialize MetaMask provider. Please refresh the page.");
+      }
     }
 
     try {
       // Request account access
-      if (!window.ethereum) throw new Error("MetaMask not found");
       await window.ethereum.request?.({ method: "eth_requestAccounts" });
 
       this.signer = await this.provider.getSigner();
@@ -261,6 +273,11 @@ export class Web3Service {
   async getContractAddress(): Promise<string> {
     await loadContractInfo();
     return CONTRACT_ADDRESS;
+  }
+
+  // Alias method for backward compatibility
+  async getContractInfo(contractAddress?: string): Promise<ContractDetails> {
+    return await this.getContractDetails(contractAddress);
   }
 
   // Event listening

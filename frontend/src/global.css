@@ -4,50 +4,69 @@
 
 @layer base {
   /**
-   * Web3 Car Rental DApp Theme
-   * Futuristic glassmorphism with neon accents
+   * LuxeRent Car Rental DApp Theme
+   * Ferrari-inspired luxury design with glassmorphism
    */
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 5% 6%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 263 70% 50%;
+    /* Light theme colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
-
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 5% 6%;
-    --muted-foreground: 240 5% 65%;
-
-    --accent: 180 100% 50%;
-    --accent-foreground: 240 10% 3.9%;
-
-    --destructive: 0 62.8% 50%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 240 6% 20%;
-    --input: 240 6% 20%;
-    --ring: 263 70% 50%;
-
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
     --radius: 0.75rem;
 
-    /* Web3 Custom Colors */
-    --neon-cyan: 180 100% 50%;
-    --neon-purple: 263 70% 50%;
-    --neon-pink: 320 100% 70%;
-    --glass-bg: 240 10% 3.9%;
-    --glass-border: 240 6% 20%;
+    /* Ferrari-inspired luxury colors */
+    --ferrari-red: 0 100% 45%;
+    --ferrari-yellow: 45 100% 51%;
+    --luxury-gold: 38 100% 50%;
+    --platinum: 240 9% 89%;
+    --carbon: 0 0% 7%;
+    --steel: 220 9% 46%;
+  }
 
-    /* Glassmorphism */
-    --glass: 240 10% 3.9% / 0.8;
-    --glass-hover: 240 10% 3.9% / 0.9;
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+
+    /* Dark theme luxury colors */
+    --ferrari-red: 0 100% 35%;
+    --ferrari-yellow: 45 100% 41%;
+    --luxury-gold: 38 100% 40%;
+    --platinum: 240 9% 70%;
+    --carbon: 0 0% 4%;
+    --steel: 220 9% 56%;
   }
 }
 
@@ -57,66 +76,178 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    background: radial-gradient(
-      ellipse at center,
-      hsl(var(--background)) 0%,
-      hsl(240 10% 1%) 100%
-    );
+    @apply bg-background text-foreground transition-colors duration-300;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
     min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-light tracking-tight;
+  }
+
+  .font-light {
+    font-weight: 300;
+  }
+
+  .font-normal {
+    font-weight: 400;
+  }
+
+  .font-medium {
+    font-weight: 500;
+  }
+
+  .font-semibold {
+    font-weight: 600;
+  }
+
+  .font-bold {
+    font-weight: 700;
   }
 }
 
 @layer components {
-  .glass {
+  /* Ferrari-inspired luxury components */
+  .luxury-glass {
     background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .glass-hover {
-    @apply glass;
     transition: all 0.3s ease;
   }
 
-  .glass-hover:hover {
+  .dark .luxury-glass {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .luxury-glass:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
   }
 
-  .neon-glow {
-    box-shadow:
-      0 0 20px hsl(var(--neon-cyan)),
-      0 0 40px hsl(var(--neon-cyan) / 0.5);
+  .dark .luxury-glass:hover {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
-  .neon-glow-purple {
-    box-shadow:
-      0 0 20px hsl(var(--neon-purple)),
-      0 0 40px hsl(var(--neon-purple) / 0.5);
+  .ferrari-gradient {
+    background: linear-gradient(135deg, hsl(var(--ferrari-red)), hsl(var(--luxury-gold)));
   }
 
-  /* Responsive utilities */
-  .container-responsive {
+  .luxury-card {
+    @apply bg-card border border-border rounded-xl shadow-sm transition-all duration-300;
+  }
+
+  .luxury-card:hover {
+    @apply shadow-lg border-muted-foreground/20;
+    transform: translateY(-1px);
+  }
+
+  .luxury-button {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium transition-all duration-300;
+    box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .luxury-button:hover {
+    @apply transform translate-y-[-2px];
+    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.15);
+  }
+
+  .luxury-button-outline {
+    @apply border border-border text-foreground px-6 py-3 rounded-lg font-medium transition-all duration-300 bg-background;
+  }
+
+  .luxury-button-outline:hover {
+    @apply border-foreground/30 bg-muted;
+  }
+
+  .ferrari-button {
+    @apply ferrari-gradient text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300;
+    box-shadow: 0 8px 25px 0 rgba(220, 38, 38, 0.2);
+  }
+
+  .ferrari-button:hover {
+    @apply transform translate-y-[-2px];
+    box-shadow: 0 12px 35px 0 rgba(220, 38, 38, 0.3);
+  }
+
+  .luxury-input {
+    @apply bg-background border border-input rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200;
+  }
+
+  /* Layout utilities */
+  .luxury-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Micro-interactions */
-  .hover-lift {
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+  .luxury-section {
+    @apply py-16 lg:py-24;
   }
 
-  .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  /* Typography */
+  .luxury-heading {
+    @apply text-4xl md:text-5xl lg:text-6xl font-light text-foreground tracking-tight;
   }
 
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
+  .luxury-subheading {
+    @apply text-xl md:text-2xl text-muted-foreground font-light;
+  }
+
+  .luxury-title {
+    @apply text-2xl md:text-3xl font-light text-foreground;
+  }
+
+  /* Grid layouts */
+  .luxury-grid {
+    @apply grid gap-6 md:gap-8 lg:gap-12;
+  }
+
+  .luxury-grid-2 {
+    @apply luxury-grid md:grid-cols-2;
+  }
+
+  .luxury-grid-3 {
+    @apply luxury-grid md:grid-cols-3;
+  }
+
+  .luxury-grid-4 {
+    @apply luxury-grid md:grid-cols-4;
+  }
+
+  /* Status indicators */
+  .status-indicator {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .status-active {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+  }
+
+  .status-pending {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
+  }
+
+  .status-inactive {
+    @apply bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400;
+  }
+
+  .status-error {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400;
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200;
+  }
+
+  .nav-link.active {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  .nav-link:hover {
+    @apply bg-accent/50 text-accent-foreground;
   }
 
   /* Custom scrollbar */
@@ -125,47 +256,78 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
+    background: hsl(var(--muted));
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(
-      180deg,
-      hsl(var(--neon-purple)),
-      hsl(var(--neon-cyan))
-    );
+    background: hsl(var(--muted-foreground));
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(
-      180deg,
-      hsl(var(--neon-cyan)),
-      hsl(var(--neon-purple))
-    );
+    background: hsl(var(--foreground));
+  }
+
+  /* Smooth animations */
+  .fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* Focus styles for accessibility */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-neon-cyan focus:ring-offset-2 focus:ring-offset-background;
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
   }
 
   /* Loading animation */
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  .luxury-spinner {
+    @apply animate-spin rounded-full border-2 border-muted border-t-foreground;
   }
 
-  /* Gradient text */
-  .gradient-text {
-    @apply bg-gradient-to-r from-neon-cyan to-neon-purple bg-clip-text text-transparent;
+  /* Responsive breakpoints helper */
+  .responsive-padding {
+    @apply px-4 sm:px-6 lg:px-8;
   }
 
-  /* Card hover effects */
-  .card-interactive {
-    @apply glass-hover hover-lift cursor-pointer transition-all duration-300;
+  .responsive-margin {
+    @apply mx-4 sm:mx-6 lg:mx-8;
   }
+}
 
-  .card-interactive:hover {
-    @apply neon-glow-purple;
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .luxury-glass,
+  .ferrari-gradient {
+    background: transparent !important;
   }
 }
