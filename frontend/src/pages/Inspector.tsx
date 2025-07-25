@@ -40,22 +40,24 @@ export default function Inspector() {
   async function connectWallet() {
     try {
       setConnecting(true);
+      setError(null);
+
       const { address, balance, network } = await web3Service.connectWallet();
-      
+
       // Kiểm tra xem địa chỉ có phải là inspector không
       if (address.toLowerCase() !== INSPECTOR_ADDRESS.toLowerCase()) {
-        throw new Error(`Chỉ tài khoản inspector (${INSPECTOR_ADDRESS}) mới có thể truy cập trang này`);
+        throw new Error(`Only the inspector account (${INSPECTOR_ADDRESS}) can access this page`);
       }
-      
+
       setAccount(address);
       setBalance(balance);
       setNetwork(network);
-      
+
       // Save connected account
       localStorage.setItem('connectedAccount', address);
     } catch (error) {
       console.error('Error connecting wallet:', error);
-      setError(error instanceof Error ? error.message : 'Lỗi kết nối ví');
+      setError(error instanceof Error ? error.message : 'Wallet connection error');
     } finally {
       setConnecting(false);
     }
