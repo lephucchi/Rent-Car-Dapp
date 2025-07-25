@@ -85,15 +85,14 @@ class RentalContractService {
   }
 
   private async switchToCorrectNetwork(): Promise<void> {
-    const ethereum = (window as any).ethereum;
-    if (!ethereum || !ethereum.request) {
-      throw new Error('MetaMask is not available');
+    if (!window.ethereum || !window.ethereum.request) {
+      throw new Error('MetaMask is not available for network switching');
     }
 
     const targetChainId = `0x${contractConfig.chainId.toString(16)}`;
-    
+
     try {
-      await ethereum.request({
+      await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: targetChainId }],
       });
@@ -101,7 +100,7 @@ class RentalContractService {
       // This error code indicates that the chain has not been added to MetaMask
       if (switchError.code === 4902) {
         try {
-          await ethereum.request({
+          await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [
               {
@@ -118,10 +117,10 @@ class RentalContractService {
           });
         } catch (addError) {
           console.error('Failed to add network:', addError);
-          throw addError;
+          throw new Error('Failed to add the required network to MetaMask. Please add it manually.');
         }
       } else {
-        throw switchError;
+        throw new Error('Failed to switch to the required network. Please switch manually in MetaMask.');
       }
     }
   }
