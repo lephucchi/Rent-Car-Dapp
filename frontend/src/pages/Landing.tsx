@@ -121,16 +121,13 @@ export default function Landing() {
                 </div>
               </div>
 
-              <div className="mt-12">
-                <button
-                  onClick={handleConnectWallet}
-                  disabled={connecting}
-                  className="bg-black text-white px-12 py-4 rounded-lg text-lg hover:bg-gray-800 transition-colors inline-flex items-center space-x-3"
-                >
-                  <Wallet className="w-5 h-5" />
-                  <span>{connecting ? 'Connecting to MetaMask...' : 'Connect Wallet to Start'}</span>
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+              <div className="mt-12 max-w-md mx-auto">
+                <MetaMaskConnect
+                  onConnect={handleConnectWallet}
+                  connecting={connecting}
+                  error={connectionError}
+                  className="bg-white"
+                />
               </div>
             </div>
           </div>
