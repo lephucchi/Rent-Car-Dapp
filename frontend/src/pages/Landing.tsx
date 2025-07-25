@@ -101,22 +101,22 @@ export default function Landing() {
                 Connect your wallet to rent luxury vehicles with transparent pricing and instant confirmations.
               </p>
               
-              <div className="bg-gray-50 rounded-2xl p-8 max-w-4xl mx-auto">
-                <div className="grid md:grid-cols-3 gap-8">
+              <div className="luxury-card p-8 max-w-4xl mx-auto mb-12">
+                <div className="luxury-grid-3">
                   <div className="text-center">
-                    <Shield className="w-12 h-12 text-black mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-black mb-2">Blockchain Security</h3>
-                    <p className="text-gray-600">Smart contracts ensure transparent and secure transactions</p>
+                    <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Blockchain Security</h3>
+                    <p className="text-muted-foreground">Smart contracts ensure transparent and secure transactions</p>
                   </div>
                   <div className="text-center">
-                    <Clock className="w-12 h-12 text-black mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-black mb-2">Instant Rental</h3>
-                    <p className="text-gray-600">Rent immediately with cryptocurrency payments</p>
+                    <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Instant Rental</h3>
+                    <p className="text-muted-foreground">Rent immediately with cryptocurrency payments</p>
                   </div>
                   <div className="text-center">
-                    <CreditCard className="w-12 h-12 text-black mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-black mb-2">Transparent Pricing</h3>
-                    <p className="text-gray-600">All fees calculated on-chain with no hidden costs</p>
+                    <CreditCard className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Transparent Pricing</h3>
+                    <p className="text-muted-foreground">All fees calculated on-chain with no hidden costs</p>
                   </div>
                 </div>
               </div>
