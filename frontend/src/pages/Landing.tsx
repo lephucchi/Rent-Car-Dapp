@@ -147,6 +147,16 @@ export default function Landing() {
                   error={connectionError}
                   className="bg-white"
                 />
+
+                {/* Debug button for development */}
+                {import.meta.env.DEV && (
+                  <button
+                    onClick={debugMetaMaskConnection}
+                    className="mt-4 text-xs text-gray-400 hover:text-gray-600 underline"
+                  >
+                    Debug MetaMask Connection
+                  </button>
+                )}
               </div>
             </div>
           </div>
