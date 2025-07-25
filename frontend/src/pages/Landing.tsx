@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet } from 'lucide-react';
 import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected } from '../stores/rentalContractStore';
 import { rentalContractService } from '../services/rentalContractService';
+import { ContractStatus } from '../components/ContractStatus';
 
 export default function Landing() {
   const {
