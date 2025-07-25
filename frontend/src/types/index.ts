@@ -5,7 +5,10 @@ export interface User {
   display_name: string;
   role: 'user' | 'admin' | 'inspector';
   metamask_address?: string;
+<<<<<<< HEAD
   wallet_address?: string;
+=======
+>>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
   is_active: boolean;
   created_at: string;
   updated_at: string;

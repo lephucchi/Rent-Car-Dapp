@@ -1,11 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Car, Home, BarChart3, User, Wallet, ClipboardCheck } from "lucide-react";
+import { Shield } from "lucide-react";
 import { useWeb3Store } from "../stores/web3Store";
+import { useAuthStore } from "../stores/authStore";
 import { formatAddress, cn } from "../lib/utils";
 
 export function Navigation() {
   const location = useLocation();
+  const { user } = useAuthStore();
   const {
     isConnected,
     address,
@@ -17,11 +20,13 @@ export function Navigation() {
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },
+    { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
     { href: "/marketplace", label: "Marketplace", icon: Car },
     { href: "/lend", label: "Lend Car", icon: User },
     { href: "/active-rentals", label: "Active Rentals", icon: BarChart3 },
-    { href: "/transactions", label: "Transactions", icon: BarChart3 },
+    { href: "/transactions", label: "Transactions", icon: ClipboardCheck },
     { href: "/inspector", label: "Inspector", icon: ClipboardCheck },
+    ...(user?.role === 'admin' ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
   const handleWalletAction = async () => {

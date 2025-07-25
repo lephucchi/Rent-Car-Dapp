@@ -12,6 +12,8 @@ import Transactions from "./pages/Transaction";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Inspector from "./pages/Inspector";
+import Admin from "./pages/Admin";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/inspector" element={<Inspector />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

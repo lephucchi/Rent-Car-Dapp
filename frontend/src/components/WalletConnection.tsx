@@ -26,7 +26,7 @@ export const WalletConnection: React.FC = () => {
       await connectWallet();
       
       // If wallet connected successfully and user doesn't have metamask ID, save it
-      if (!user.metamaskId && address) {
+      if (!user.metamask_address && address) {
         await connectMetamask(address);
       }
     } catch (error) {
