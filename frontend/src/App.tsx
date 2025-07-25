@@ -154,6 +154,9 @@ function App() {
             {/* Rental Contract Dashboard */}
             <RentalContractDashboard />
 
+            {/* Contract Deployment Helper */}
+            <ContractDeployment />
+
             {/* Footer Information */}
             <div className="glass rounded-lg p-6 text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">How It Works</h3>
