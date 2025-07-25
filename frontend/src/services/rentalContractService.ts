@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { contractConfig } from '../lib/contractConfig';
+import { checkMetaMaskStatus, getMetaMaskErrorMessage, waitForMetaMask } from '../lib/metamaskDetection';
 
 export interface RentalContractState {
   // Core parameters
