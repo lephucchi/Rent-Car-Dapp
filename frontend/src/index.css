@@ -45,4 +45,83 @@
       0 0 20px hsl(var(--neon-purple)),
       0 0 40px hsl(var(--neon-purple) / 0.5);
   }
+
+  /* Luxury Car Showroom Styles */
+  .luxury-card {
+    @apply bg-white border border-gray-100 rounded-2xl shadow-sm transition-all duration-300;
+  }
+
+  .luxury-card:hover {
+    @apply shadow-lg border-gray-200;
+    transform: translateY(-2px);
+  }
+
+  .luxury-button {
+    @apply bg-black text-white px-6 py-3 rounded-lg font-medium transition-all duration-200;
+  }
+
+  .luxury-button:hover {
+    @apply bg-gray-800 transform translate-y-[-1px];
+  }
+
+  .luxury-button-outline {
+    @apply border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium transition-all duration-200;
+  }
+
+  .luxury-button-outline:hover {
+    @apply border-gray-400 bg-gray-50;
+  }
+
+  .luxury-section {
+    @apply py-16 lg:py-20;
+  }
+
+  .luxury-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .luxury-title {
+    @apply text-4xl md:text-5xl lg:text-6xl font-light text-black tracking-tight;
+  }
+
+  .luxury-subtitle {
+    @apply text-xl md:text-2xl text-gray-600 font-light;
+  }
+
+  .luxury-text {
+    @apply text-gray-600 leading-relaxed;
+  }
+
+  /* Clean animations for luxury feel */
+  .fade-in {
+    animation: fadeInLuxury 0.6s ease-out;
+  }
+
+  @keyframes fadeInLuxury {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Luxury grid layouts */
+  .luxury-grid {
+    @apply grid gap-6 md:gap-8 lg:gap-12;
+  }
+
+  .luxury-grid-2 {
+    @apply luxury-grid md:grid-cols-2;
+  }
+
+  .luxury-grid-3 {
+    @apply luxury-grid md:grid-cols-3;
+  }
+
+  .luxury-grid-4 {
+    @apply luxury-grid md:grid-cols-4;
+  }
 }
