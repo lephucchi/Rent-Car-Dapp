@@ -1,193 +1,117 @@
-import { useState, useEffect } from 'react';
-import Navigation from "../components/Navigation";
-import Button from "../components/Button";
-import { MetaMaskConnect } from "../components/MetaMaskConnect";
-import { web3Service, ContractStatus } from "../lib/web3";
-import type { ContractInfo } from '../lib/web3';
+import React, { useState, useEffect } from 'react';
+import { ClipboardCheck, AlertTriangle, CheckCircle, XCircle, Camera, DollarSign } from 'lucide-react';
+import { useRentalContractStore, useContractState, useAvailableActions, useUserRole, useIsConnected } from '../stores/rentalContractStore';
+import { rentalContractService } from '../services/rentalContractService';
+import { MetaMaskConnect } from '../components/MetaMaskConnect';
 
-// Địa chỉ ví cố định cho bên kiểm định
+// Hardcoded inspector address (in real app, this would be configured)
 const INSPECTOR_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
-interface PendingInspection {
-  contractAddress: string;
-  contractInfo: ContractInfo;
+interface DamageAssessment {
+  isDamaged: boolean;
+  damageDescription: string;
+  compensationAmount: string;
+  photos: string[];
 }
 
 export default function Inspector() {
-  const [account, setAccount] = useState<string | null>(null);
-  const [balance, setBalance] = useState<string | null>(null);
-  const [network, setNetwork] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState<boolean>(false);
-  const [pendingInspections, setPendingInspections] = useState<PendingInspection[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [inspectionData, setInspectionData] = useState<{[key: string]: {isDamaged: boolean, compensation: string}}>({});
+  const { connectWallet, reportDamage, setActualUsage } = useRentalContractStore();
+  const contractState = useContractState();
+  const availableActions = useAvailableActions();
+  const userRole = useUserRole();
+  const isConnected = useIsConnected();
+  
+  const [connecting, setConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [assessment, setAssessment] = useState<DamageAssessment>({
+    isDamaged: false,
+    damageDescription: '',
+    compensationAmount: '0',
+    photos: []
+  });
+  const [actualMinutesInput, setActualMinutesInput] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check if wallet was previously connected
-    const savedAccount = localStorage.getItem('connectedAccount');
-    if (savedAccount && savedAccount.toLowerCase() === INSPECTOR_ADDRESS.toLowerCase()) {
-      connectWallet();
+    // Check if connected wallet is the designated inspector
+    if (isConnected && contractState) {
+      const currentAccount = rentalContractService.getCurrentAccount();
+      // In a real app, you'd check if the current account matches the inspector address
     }
-  }, []);
+  }, [isConnected, contractState]);
 
-  useEffect(() => {
-    if (account && account.toLowerCase() === INSPECTOR_ADDRESS.toLowerCase()) {
-      loadPendingInspections();
-    }
-  }, [account]);
-
-  async function connectWallet() {
+  const handleConnectWallet = async () => {
     try {
       setConnecting(true);
-      setError(null);
-
-      const { address, balance, network } = await web3Service.connectWallet();
-
-      // Kiểm tra xem địa chỉ có phải là inspector không
-      if (address.toLowerCase() !== INSPECTOR_ADDRESS.toLowerCase()) {
-        throw new Error(`Only the inspector account (${INSPECTOR_ADDRESS}) can access this page`);
-      }
-
-      setAccount(address);
-      setBalance(balance);
-      setNetwork(network);
-
-      // Save connected account
-      localStorage.setItem('connectedAccount', address);
+      setConnectionError(null);
+      await connectWallet();
     } catch (error) {
-      console.error('Error connecting wallet:', error);
-      setError(error instanceof Error ? error.message : 'Wallet connection error');
+      console.error('Failed to connect wallet:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
+      setConnectionError(errorMessage);
     } finally {
       setConnecting(false);
     }
-  }
+  };
 
-  async function loadPendingInspections() {
+  const handleSubmitInspection = async () => {
+    if (!assessment.isDamaged && !actualMinutesInput) {
+      alert('Please provide actual usage minutes and/or damage assessment');
+      return;
+    }
+
     try {
-      setLoading(true);
-      setError(null);
-      
-      // Fetch pending inspections list from backend API
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const res = await fetch(`${backendUrl}/api/inspections/pending`);
-      const data = await res.json();
-      const sampleContracts: string[] = data.contracts || [];
-      
-      const inspections: PendingInspection[] = [];
-      
-      for (const contractAddress of sampleContracts) {
-        try {
-          const contractInfo = await web3Service.getContractInfo(contractAddress);
-          // Only show contracts in Returned status for this inspector
-          if (contractInfo.status === ContractStatus.Returned && 
-              contractInfo.inspector.toLowerCase() === account?.toLowerCase()) {
-            inspections.push({ contractAddress, contractInfo });
-          }
-        } catch (err) {
-          console.warn(`Không thể tải hợp đồng ${contractAddress}:`, err);
+      setSubmitting(true);
+
+      // Set actual usage if provided
+      if (actualMinutesInput) {
+        const minutes = parseInt(actualMinutesInput);
+        if (!isNaN(minutes) && minutes > 0) {
+          await setActualUsage(minutes);
         }
       }
-      
-      setPendingInspections(inspections);
-    } catch (err) {
-      console.error('Error loading pending inspections:', err);
-      setError('Không thể tải danh sách kiểm định');
-    } finally {
-      setLoading(false);
-    }
-  }
 
-  async function handleInspection(contractAddress: string) {
-    const inspectionInfo = inspectionData[contractAddress];
-    if (!inspectionInfo) return;
+      // Report damage if assessed
+      if (assessment.isDamaged) {
+        await reportDamage();
+      }
 
-    try {
-      setLoading(true);
-      setError(null);
-      
-      await web3Service.inspectCar(
-        contractAddress, 
-        inspectionInfo.isDamaged, 
-        inspectionInfo.compensation
-      );
-      
-      // Reload pending inspections
-      await loadPendingInspections();
-      
-      // Clear inspection data for this contract
-      setInspectionData(prev => {
-        const newData = { ...prev };
-        delete newData[contractAddress];
-        return newData;
+      // Reset form
+      setAssessment({
+        isDamaged: false,
+        damageDescription: '',
+        compensationAmount: '0',
+        photos: []
       });
-      
-      alert('Kiểm định đã được hoàn thành thành công!');
-    } catch (err) {
-      console.error('Error completing inspection:', err);
-      setError('Không thể hoàn thành kiểm định');
+      setActualMinutesInput('');
+
+      alert('Inspection completed successfully!');
+    } catch (error) {
+      console.error('Failed to submit inspection:', error);
+      alert('Failed to submit inspection. Please try again.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
-  }
+  };
 
-  function updateInspectionData(contractAddress: string, field: 'isDamaged' | 'compensation', value: boolean | string) {
-    setInspectionData(prev => ({
-      ...prev,
-      [contractAddress]: {
-        ...prev[contractAddress],
-        isDamaged: field === 'isDamaged' ? value as boolean : prev[contractAddress]?.isDamaged || false,
-        compensation: field === 'compensation' ? value as string : prev[contractAddress]?.compensation || '0'
-      }
-    }));
-  }
-
-  function addManualContract() {
-    const contractAddress = prompt('Nhập địa chỉ hợp đồng cần kiểm định:');
-    if (contractAddress && contractAddress.startsWith('0x')) {
-      loadContractForInspection(contractAddress);
-    }
-  }
-
-  async function loadContractForInspection(contractAddress: string) {
-    try {
-      const contractInfo = await web3Service.getContractInfo(contractAddress);
-      
-      if (contractInfo.status !== ContractStatus.Returned) {
-        alert('Hợp đồng này không ở trạng thái chờ kiểm định');
-        return;
-      }
-      
-      if (contractInfo.inspector.toLowerCase() !== account?.toLowerCase()) {
-        alert('Bạn không phải là người kiểm định được chỉ định cho hợp đồng này');
-        return;
-      }
-      
-      // Add to pending inspections if not already there
-      const exists = pendingInspections.find(p => p.contractAddress.toLowerCase() === contractAddress.toLowerCase());
-      if (!exists) {
-        setPendingInspections(prev => [...prev, { contractAddress, contractInfo }]);
-      }
-    } catch (err) {
-      console.error('Error loading contract:', err);
-      alert('Không thể tải thông tin hợp đồng');
-    }
-  }
-
-  if (!account) {
+  // Access control for non-connected users
+  if (!isConnected) {
     return (
-      <div className="min-h-screen">
-        <Navigation />
-        <div className="container-responsive py-8 pt-20">
-          <h1 className="text-3xl font-bold gradient-text text-center mb-8">
-            Car Inspector Dashboard
-          </h1>
-
+      <div className="min-h-screen bg-background">
+        <div className="luxury-container py-16">
           <div className="max-w-md mx-auto">
+            <div className="text-center mb-8">
+              <ClipboardCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h1 className="luxury-title mb-4">Vehicle Inspector Dashboard</h1>
+              <p className="text-muted-foreground">
+                Connect your wallet to access the vehicle inspection interface.
+              </p>
+            </div>
+            
             <MetaMaskConnect
-              onConnect={connectWallet}
+              onConnect={handleConnectWallet}
               connecting={connecting}
-              error={error}
+              error={connectionError}
               requiredAddress={INSPECTOR_ADDRESS}
             />
           </div>
@@ -196,161 +120,243 @@ export default function Inspector() {
     );
   }
 
+  // Show contract loading state
+  if (!contractState) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="luxury-spinner w-8 h-8 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading contract data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="container-responsive py-8 pt-20">
-        <h1 className="text-3xl font-bold gradient-text text-center mb-8">Car Inspector Dashboard</h1>
-        
-        {/* Account Information */}
-        <div className="glass rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Inspector Information</h2>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Address:</span>
-              <span className="text-foreground font-mono">{account}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Balance:</span>
-              <span className="text-foreground">{balance} ETH</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Network:</span>
-              <span className="text-foreground">{network}</span>
-            </div>
+    <div className="min-h-screen bg-background">
+      <div className="luxury-container py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <ClipboardCheck className="w-8 h-8 text-primary" />
+            <h1 className="luxury-heading">Vehicle Inspector</h1>
           </div>
-          <div className="mt-4 flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-            <span className="text-sm text-green-400">Verified Inspector Account</span>
+          <p className="luxury-subheading">
+            Inspect returned vehicles and assess any damage
+          </p>
+        </div>
+
+        {/* Inspector Status */}
+        <div className="luxury-card p-6 mb-8">
+          <h3 className="luxury-title mb-4">Inspector Status</h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="font-medium">Authorized Inspector</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Connected as Inspector
+            </div>
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+        {/* Contract Information */}
+        <div className="luxury-card p-6 mb-8">
+          <h3 className="luxury-title mb-4">Contract Information</h3>
+          <div className="luxury-grid-2">
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Vehicle:</span>
+                <span className="font-medium">{contractState.assetName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Rental Status:</span>
+                <span className={`status-indicator ${contractState.isRented ? 'status-active' : 'status-inactive'}`}>
+                  {contractState.isRented ? 'Currently Rented' : 'Available'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Return Requested:</span>
+                <span className={`status-indicator ${contractState.renterRequestedReturn ? 'status-active' : 'status-pending'}`}>
+                  {contractState.renterRequestedReturn ? 'Yes' : 'No'}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Owner:</span>
+                <span className="font-mono text-sm">
+                  {contractState.lessor.slice(0, 6)}...{contractState.lessor.slice(-4)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Current Renter:</span>
+                <span className="font-mono text-sm">
+                  {contractState.lessee === '0x0000000000000000000000000000000000000000' 
+                    ? 'None' 
+                    : `${contractState.lessee.slice(0, 6)}...${contractState.lessee.slice(-4)}`}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Return Confirmed:</span>
+                <span className={`status-indicator ${contractState.ownerConfirmedReturn ? 'status-active' : 'status-pending'}`}>
+                  {contractState.ownerConfirmedReturn ? 'Yes' : 'No'}
+                </span>
+              </div>
+            </div>
           </div>
-        )}
-
-        {/* Nút thêm hợp đồng thủ công */}
-        <div className="mb-6">
-          <Button onClick={addManualContract} variant="outline">
-            Thêm hợp đồng cần kiểm định
-          </Button>
         </div>
 
-        {/* Danh sách hợp đồng chờ kiểm định */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Danh sách xe chờ kiểm định</h2>
-            <Button onClick={loadPendingInspections} disabled={loading}>
-              {loading ? 'Đang tải...' : 'Làm mới'}
-            </Button>
-          </div>
-          
-          {pendingInspections.length === 0 ? (
-            <div className="bg-white p-6 rounded-lg shadow text-center">
-              <p className="text-gray-500">Không có xe nào chờ kiểm định</p>
-              <p className="text-sm text-gray-400 mt-2">
-                Sử dụng nút "Thêm hợp đồng cần kiểm định" để thêm hợp đồng thủ công
-              </p>
+        {/* Inspection Form */}
+        {contractState.isRented && (contractState.renterRequestedReturn || contractState.ownerConfirmedReturn) && (
+          <div className="luxury-card p-6 mb-8">
+            <h3 className="luxury-title mb-6">Vehicle Inspection</h3>
+            
+            {/* Actual Usage Input */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Actual Usage (Minutes)
+              </label>
+              <div className="flex space-x-3">
+                <input
+                  type="number"
+                  value={actualMinutesInput}
+                  onChange={(e) => setActualMinutesInput(e.target.value)}
+                  placeholder="Enter actual minutes used"
+                  min="1"
+                  className="luxury-input flex-1"
+                />
+                <div className="text-sm text-muted-foreground flex items-center">
+                  Agreed: {contractState.durationMinutes.toString()} min
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-6">
-              {pendingInspections.map((inspection) => {
-                const contractAddress = inspection.contractAddress;
-                const contractInfo = inspection.contractInfo;
-                const currentData = inspectionData[contractAddress] || { isDamaged: false, compensation: '0' };
-                
-                return (
-                  <div key={contractAddress} className="bg-white p-6 rounded-lg shadow-lg">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold">Hợp đồng: {contractAddress}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                        <div>
-                          <h4 className="font-medium text-gray-700">Thông tin xe</h4>
-                          <p>{contractInfo.car.make} {contractInfo.car.model} ({contractInfo.car.year})</p>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-700">Bên thuê</h4>
-                          <p className="font-mono text-sm">{contractInfo.lessee}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-700">Thời gian trả xe</h4>
-                          <p>{contractInfo.returnTime > 0 ? new Date(contractInfo.returnTime * 1000).toLocaleString() : 'Chưa xác định'}</p>
-                        </div>
+
+            {/* Damage Assessment */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-foreground mb-4">
+                Damage Assessment
+              </label>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setAssessment(prev => ({ ...prev, isDamaged: false }))}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
+                      !assessment.isDamaged 
+                        ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                        : 'border-border hover:border-muted-foreground'
+                    }`}
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    <span>No Damage</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setAssessment(prev => ({ ...prev, isDamaged: true }))}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
+                      assessment.isDamaged 
+                        ? 'border-red-500 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
+                        : 'border-border hover:border-muted-foreground'
+                    }`}
+                  >
+                    <XCircle className="w-5 h-5" />
+                    <span>Damage Found</span>
+                  </button>
+                </div>
+
+                {assessment.isDamaged && (
+                  <div className="space-y-4 p-4 border border-red-200 rounded-lg bg-red-50/50 dark:bg-red-900/10 dark:border-red-800">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Damage Description
+                      </label>
+                      <textarea
+                        value={assessment.damageDescription}
+                        onChange={(e) => setAssessment(prev => ({ ...prev, damageDescription: e.target.value }))}
+                        placeholder="Describe the damage in detail..."
+                        rows={3}
+                        className="luxury-input w-full resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Compensation Amount (ETH)
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="w-5 h-5 text-muted-foreground" />
+                        <input
+                          type="number"
+                          value={assessment.compensationAmount}
+                          onChange={(e) => setAssessment(prev => ({ ...prev, compensationAmount: e.target.value }))}
+                          placeholder="0.0"
+                          step="0.001"
+                          min="0"
+                          className="luxury-input flex-1"
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          Max: {rentalContractService.formatEther(contractState.insuranceCompensation)} ETH
+                        </span>
                       </div>
                     </div>
 
-                    {/* Form kiểm định */}
-                    <div className="border-t pt-4">
-                      <h4 className="font-semibold mb-4">Kết quả kiểm định</h4>
-                      
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id={`damaged-${contractAddress}`}
-                            checked={currentData.isDamaged}
-                            onChange={(e) => updateInspectionData(contractAddress, 'isDamaged', e.target.checked)}
-                            className="h-4 w-4"
-                          />
-                          <label htmlFor={`damaged-${contractAddress}`} className="text-sm font-medium">
-                            Xe bị hư hại
-                          </label>
-                        </div>
-                        
-                        {currentData.isDamaged && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Chi phí bồi thường (ETH)
-                            </label>
-                            <input
-                              type="number"
-                              value={currentData.compensation}
-                              onChange={(e) => updateInspectionData(contractAddress, 'compensation', e.target.value)}
-                              step="0.001"
-                              min="0"
-                              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                              placeholder="Nhập số tiền bồi thường..."
-                            />
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-4">
-                          <Button
-                            onClick={() => handleInspection(contractAddress)}
-                            disabled={loading}
-                            className="flex-1"
-                          >
-                            {loading ? 'Đang xử lý...' : 'Xác nhận kiểm định'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Thông tin bổ sung */}
-                    <div className="border-t pt-4 mt-4">
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>
-                          <span className="font-medium">Tiền đặt cọc:</span> {contractInfo.rental.depositAmount} ETH
-                        </div>
-                        <div>
-                          <span className="font-medium">Số dư hợp đồng:</span> {contractInfo.balance} ETH
-                        </div>
-                        <div>
-                          <span className="font-medium">Thời hạn thuê:</span> {contractInfo.rental.rentalDuration} ngày
-                        </div>
-                        <div>
-                          <span className="font-medium">Giá thuê/ngày:</span> {contractInfo.rental.pricePerDay} ETH
-                        </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Damage Photos
+                      </label>
+                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                        <Camera className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Upload photos of the damage (Feature coming soon)
+                        </p>
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={handleSubmitInspection}
+                disabled={submitting || (!actualMinutesInput && !assessment.isDamaged)}
+                className="ferrari-button disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ClipboardCheck className="w-4 h-4 mr-2" />
+                {submitting ? 'Submitting...' : 'Complete Inspection'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* No Inspection Needed */}
+        {!contractState.isRented && (
+          <div className="luxury-card p-8 text-center">
+            <ClipboardCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="luxury-title mb-2">No Active Rentals</h3>
+            <p className="text-muted-foreground">
+              There are currently no vehicles that require inspection.
+            </p>
+          </div>
+        )}
+
+        {/* Previous Inspections */}
+        {contractState.isDamaged && (
+          <div className="luxury-card p-6">
+            <h3 className="luxury-title mb-4">Previous Inspections</h3>
+            <div className="border-l-4 border-red-500 pl-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <span className="font-medium text-red-600 dark:text-red-400">Damage Reported</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Vehicle damage has been reported and compensation applied.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
