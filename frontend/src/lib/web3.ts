@@ -110,17 +110,25 @@ export class Web3Service {
   }
 
   async connectWallet() {
-    // Check for MetaMask
-    if (typeof window === "undefined") {
-      throw new Error("This application requires a browser environment");
+    // Check MetaMask status
+    const metaMaskStatus = checkMetaMaskStatus();
+    if (!metaMaskStatus.isAvailable) {
+      throw new Error(getMetaMaskErrorMessage(metaMaskStatus));
     }
 
-    if (!window.ethereum) {
-      throw new Error("MetaMask not found. Please install MetaMask extension from https://metamask.io/");
+    // Wait for MetaMask to be fully available (sometimes needed after page load)
+    const isReady = await waitForMetaMask(3000);
+    if (!isReady) {
+      throw new Error("MetaMask is not responding. Please refresh the page and try again.");
     }
 
+    // Initialize provider if not already done
     if (!this.provider) {
-      this.provider = new ethers.BrowserProvider(window.ethereum as any);
+      try {
+        this.provider = new ethers.BrowserProvider(window.ethereum as any);
+      } catch (error) {
+        throw new Error("Failed to initialize MetaMask provider. Please refresh the page.");
+      }
     }
 
     try {
