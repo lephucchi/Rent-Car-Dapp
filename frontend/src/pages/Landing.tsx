@@ -23,9 +23,11 @@ export default function Landing() {
   const availableActions = useAvailableActions();
   const userRole = useUserRole();
   const isConnected = useIsConnected();
+  const { error: transactionError } = useTransactionState();
 
   const [actualMinutesInput, setActualMinutesInput] = useState('');
   const [connecting, setConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isConnected) {
