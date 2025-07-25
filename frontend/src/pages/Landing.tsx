@@ -67,26 +67,7 @@ export default function Landing() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-white">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-2">
-                <Car className="w-8 h-8 text-black" />
-                <span className="text-2xl font-bold text-black">LuxeRent</span>
-              </div>
-              <button
-                onClick={handleConnectWallet}
-                disabled={connecting}
-                className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 disabled:bg-gray-400"
-              >
-                <Wallet className="w-4 h-4" />
-                <span>{connecting ? 'Connecting...' : 'Connect Wallet'}</span>
-              </button>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-background">{/* Navigation is now handled globally */}
 
         {/* Connection Error Display */}
         {connectionError && (
