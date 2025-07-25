@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navigation from "../components/Navigation";
 import Button from "../components/Button";
+import { MetaMaskConnect } from "../components/MetaMaskConnect";
 import { web3Service, ContractStatus } from "../lib/web3";
 import type { ContractInfo } from '../lib/web3';
 
