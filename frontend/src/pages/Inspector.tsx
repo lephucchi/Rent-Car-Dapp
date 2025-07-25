@@ -197,10 +197,10 @@ export default function Inspector() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <Navigation />
-      <div className="container mx-auto p-4 pt-20">
-        <h1 className="text-3xl font-bold mb-6">Trang Kiểm Định Xe</h1>
+      <div className="container-responsive py-8 pt-20">
+        <h1 className="text-3xl font-bold gradient-text text-center mb-8">Car Inspector Dashboard</h1>
         
         {/* Thông tin tài khoản */}
         <div className="bg-green-50 p-6 rounded-lg mb-6">
@@ -240,7 +240,7 @@ export default function Inspector() {
             <div className="bg-white p-6 rounded-lg shadow text-center">
               <p className="text-gray-500">Không có xe nào chờ kiểm định</p>
               <p className="text-sm text-gray-400 mt-2">
-                Sử dụng nút "Thêm hợp đồng cần kiểm định" để thêm hợp đ��ng thủ công
+                Sử dụng nút "Thêm hợp đồng cần kiểm định" để thêm hợp đồng thủ công
               </p>
             </div>
           ) : (
