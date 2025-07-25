@@ -276,6 +276,11 @@ export class Web3Service {
     return CONTRACT_ADDRESS;
   }
 
+  // Alias method for backward compatibility
+  async getContractInfo(contractAddress?: string): Promise<ContractDetails> {
+    return await this.getContractDetails(contractAddress);
+  }
+
   // Event listening
   subscribeToEvents(contractAddress: string, callback: (event: any) => void) {
     if (!this.provider) return;
