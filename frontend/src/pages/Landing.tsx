@@ -192,24 +192,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Car className="w-8 h-8 text-black" />
-              <span className="text-2xl font-bold text-black">LuxeRent</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Connected as {userRole}
-              </span>
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background">{/* Navigation is now handled globally */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Vehicle Card */}
