@@ -38,9 +38,12 @@ export default function Landing() {
   const handleConnectWallet = async () => {
     try {
       setConnecting(true);
+      setConnectionError(null);
       await connectWallet();
     } catch (error) {
       console.error('Failed to connect wallet:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
+      setConnectionError(errorMessage);
     } finally {
       setConnecting(false);
     }
