@@ -316,6 +316,15 @@ export default function Landing() {
               </div>
             )}
 
+            {/* Error Display */}
+            {(connectionError || transactionError) && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-600 text-sm">
+                  {connectionError || transactionError}
+                </p>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="space-y-4">
               {/* Rent Button */}
