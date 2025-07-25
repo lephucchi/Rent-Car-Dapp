@@ -104,13 +104,21 @@ export class Web3Service {
   }
 
   async connectWallet() {
+    // Check for MetaMask
+    if (typeof window === "undefined") {
+      throw new Error("This application requires a browser environment");
+    }
+
+    if (!window.ethereum) {
+      throw new Error("MetaMask not found. Please install MetaMask extension from https://metamask.io/");
+    }
+
     if (!this.provider) {
-      throw new Error("MetaMask not found. Please install MetaMask.");
+      this.provider = new ethers.BrowserProvider(window.ethereum as any);
     }
 
     try {
       // Request account access
-      if (!window.ethereum) throw new Error("MetaMask not found");
       await window.ethereum.request?.({ method: "eth_requestAccounts" });
 
       this.signer = await this.provider.getSigner();
