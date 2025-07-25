@@ -121,19 +121,18 @@ export default function Landing() {
                 </div>
               </div>
 
-              <div className="mt-12 max-w-md mx-auto">
+              <div className="max-w-md mx-auto">
                 <MetaMaskConnect
                   onConnect={handleConnectWallet}
                   connecting={connecting}
                   error={connectionError}
-                  className="bg-white"
                 />
 
                 {/* Debug button for development */}
                 {import.meta.env.DEV && (
                   <button
                     onClick={debugMetaMaskConnection}
-                    className="mt-4 text-xs text-gray-400 hover:text-gray-600 underline"
+                    className="mt-4 text-xs text-muted-foreground hover:text-foreground underline"
                   >
                     Debug MetaMask Connection
                   </button>
