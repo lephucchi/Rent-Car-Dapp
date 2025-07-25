@@ -49,27 +49,34 @@ class RentalContractService {
   private currentAccount: string | null = null;
   
   async connectWallet(): Promise<string> {
-    const ethereum = (window as any).ethereum;
-    if (!ethereum) {
-      throw new Error('MetaMask is not installed');
+    // Check MetaMask status
+    const metaMaskStatus = checkMetaMaskStatus();
+    if (!metaMaskStatus.isAvailable) {
+      throw new Error(getMetaMaskErrorMessage(metaMaskStatus));
+    }
+
+    // Wait for MetaMask to be fully available (sometimes needed after page load)
+    const isReady = await waitForMetaMask(3000);
+    if (!isReady) {
+      throw new Error("MetaMask is not responding. Please refresh the page and try again.");
     }
 
     try {
       // Request account access
-      const accounts = await ethereum.request({
+      const accounts = await window.ethereum.request({
         method: 'eth_requestAccounts',
       }) as string[];
 
-      this.provider = new ethers.BrowserProvider(ethereum);
+      this.provider = new ethers.BrowserProvider(window.ethereum);
       this.signer = await this.provider.getSigner();
       this.currentAccount = accounts[0];
-      
+
       // Switch to the correct network if needed
       await this.switchToCorrectNetwork();
-      
+
       // Initialize contract
       this.initializeContract();
-      
+
       return accounts[0];
     } catch (error) {
       console.error('Failed to connect wallet:', error);
