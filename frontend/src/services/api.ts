@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-import type { User, AuthResponse } from '../types';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-=======
 import type { User, AuthResponse, ApiError, ContractStatus } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
 
 class ApiService {
   private getAuthHeaders(): HeadersInit {
@@ -33,18 +27,14 @@ class ApiService {
     password: string;
     display_name: string;
   }): Promise<AuthResponse> {
-<<<<<<< HEAD
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
-=======
     const response = await fetch(`${API_BASE_URL}/v1/auth/register`, {
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: userData.username,
         email: userData.email,
         password: userData.password,
-        display_name: userData.displayName
+        display_name: userData.display_name
       })
     });
     return this.handleResponse<AuthResponse>(response);
@@ -54,18 +44,14 @@ class ApiService {
     username_or_email: string;
     password: string;
   }): Promise<AuthResponse> {
-<<<<<<< HEAD
-    console.log('API: Attempting login with:', { username: credentials.username });
+    console.log('API: Attempting login with:', { username: credentials.username_or_email });
     console.log('API: API_BASE_URL:', API_BASE_URL);
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-=======
     const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username_or_email: credentials.username,
+        username_or_email: credentials.username_or_email,
         password: credentials.password
       })
     });
@@ -76,16 +62,11 @@ class ApiService {
     return result;
   }
 
-<<<<<<< HEAD
   async getProfile(): Promise<User> {
     console.log('API: Getting profile...');
     console.log('API: Token from localStorage:', localStorage.getItem('access_token'));
     
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
-=======
-  async getProfile(): Promise<{ user: User }> {
     const response = await fetch(`${API_BASE_URL}/v1/auth/me`, {
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
       headers: this.getAuthHeaders()
     });
     
@@ -95,39 +76,22 @@ class ApiService {
     return result;
   }
 
-<<<<<<< HEAD
-  async connectMetamask(metamaskAddress: string): Promise<{ message: string; user: User }> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/connect-metamask`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ metamask_address: metamaskAddress })
-=======
   async connectMetamask(metamask_address: string): Promise<{ message: string; user: User }> {
     const response = await fetch(`${API_BASE_URL}/v1/auth/connect-metamask`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify({ metamask_address })
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
     });
     return this.handleResponse<{ message: string; user: User }>(response);
   }
 
-<<<<<<< HEAD
   async getAllUsers(): Promise<User[]> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/admin/users`, {
+    const response = await fetch(`${API_BASE_URL}/v1/admin/users`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse<User[]>(response);
   }
 
-  async getContractStatus(): Promise<{ connected: boolean; error?: string }> {
-    const response = await fetch(`${API_BASE_URL}/api/contract/status`);
-    return this.handleResponse<{ connected: boolean; error?: string }>(response);
-  }
-
-  async healthCheck(): Promise<{ status: string; service: string; version: string }> {
-    const response = await fetch(`${API_BASE_URL}/health`);
-=======
   async getContractStatus(): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/contract/status`, {
       headers: this.getAuthHeaders()
@@ -169,7 +133,6 @@ class ApiService {
 
   async healthCheck(): Promise<{ status: string; service: string; version: string }> {
     const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
->>>>>>> 9de822a7dc7f1a07bfeedfd155dfa26991a02ea5
     return this.handleResponse<{ status: string; service: string; version: string }>(response);
   }
 }
