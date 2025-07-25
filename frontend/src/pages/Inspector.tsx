@@ -202,15 +202,26 @@ export default function Inspector() {
       <div className="container-responsive py-8 pt-20">
         <h1 className="text-3xl font-bold gradient-text text-center mb-8">Car Inspector Dashboard</h1>
         
-        {/* Thông tin tài khoản */}
-        <div className="bg-green-50 p-6 rounded-lg mb-6">
-          <h2 className="text-xl font-semibold mb-2">Thông tin Inspector</h2>
-          <p><span className="font-medium">Địa chỉ:</span> <span className="font-mono">{account}</span></p>
-          <p><span className="font-medium">Số dư:</span> {balance} ETH</p>
-          <p><span className="font-medium">Mạng:</span> {network}</p>
-          <div className="mt-2 flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-green-700">Đã xác thực là Inspector</span>
+        {/* Account Information */}
+        <div className="glass rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Inspector Information</h2>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Address:</span>
+              <span className="text-foreground font-mono">{account}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Balance:</span>
+              <span className="text-foreground">{balance} ETH</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Network:</span>
+              <span className="text-foreground">{network}</span>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+            <span className="text-sm text-green-400">Verified Inspector Account</span>
           </div>
         </div>
 
