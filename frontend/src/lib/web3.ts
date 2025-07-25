@@ -65,17 +65,7 @@ const loadContractInfo = async (): Promise<ContractData | null> => {
   }
 };
 
-interface EthereumProvider {
-  isMetaMask?: boolean;
-  request?: (args: any) => Promise<any>;
-  [key: string]: any;
-}
 
-declare global {
-  interface Window {
-    ethereum?: EthereumProvider;
-  }
-}
 
 // Extended contract information for UI display
 export interface ContractDetails {
