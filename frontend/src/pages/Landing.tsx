@@ -87,6 +87,24 @@ export default function Landing() {
           </div>
         </header>
 
+        {/* Connection Error Display */}
+        {connectionError && (
+          <div className="bg-red-50 border-b border-red-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
+                <p className="text-red-700 text-sm">{connectionError}</p>
+                <button
+                  onClick={() => setConnectionError(null)}
+                  className="ml-auto text-red-500 hover:text-red-700"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Hero Section */}
         <section className="bg-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
