@@ -2,14 +2,18 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  displayName: string;
-  role: 'user' | 'admin';
-  metamaskId?: string;
+  display_name: string;
+  role: 'user' | 'admin' | 'inspector';
+  metamask_address?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AuthResponse {
   message: string;
-  token: string;
+  access_token: string;
+  token_type: string;
   user: User;
 }
 

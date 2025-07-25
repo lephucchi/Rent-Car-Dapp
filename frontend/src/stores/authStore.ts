@@ -19,10 +19,10 @@ interface AuthState {
     username: string;
     email: string;
     password: string;
-    displayName: string;
+    display_name: string;
   }) => Promise<void>;
   logout: () => void;
-  connectMetamask: (metamaskId: string) => Promise<void>;
+  connectMetamask: (metamask_address: string) => Promise<void>;
   loadProfile: () => Promise<void>;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
@@ -43,15 +43,15 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
           
-          const response = await apiService.login({ username, password });
+          const response = await apiService.login({ username_or_email: username, password });
           
           // Store token in localStorage
-          localStorage.setItem('auth_token', response.token);
+          localStorage.setItem('auth_token', response.access_token);
           
           set({
             isAuthenticated: true,
             user: response.user,
-            token: response.token,
+            token: response.access_token,
             isLoading: false
           });
         } catch (error) {
@@ -74,12 +74,12 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiService.register(userData);
           
           // Store token in localStorage
-          localStorage.setItem('auth_token', response.token);
+          localStorage.setItem('auth_token', response.access_token);
           
           set({
             isAuthenticated: true,
             user: response.user,
-            token: response.token,
+            token: response.access_token,
             isLoading: false
           });
         } catch (error) {
@@ -105,11 +105,11 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      connectMetamask: async (metamaskId: string) => {
+      connectMetamask: async (metamask_address: string) => {
         try {
           set({ isLoading: true, error: null });
           
-          const response = await apiService.connectMetamask(metamaskId);
+          const response = await apiService.connectMetamask(metamask_address);
           
           set({
             user: response.user,

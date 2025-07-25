@@ -12,7 +12,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchT
     email: '',
     password: '',
     confirmPassword: '',
-    displayName: ''
+    display_name: ''
   });
   
   const { register, isLoading, error } = useAuthStore();
@@ -36,7 +36,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchT
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        displayName: formData.displayName
+        display_name: formData.display_name
       });
       onSuccess?.();
     } catch (error) {
@@ -86,14 +86,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onSwitchT
         </div>
 
         <div>
-          <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="display_name" className="block text-sm font-medium text-gray-700">
             Display Name
           </label>
           <input
             type="text"
-            id="displayName"
-            name="displayName"
-            value={formData.displayName}
+            id="display_name"
+            name="display_name"
+            value={formData.display_name}
             onChange={handleChange}
             required
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"

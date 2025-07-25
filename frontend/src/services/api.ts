@@ -1,6 +1,6 @@
-import type { User, AuthResponse, ApiError } from '../types';
+import type { User, AuthResponse, ApiError, ContractStatus } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 class ApiService {
   private getAuthHeaders(): HeadersInit {
@@ -25,9 +25,9 @@ class ApiService {
     username: string;
     email: string;
     password: string;
-    displayName: string;
+    display_name: string;
   }): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/v1/auth/register`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(userData)
@@ -36,10 +36,10 @@ class ApiService {
   }
 
   async login(credentials: {
-    username: string;
+    username_or_email: string;
     password: string;
   }): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(credentials)
@@ -48,31 +48,63 @@ class ApiService {
   }
 
   async getProfile(): Promise<{ user: User }> {
-    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+    const response = await fetch(`${API_BASE_URL}/v1/auth/me`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse<{ user: User }>(response);
   }
 
-  async connectMetamask(metamaskId: string): Promise<{ message: string; user: User }> {
-    const response = await fetch(`${API_BASE_URL}/auth/connect-metamask`, {
+  async connectMetamask(metamask_address: string): Promise<{ message: string; user: User }> {
+    const response = await fetch(`${API_BASE_URL}/v1/auth/connect-metamask`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ metamaskId })
+      body: JSON.stringify({ metamask_address })
     });
     return this.handleResponse<{ message: string; user: User }>(response);
   }
 
-  async getPendingInspections(): Promise<{ contracts: string[] }> {
-    const response = await fetch(`${API_BASE_URL}/inspections/pending`, {
+  async getContractStatus(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/contract/status`, {
       headers: this.getAuthHeaders()
     });
-    return this.handleResponse<{ contracts: string[] }>(response);
+    return this.handleResponse<any>(response);
   }
 
-  async healthCheck(): Promise<{ status: string; timestamp: string }> {
-    const response = await fetch(`${API_BASE_URL}/health`);
-    return this.handleResponse<{ status: string; timestamp: string }>(response);
+  async getHardhatAccounts(): Promise<{ accounts: any[] }> {
+    const response = await fetch(`${API_BASE_URL}/contract/accounts`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse<{ accounts: any[] }>(response);
+  }
+
+  async startRental(renter_address: string, private_key: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/contract/start-rental`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ renter_address, private_key })
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  async endRental(owner_address: string, private_key: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/contract/end-rental`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ owner_address, private_key })
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  async getAccountBalance(address: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/contract/balance/${address}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  async healthCheck(): Promise<{ status: string; service: string; version: string }> {
+    const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+    return this.handleResponse<{ status: string; service: string; version: string }>(response);
   }
 }
 

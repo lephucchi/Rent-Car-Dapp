@@ -51,7 +51,7 @@ function App() {
             {isAuthenticated && (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  Welcome, {user?.displayName}
+                  Welcome, {user?.display_name}
                 </span>
                 <button
                   onClick={handleLogout}
@@ -100,10 +100,10 @@ function App() {
                       <div className="mt-3 space-y-2 text-sm">
                         <p><span className="font-medium">Username:</span> {user.username}</p>
                         <p><span className="font-medium">Email:</span> {user.email}</p>
-                        <p><span className="font-medium">Display Name:</span> {user.displayName}</p>
+                        <p><span className="font-medium">Display Name:</span> {user.display_name}</p>
                         <p><span className="font-medium">Role:</span> {user.role}</p>
-                        {user.metamaskId && (
-                          <p><span className="font-medium">Wallet:</span> {user.metamaskId}</p>
+                        {user.metamask_address && (
+                          <p><span className="font-medium">Wallet:</span> {user.metamask_address}</p>
                         )}
                       </div>
                     </div>

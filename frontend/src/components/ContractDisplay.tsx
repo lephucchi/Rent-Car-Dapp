@@ -1,102 +1,31 @@
 import React, { useEffect } from 'react';
-import { useWeb3Store } from '../stores/web3Store';
-import type { ContractStatus } from '../types';
+import { useContractStore } from '../stores/contractStore';
+import { apiService } from '../services/api';
 
 interface ContractDetailsProps {
   contractAddress?: string;
 }
 
-const getStatusText = (status: ContractStatus): string => {
-  switch (status) {
-    case 0: return 'Pending';
-    case 1: return 'Active';
-    case 2: return 'Returned';
-    case 3: return 'Completed';
-    case 4: return 'Canceled';
-    default: return 'Unknown';
-  }
-};
-
-const getStatusColor = (status: ContractStatus): string => {
-  switch (status) {
-    case 0: return 'bg-yellow-100 text-yellow-800';
-    case 1: return 'bg-green-100 text-green-800';
-    case 2: return 'bg-blue-100 text-blue-800';
-    case 3: return 'bg-purple-100 text-purple-800';
-    case 4: return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
-  }
+const getStatusText = (state: string): string => {
+  return state || 'Unknown';
 };
 
 export const ContractDisplay: React.FC<ContractDetailsProps> = ({ contractAddress }) => {
   const { 
-    contractDetails, 
-    loadContractDetails, 
-    activateContract,
-    returnCar,
-    inspectCar,
-    finalizeContract,
-    cancelContract,
+    contractStatus, 
+    accounts,
+    loadContractStatus, 
+    loadAccounts,
+    startRental,
+    endRental,
     isLoading, 
-    error,
-    address 
-  } = useWeb3Store();
+    error
+  } = useContractStore();
 
   useEffect(() => {
-    loadContractDetails(contractAddress);
-  }, [contractAddress, loadContractDetails]);
-
-  const handleActivateContract = async () => {
-    if (!contractDetails || !contractAddress) return;
-    
-    try {
-      await activateContract(contractAddress, contractDetails.rental.depositAmount);
-    } catch (error) {
-      console.error('Failed to activate contract:', error);
-    }
-  };
-
-  const handleReturnCar = async () => {
-    if (!contractAddress) return;
-    
-    try {
-      await returnCar(contractAddress);
-    } catch (error) {
-      console.error('Failed to return car:', error);
-    }
-  };
-
-  const handleInspectCar = async (isDamaged: boolean) => {
-    if (!contractAddress) return;
-    
-    const compensationAmount = isDamaged ? '0.01' : '0'; // You might want to make this configurable
-    
-    try {
-      await inspectCar(contractAddress, isDamaged, compensationAmount);
-    } catch (error) {
-      console.error('Failed to inspect car:', error);
-    }
-  };
-
-  const handleFinalizeContract = async () => {
-    if (!contractAddress) return;
-    
-    try {
-      await finalizeContract(contractAddress);
-    } catch (error) {
-      console.error('Failed to finalize contract:', error);
-    }
-  };
-
-  const handleCancelContract = async () => {
-    if (!contractAddress) return;
-    
-    try {
-      await cancelContract(contractAddress);
-    } catch (error) {
-      console.error('Failed to cancel contract:', error);
-    }
-  };
+    loadContractStatus();
+    loadAccounts();
+  }, [loadContractStatus, loadAccounts]);
 
   if (isLoading) {
     return (
@@ -116,7 +45,7 @@ export const ContractDisplay: React.FC<ContractDetailsProps> = ({ contractAddres
     );
   }
 
-  if (!contractDetails) {
+  if (!contractStatus) {
     return (
       <div className="bg-gray-100 border border-gray-400 text-gray-700 px-4 py-3 rounded">
         <p>No contract details available</p>
@@ -124,9 +53,27 @@ export const ContractDisplay: React.FC<ContractDetailsProps> = ({ contractAddres
     );
   }
 
-  const isLessor = address?.toLowerCase() === contractDetails.lessor.toLowerCase();
-  const isLessee = address?.toLowerCase() === contractDetails.lessee.toLowerCase();
-  const isInspector = address?.toLowerCase() === contractDetails.inspector.toLowerCase();
+  const handleStartRental = async () => {
+    if (!accounts || accounts.length < 2) return;
+    
+    const renterAccount = accounts[1]; // Use second account as renter
+    try {
+      await startRental(renterAccount.address, renterAccount.private_key);
+    } catch (error) {
+      console.error('Failed to start rental:', error);
+    }
+  };
+
+  const handleEndRental = async () => {
+    if (!accounts || accounts.length < 1) return;
+    
+    const ownerAccount = accounts[0]; // Use first account as owner
+    try {
+      await endRental(ownerAccount.address, ownerAccount.private_key);
+    } catch (error) {
+      console.error('Failed to end rental:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -134,23 +81,23 @@ export const ContractDisplay: React.FC<ContractDetailsProps> = ({ contractAddres
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Contract Status</h3>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(contractDetails.status)}`}>
-            {getStatusText(contractDetails.status)}
+          <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            {getStatusText(contractStatus.rental_state)}
           </span>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
-            <span className="font-medium">Lessor:</span>
-            <p className="text-gray-600 break-all">{contractDetails.lessor}</p>
+            <span className="font-medium">Owner:</span>
+            <p className="text-gray-600 break-all">{contractStatus.owner}</p>
           </div>
           <div>
-            <span className="font-medium">Lessee:</span>
-            <p className="text-gray-600 break-all">{contractDetails.lessee || 'Not assigned'}</p>
+            <span className="font-medium">Current Renter:</span>
+            <p className="text-gray-600 break-all">{contractStatus.current_renter || 'Not assigned'}</p>
           </div>
           <div>
-            <span className="font-medium">Inspector:</span>
-            <p className="text-gray-600 break-all">{contractDetails.inspector}</p>
+            <span className="font-medium">Contract Address:</span>
+            <p className="text-gray-600 break-all">{contractStatus.contract_address}</p>
           </div>
         </div>
       </div>
@@ -160,16 +107,16 @@ export const ContractDisplay: React.FC<ContractDetailsProps> = ({ contractAddres
         <h3 className="text-lg font-medium mb-4">Car Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <span className="font-medium">Make:</span>
-            <p className="text-gray-600">{contractDetails.car.make}</p>
+            <span className="font-medium">Car Model:</span>
+            <p className="text-gray-600">{contractStatus.car_model}</p>
           </div>
           <div>
-            <span className="font-medium">Model:</span>
-            <p className="text-gray-600">{contractDetails.car.model}</p>
+            <span className="font-medium">Rental Fee:</span>
+            <p className="text-gray-600">{contractStatus.rental_fee_per_minute} wei/minute</p>
           </div>
           <div>
-            <span className="font-medium">Year:</span>
-            <p className="text-gray-600">{contractDetails.car.year}</p>
+            <span className="font-medium">Duration:</span>
+            <p className="text-gray-600">{contractStatus.rental_duration_minutes} minutes</p>
           </div>
         </div>
       </div>
@@ -179,66 +126,30 @@ export const ContractDisplay: React.FC<ContractDetailsProps> = ({ contractAddres
         <h3 className="text-lg font-medium mb-4">Rental Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <span className="font-medium">Price per Day:</span>
-            <p className="text-gray-600">{contractDetails.rental.pricePerDay} ETH</p>
+            <span className="font-medium">Insurance Deposit:</span>
+            <p className="text-gray-600">{contractStatus.insurance_deposit} wei</p>
           </div>
           <div>
-            <span className="font-medium">Duration:</span>
-            <p className="text-gray-600">{contractDetails.rental.rentalDuration} days</p>
-          </div>
-          <div>
-            <span className="font-medium">Deposit Amount:</span>
-            <p className="text-gray-600">{contractDetails.rental.depositAmount} ETH</p>
-          </div>
-          <div>
-            <span className="font-medium">Contract Balance:</span>
-            <p className="text-gray-600">{contractDetails.balance} ETH</p>
+            <span className="font-medium">Total Cost:</span>
+            <p className="text-gray-600">{contractStatus.total_cost_eth} ETH</p>
           </div>
         </div>
       </div>
 
-      {/* Time Information */}
-      {contractDetails.timeInfo.startTime > 0 && (
+      {/* Available Accounts */}
+      {accounts && accounts.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium mb-4">Timeline</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <span className="font-medium">Start Time:</span>
-              <p className="text-gray-600">
-                {new Date(contractDetails.timeInfo.startTime * 1000).toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <span className="font-medium">Due Time:</span>
-              <p className="text-gray-600">
-                {new Date(contractDetails.timeInfo.dueTime * 1000).toLocaleString()}
-              </p>
-            </div>
-            {contractDetails.timeInfo.returnTime > 0 && (
-              <div>
-                <span className="font-medium">Return Time:</span>
-                <p className="text-gray-600">
-                  {new Date(contractDetails.timeInfo.returnTime * 1000).toLocaleString()}
-                </p>
+          <h3 className="text-lg font-medium mb-4">Available Test Accounts</h3>
+          <div className="space-y-2">
+            {accounts.slice(0, 3).map((account, index) => (
+              <div key={account.address} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                <div>
+                  <span className="font-medium">{account.role}:</span>
+                  <span className="font-mono text-sm ml-2">{account.address}</span>
+                </div>
+                <span className="text-sm text-gray-600">{account.balance_eth} ETH</span>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Inspection Information */}
-      {contractDetails.status >= 2 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium mb-4">Inspection</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <span className="font-medium">Damaged:</span>
-              <p className="text-gray-600">{contractDetails.inspectionInfo.isDamaged ? 'Yes' : 'No'}</p>
-            </div>
-            <div>
-              <span className="font-medium">Compensation:</span>
-              <p className="text-gray-600">{contractDetails.inspectionInfo.compensationAmount} ETH</p>
-            </div>
+            ))}
           </div>
         </div>
       )}
@@ -247,67 +158,46 @@ export const ContractDisplay: React.FC<ContractDetailsProps> = ({ contractAddres
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium mb-4">Actions</h3>
         <div className="flex flex-wrap gap-3">
-          {/* Activate Contract - Available for any user when status is Pending */}
-          {contractDetails.status === 0 && (
+          {/* Start Rental - Available when status is Available */}
+          {contractStatus.rental_state === 'Available' && (
             <button
-              onClick={handleActivateContract}
+              onClick={handleStartRental}
               disabled={isLoading}
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
             >
-              Activate Contract ({contractDetails.rental.depositAmount} ETH)
+              Start Rental ({contractStatus.total_cost_eth} ETH)
             </button>
           )}
 
-          {/* Return Car - Available for lessee when status is Active */}
-          {contractDetails.status === 1 && isLessee && (
+          {/* End Rental - Available when status is Rented */}
+          {contractStatus.rental_state === 'Rented' && (
             <button
-              onClick={handleReturnCar}
+              onClick={handleEndRental}
               disabled={isLoading}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             >
-              Return Car
+              End Rental
             </button>
           )}
 
-          {/* Inspection - Available for inspector when status is Returned */}
-          {contractDetails.status === 2 && isInspector && (
-            <>
-              <button
-                onClick={() => handleInspectCar(false)}
-                disabled={isLoading}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-              >
-                Mark as No Damage
-              </button>
-              <button
-                onClick={() => handleInspectCar(true)}
-                disabled={isLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-              >
-                Mark as Damaged
-              </button>
-            </>
-          )}
+          {/* Refresh Status */}
+          <button
+            onClick={() => {
+              loadContractStatus();
+              loadAccounts();
+            }}
+            disabled={isLoading}
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50"
+          >
+            Refresh Status
+          </button>
 
-          {/* Finalize Contract - Available for lessor when status is Completed */}
-          {contractDetails.status === 3 && isLessor && (
+          {contractStatus.rental_state === 'Damaged' && (
             <button
-              onClick={handleFinalizeContract}
-              disabled={isLoading}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
-            >
-              Finalize Contract
-            </button>
-          )}
-
-          {/* Cancel Contract - Available for lessor/lessee when status is Pending */}
-          {contractDetails.status === 0 && (isLessor || isLessee) && (
-            <button
-              onClick={handleCancelContract}
               disabled={isLoading}
               className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
             >
-              Cancel Contract
+              Vehicle Damaged - Contact Support
             </button>
           )}
         </div>
