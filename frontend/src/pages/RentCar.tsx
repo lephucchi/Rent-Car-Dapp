@@ -325,7 +325,7 @@ export default function RentCar() {
             <div className="space-y-4">
               {availableActions.canRent && (
                 <button
-                  onClick={rent}
+                  onClick={() => setShowConfirmationModal(true)}
                   disabled={isTransacting}
                   className="aurora-button w-full disabled:opacity-50"
                 >
