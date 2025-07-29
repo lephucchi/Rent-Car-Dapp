@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Shield, Users, Activity, AlertTriangle, Settings, Database, TrendingUp } from 'lucide-react';
 import { useRentalContractStore, useContractState, useUserRole, useIsConnected } from '../stores/rentalContractStore';
 import { rentalContractService } from '../services/rentalContractService';
+import { PreviewMode, createMockContractData } from '../components/PreviewMode';
 
 interface AdminStats {
   totalRentals: number;
