@@ -68,371 +68,377 @@ export default function Landing() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-background">{/* Navigation is now handled globally */}
-
-        {/* Connection Error Display */}
-        {connectionError && (
-          <div className="bg-red-50 border-b border-red-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
-                <p className="text-red-700 text-sm">{connectionError}</p>
-                <button
-                  onClick={() => setConnectionError(null)}
-                  className="ml-auto text-red-500 hover:text-red-700"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Hero Section */}
-        <section className="luxury-section">
-          <div className="luxury-container">
-            <div className="text-center">
-              <h1 className="luxury-heading mb-6">
-                Luxury Car Rental
-                <br />
-                <span className="font-bold">Reimagined</span>
-              </h1>
-              <p className="luxury-subheading max-w-3xl mx-auto mb-12">
-                Experience premium car rental with blockchain security.
-                Connect your wallet to rent luxury vehicles with transparent pricing and instant confirmations.
-              </p>
-              
-              <div className="luxury-card p-8 max-w-4xl mx-auto mb-12">
-                <div className="luxury-grid-3">
-                  <div className="text-center">
-                    <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Blockchain Security</h3>
-                    <p className="text-muted-foreground">Smart contracts ensure transparent and secure transactions</p>
-                  </div>
-                  <div className="text-center">
-                    <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Instant Rental</h3>
-                    <p className="text-muted-foreground">Rent immediately with cryptocurrency payments</p>
-                  </div>
-                  <div className="text-center">
-                    <CreditCard className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Transparent Pricing</h3>
-                    <p className="text-muted-foreground">All fees calculated on-chain with no hidden costs</p>
-                  </div>
+      <PreviewMode previewData={createMockContractData()}>
+        <div className="min-h-screen bg-background">
+          {/* Connection Error Display */}
+          {connectionError && (
+            <div className="bg-red-50 border-b border-red-200">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
+                  <p className="text-red-700 text-sm">{connectionError}</p>
+                  <button
+                    onClick={() => setConnectionError(null)}
+                    className="ml-auto text-red-500 hover:text-red-700"
+                  >
+                    ×
+                  </button>
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="max-w-md mx-auto">
-                <MetaMaskConnect
-                  onConnect={handleConnectWallet}
-                  connecting={connecting}
-                  error={connectionError}
-                />
+          {/* Hero Section */}
+          <section className="luxury-section">
+            <div className="luxury-container">
+              <div className="text-center">
+                <h1 className="luxury-heading mb-6">
+                  Luxury Car Rental
+                  <br />
+                  <span className="font-bold">Reimagined</span>
+                </h1>
+                <p className="luxury-subheading max-w-3xl mx-auto mb-12">
+                  Experience premium car rental with blockchain security.
+                  Connect your wallet to rent luxury vehicles with transparent pricing and instant confirmations.
+                </p>
+                
+                <div className="luxury-card p-8 max-w-4xl mx-auto mb-12">
+                  <div className="luxury-grid-3">
+                    <div className="text-center">
+                      <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Blockchain Security</h3>
+                      <p className="text-muted-foreground">Smart contracts ensure transparent and secure transactions</p>
+                    </div>
+                    <div className="text-center">
+                      <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Instant Rental</h3>
+                      <p className="text-muted-foreground">Rent immediately with cryptocurrency payments</p>
+                    </div>
+                    <div className="text-center">
+                      <CreditCard className="w-12 h-12 text-primary mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Transparent Pricing</h3>
+                      <p className="text-muted-foreground">All fees calculated on-chain with no hidden costs</p>
+                    </div>
+                  </div>
+                </div>
 
-                {/* Debug button for development */}
-                {import.meta.env.DEV && (
-                  <button
-                    onClick={debugMetaMaskConnection}
-                    className="mt-4 text-xs text-muted-foreground hover:text-foreground underline"
-                  >
-                    Debug MetaMask Connection
-                  </button>
-                )}
+                <div className="max-w-md mx-auto">
+                  <MetaMaskConnect
+                    onConnect={handleConnectWallet}
+                    connecting={connecting}
+                    error={connectionError}
+                  />
+
+                  {/* Debug button for development */}
+                  {import.meta.env.DEV && (
+                    <button
+                      onClick={debugMetaMaskConnection}
+                      className="mt-4 text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Debug MetaMask Connection
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* How It Works */}
-        <section className="bg-gray-50 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-light text-black mb-4">How It Works</h2>
-              <p className="text-xl text-gray-600">Simple, secure, and transparent car rental process</p>
+          {/* How It Works */}
+          <section className="bg-gray-50 py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-light text-black mb-4">How It Works</h2>
+                <p className="text-xl text-gray-600">Simple, secure, and transparent car rental process</p>
+              </div>
+              
+              <div className="grid md:grid-cols-4 gap-8">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
+                  <h3 className="text-lg font-semibold text-black mb-2">Connect Wallet</h3>
+                  <p className="text-gray-600">Connect your MetaMask wallet to access the platform</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
+                  <h3 className="text-lg font-semibold text-black mb-2">Pay Deposit</h3>
+                  <p className="text-gray-600">Pay deposit to secure your rental booking</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
+                  <h3 className="text-lg font-semibold text-black mb-2">Enjoy Your Ride</h3>
+                  <p className="text-gray-600">Use the vehicle for the agreed rental period</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div>
+                  <h3 className="text-lg font-semibold text-black mb-2">Return & Pay</h3>
+                  <p className="text-gray-600">Return the car and complete final payment</p>
+                </div>
+              </div>
             </div>
-            
-            <div className="grid md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
-                <h3 className="text-lg font-semibold text-black mb-2">Connect Wallet</h3>
-                <p className="text-gray-600">Connect your MetaMask wallet to access the platform</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
-                <h3 className="text-lg font-semibold text-black mb-2">Pay Deposit</h3>
-                <p className="text-gray-600">Pay 50% deposit to secure your rental booking</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
-                <h3 className="text-lg font-semibold text-black mb-2">Enjoy Your Ride</h3>
-                <p className="text-gray-600">Use the vehicle for the agreed rental period</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div>
-                <h3 className="text-lg font-semibold text-black mb-2">Return & Pay</h3>
-                <p className="text-gray-600">Return the car and complete final payment</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      </PreviewMode>
     );
   }
 
   // Connected state - show rental interface
   if (!contractState || !feeCalculation || !availableActions) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-black mx-auto mb-4"></div>
-          <h2 className="text-2xl font-light text-black">Loading Contract Data...</h2>
+      <PreviewMode previewData={createMockContractData()}>
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-black mx-auto mb-4"></div>
+            <h2 className="text-2xl font-light text-black">Loading Contract Data...</h2>
+          </div>
         </div>
-      </div>
+      </PreviewMode>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">{/* Navigation is now handled globally */}
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Vehicle Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-8">
-          <div className="relative">
-            <img
-              src="https://images.pexels.com/photos/28772164/pexels-photo-28772164.jpeg"
-              alt={contractState.assetName}
-              className="w-full h-80 object-cover"
-            />
-            <div className="absolute top-4 left-4">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                contractState.isRented 
-                  ? 'bg-red-100 text-red-800' 
-                  : 'bg-green-100 text-green-800'
-              }`}>
-                {contractState.isRented ? 'Currently Rented' : 'Available'}
-              </span>
-            </div>
-          </div>
-          
-          <div className="p-8">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h1 className="text-3xl font-light text-black mb-2">{contractState.assetName}</h1>
-                <p className="text-gray-600">Premium luxury vehicle rental</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-black">
-                  {rentalContractService.formatEther(contractState.rentalFeePerMinute)} ETH
-                </div>
-                <div className="text-gray-600">per minute</div>
+    <PreviewMode previewData={createMockContractData()}>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Vehicle Card */}
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-8">
+            <div className="relative">
+              <img
+                src="https://images.pexels.com/photos/28772164/pexels-photo-28772164.jpeg"
+                alt={contractState.assetName}
+                className="w-full h-80 object-cover"
+              />
+              <div className="absolute top-4 left-4">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  contractState.isRented 
+                    ? 'bg-red-100 text-red-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {contractState.isRented ? 'Currently Rented' : 'Available'}
+                </span>
               </div>
             </div>
+            
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h1 className="text-3xl font-light text-black mb-2">{contractState.assetName}</h1>
+                  <p className="text-gray-600">Premium luxury vehicle rental</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-black">
+                    {rentalContractService.formatEther(contractState.rentalFeePerDay || contractState.rentalFeePerMinute)} ETH
+                  </div>
+                  <div className="text-gray-600">per day</div>
+                </div>
+              </div>
 
-            {/* Rental Details Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Duration</div>
-                <div className="text-lg font-semibold text-black">
-                  {contractState.durationMinutes.toString()} minutes
+              {/* Rental Details Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-1">Duration</div>
+                  <div className="text-lg font-semibold text-black">
+                    {(contractState.durationDays || contractState.durationMinutes)?.toString()} {contractState.durationDays ? 'days' : 'minutes'}
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-1">Insurance Fee</div>
+                  <div className="text-lg font-semibold text-black">
+                    {rentalContractService.formatEther(contractState.insuranceFee)} ETH
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-1">Required Deposit</div>
+                  <div className="text-lg font-semibold text-black">
+                    {rentalContractService.formatEther(feeCalculation.deposit)} ETH
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-1">Total Rental Fee</div>
+                  <div className="text-lg font-semibold text-black">
+                    {rentalContractService.formatEther(feeCalculation.totalRentalFee)} ETH
+                  </div>
                 </div>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Insurance Fee</div>
-                <div className="text-lg font-semibold text-black">
-                  {rentalContractService.formatEther(contractState.insuranceFee)} ETH
-                </div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Required Deposit</div>
-                <div className="text-lg font-semibold text-black">
-                  {rentalContractService.formatEther(feeCalculation.deposit)} ETH
-                </div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">Total Rental Fee</div>
-                <div className="text-lg font-semibold text-black">
-                  {rentalContractService.formatEther(feeCalculation.totalRentalFee)} ETH
-                </div>
-              </div>
-            </div>
 
-            {/* Rental Status */}
-            {contractState.isRented && (
-              <div className="bg-gray-50 p-6 rounded-lg mb-8">
-                <h3 className="text-lg font-semibold text-black mb-4">Rental Status</h3>
-                <div className="grid md:grid-cols-2 gap-4 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Renter:</span>
-                    <span className="text-black font-mono">
-                      {contractState.lessee.slice(0, 6)}...{contractState.lessee.slice(-4)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Owner:</span>
-                    <span className="text-black font-mono">
-                      {contractState.lessor.slice(0, 6)}...{contractState.lessor.slice(-4)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Return Requested:</span>
-                    <span className={contractState.renterRequestedReturn ? 'text-green-600' : 'text-gray-400'}>
-                      {contractState.renterRequestedReturn ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Return Confirmed:</span>
-                    <span className={contractState.ownerConfirmedReturn ? 'text-green-600' : 'text-gray-400'}>
-                      {contractState.ownerConfirmedReturn ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  {contractState.isDamaged && (
+              {/* Rental Status */}
+              {contractState.isRented && (
+                <div className="bg-gray-50 p-6 rounded-lg mb-8">
+                  <h3 className="text-lg font-semibold text-black mb-4">Rental Status</h3>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Damage Reported:</span>
-                      <span className="text-red-600">Yes</span>
-                    </div>
-                  )}
-                  {contractState.actualMinutes > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Actual Usage:</span>
-                      <span className="text-black">{contractState.actualMinutes.toString()} minutes</span>
-                    </div>
-                  )}
-                  {contractState.isRented && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Remaining Payment:</span>
-                      <span className="text-black font-semibold">
-                        {rentalContractService.formatEther(feeCalculation.remainingPayment)} ETH
+                      <span className="text-gray-600">Renter:</span>
+                      <span className="text-black font-mono">
+                        {contractState.lessee.slice(0, 6)}...{contractState.lessee.slice(-4)}
                       </span>
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Error Display */}
-            {(connectionError || transactionError) && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <p className="text-red-600 text-sm">
-                  {connectionError || transactionError}
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="space-y-4">
-              {/* Rent Button */}
-              {availableActions.canRent && (
-                <button
-                  onClick={rent}
-                  className="w-full bg-black text-white py-4 rounded-lg text-lg font-medium hover:bg-gray-800 transition-colors"
-                >
-                  Rent Now - Pay {rentalContractService.formatEther(feeCalculation.deposit)} ETH Deposit
-                </button>
-              )}
-
-              {/* Cancel Rental */}
-              {availableActions.canCancel && (
-                <button
-                  onClick={cancelRental}
-                  className="w-full border border-red-300 text-red-600 py-3 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Cancel Rental
-                </button>
-              )}
-
-              {/* Request Return */}
-              {availableActions.canRequestReturn && (
-                <button
-                  onClick={requestReturn}
-                  className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  Request Return
-                </button>
-              )}
-
-              {/* Confirm Return */}
-              {availableActions.canConfirmReturn && (
-                <button
-                  onClick={confirmReturn}
-                  className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  Confirm Return (Owner)
-                </button>
-              )}
-
-              {/* Report Damage */}
-              {availableActions.canReportDamage && (
-                <button
-                  onClick={reportDamage}
-                  className="w-full border border-red-300 text-red-600 py-3 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Report Damage (Owner)
-                </button>
-              )}
-
-              {/* Complete Rental */}
-              {availableActions.canCompleteRental && (
-                <button
-                  onClick={completeRental}
-                  className="w-full bg-black text-white py-4 rounded-lg text-lg font-medium hover:bg-gray-800 transition-colors"
-                >
-                  Complete Rental - Pay {rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH
-                </button>
-              )}
-
-              {/* Set Actual Usage (Owner Only) */}
-              {availableActions.canSetActualUsage && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-lg font-medium text-black mb-3">Set Actual Usage (Owner Only)</h4>
-                  <div className="flex space-x-3">
-                    <input
-                      type="number"
-                      placeholder="Actual days used"
-                      value={actualDaysInput}
-                      onChange={(e) => setActualDaysInput(e.target.value)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                      min="1"
-                    />
-                    <button
-                      onClick={handleSetActualUsage}
-                      disabled={!actualDaysInput}
-                      className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400"
-                    >
-                      Set Usage
-                    </button>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Owner:</span>
+                      <span className="text-black font-mono">
+                        {contractState.lessor.slice(0, 6)}...{contractState.lessor.slice(-4)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Return Requested:</span>
+                      <span className={contractState.renterRequestedReturn ? 'text-green-600' : 'text-gray-400'}>
+                        {contractState.renterRequestedReturn ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Return Confirmed:</span>
+                      <span className={contractState.ownerConfirmedReturn ? 'text-green-600' : 'text-gray-400'}>
+                        {contractState.ownerConfirmedReturn ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    {contractState.isDamaged && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Damage Reported:</span>
+                        <span className="text-red-600">Yes</span>
+                      </div>
+                    )}
+                    {(contractState.actualDays || contractState.actualMinutes) && (contractState.actualDays > 0 || contractState.actualMinutes > 0) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Actual Usage:</span>
+                        <span className="text-black">
+                          {contractState.actualDays ? `${contractState.actualDays.toString()} days` : `${contractState.actualMinutes.toString()} minutes`}
+                        </span>
+                      </div>
+                    )}
+                    {contractState.isRented && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Remaining Payment:</span>
+                        <span className="text-black font-semibold">
+                          {rentalContractService.formatEther(feeCalculation.remainingPayment)} ETH
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
+
+              {/* Error Display */}
+              {(connectionError || transactionError) && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <p className="text-red-600 text-sm">
+                    {connectionError || transactionError}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-4">
+                {/* Rent Button */}
+                {availableActions.canRent && (
+                  <button
+                    onClick={rent}
+                    className="w-full bg-black text-white py-4 rounded-lg text-lg font-medium hover:bg-gray-800 transition-colors"
+                  >
+                    Rent Now - Pay {rentalContractService.formatEther(feeCalculation.deposit)} ETH Deposit
+                  </button>
+                )}
+
+                {/* Cancel Rental */}
+                {availableActions.canCancel && (
+                  <button
+                    onClick={cancelRental}
+                    className="w-full border border-red-300 text-red-600 py-3 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    Cancel Rental
+                  </button>
+                )}
+
+                {/* Request Return */}
+                {availableActions.canRequestReturn && (
+                  <button
+                    onClick={requestReturn}
+                    className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    Request Return
+                  </button>
+                )}
+
+                {/* Confirm Return */}
+                {availableActions.canConfirmReturn && (
+                  <button
+                    onClick={confirmReturn}
+                    className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    Confirm Return (Owner)
+                  </button>
+                )}
+
+                {/* Report Damage */}
+                {availableActions.canReportDamage && (
+                  <button
+                    onClick={reportDamage}
+                    className="w-full border border-red-300 text-red-600 py-3 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    Report Damage (Owner)
+                  </button>
+                )}
+
+                {/* Complete Rental */}
+                {availableActions.canCompleteRental && (
+                  <button
+                    onClick={completeRental}
+                    className="w-full bg-black text-white py-4 rounded-lg text-lg font-medium hover:bg-gray-800 transition-colors"
+                  >
+                    Complete Rental - Pay {rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH
+                  </button>
+                )}
+
+                {/* Set Actual Usage (Owner Only) */}
+                {availableActions.canSetActualUsage && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-lg font-medium text-black mb-3">Set Actual Usage (Owner Only)</h4>
+                    <div className="flex space-x-3">
+                      <input
+                        type="number"
+                        placeholder="Actual days used"
+                        value={actualDaysInput}
+                        onChange={(e) => setActualDaysInput(e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                        min="1"
+                      />
+                      <button
+                        onClick={handleSetActualUsage}
+                        disabled={!actualDaysInput}
+                        className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+                      >
+                        Set Usage
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Contract Status */}
-        <ContractStatus
-          isConnected={isConnected}
-          userRole={userRole}
-          contractAddress={rentalContractService.getContractAddress()}
-        />
+          {/* Contract Status */}
+          <ContractStatus
+            isConnected={isConnected}
+            userRole={userRole}
+            contractAddress={rentalContractService.getContractAddress()}
+          />
 
-        {/* Contract Information */}
-        <div className="bg-gray-50 p-6 rounded-lg mt-4">
-          <h3 className="text-lg font-semibold text-black mb-4">Contract Information</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Contract Address:</span>
-              <span className="text-black font-mono text-xs">
-                {rentalContractService.getContractAddress()}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Network:</span>
-              <span className="text-black">
-                {rentalContractService.getNetworkInfo().network}
-              </span>
+          {/* Contract Information */}
+          <div className="bg-gray-50 p-6 rounded-lg mt-4">
+            <h3 className="text-lg font-semibold text-black mb-4">Contract Information</h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Contract Address:</span>
+                <span className="text-black font-mono text-xs">
+                  {rentalContractService.getContractAddress()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Network:</span>
+                <span className="text-black">
+                  {rentalContractService.getNetworkInfo().network}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </PreviewMode>
   );
 }
