@@ -3,22 +3,18 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Car, 
   Home, 
-  BarChart3, 
-  User, 
   Wallet, 
-  ClipboardCheck, 
-  Shield, 
   Sun, 
   Moon, 
   Menu, 
   X, 
-  CreditCard,
   PlusCircle,
-  History
+  History,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useRentalContractStore, useUserRole, useIsConnected } from '../stores/rentalContractStore';
-import { rentalContractService } from '../services/rentalContractService';
 
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
@@ -28,6 +24,7 @@ export const LuxuryNavigation: React.FC = () => {
   const { connectWallet } = useRentalContractStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
 
   const handleConnectWallet = async () => {
     try {
@@ -40,20 +37,13 @@ export const LuxuryNavigation: React.FC = () => {
     }
   };
 
+  // Navigation items - NO Admin/Inspector links as per specification
   const navItems = [
-    { href: '/', label: 'Home', icon: Home, roles: ['all'] },
-    { href: '/rent', label: 'Rent Car', icon: Car, roles: ['all'] },
-    { href: '/lend', label: 'Lend Car', icon: PlusCircle, roles: ['lessor', 'other'] },
-    { href: '/transactions', label: 'Transactions', icon: History, roles: ['all'] },
-    { href: '/admin', label: 'Admin', icon: Shield, roles: ['lessor'] },
-    { href: '/inspector', label: 'Inspector', icon: ClipboardCheck, roles: ['inspector'] },
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/rent', label: 'Rent Car', icon: Car },
+    { href: '/lend', label: 'Lend Car', icon: PlusCircle },
+    { href: '/transactions', label: 'Transactions', icon: History },
   ];
-
-  const filteredNavItems = navItems.filter(item => {
-    if (item.roles.includes('all')) return true;
-    if (!isConnected && item.roles.includes('other')) return true;
-    return item.roles.includes(userRole);
-  });
 
   const isActiveRoute = (href: string) => {
     return location.pathname === href;
@@ -75,7 +65,7 @@ export const LuxuryNavigation: React.FC = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {filteredNavItems.map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = isActiveRoute(item.href);
 
@@ -92,7 +82,7 @@ export const LuxuryNavigation: React.FC = () => {
             })}
           </div>
 
-          {/* Right side controls */}
+          {/* Right side controls - Connect Wallet + Preview Mode Toggle */}
           <div className="flex items-center space-x-4">
             {/* Theme Toggle */}
             <button
@@ -107,12 +97,35 @@ export const LuxuryNavigation: React.FC = () => {
               )}
             </button>
 
+            {/* Preview Mode Toggle */}
+            <button
+              onClick={() => setPreviewMode(!previewMode)}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                previewMode 
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
+                  : 'hover:bg-accent'
+              }`}
+              title={previewMode ? 'Exit Preview Mode' : 'Enter Preview Mode'}
+            >
+              {previewMode ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  <span className="hidden sm:inline">Preview</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  <span className="hidden sm:inline">Preview</span>
+                </>
+              )}
+            </button>
+
             {/* Connection Status & Wallet */}
             {isConnected ? (
               <div className="hidden sm:flex items-center space-x-3">
                 <div className="text-sm">
                   <div className="text-foreground font-medium capitalize">
-                    {userRole === 'lessor' ? 'Owner' : userRole === 'lessee' ? 'Renter' : userRole}
+                    {userRole === 'lessor' ? 'Admin' : userRole === 'inspector' ? 'Inspector' : 'User'}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Connected
@@ -148,7 +161,7 @@ export const LuxuryNavigation: React.FC = () => {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border/50 py-4 space-y-2">
-            {filteredNavItems.map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = isActiveRoute(item.href);
 
@@ -165,12 +178,23 @@ export const LuxuryNavigation: React.FC = () => {
               );
             })}
 
+            {/* Mobile Preview Mode Toggle */}
+            <button
+              onClick={() => setPreviewMode(!previewMode)}
+              className={`nav-link flex items-center space-x-3 w-full ${
+                previewMode ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : ''
+              }`}
+            >
+              {previewMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              <span>{previewMode ? 'Exit Preview' : 'Preview Mode'}</span>
+            </button>
+
             {/* Mobile connection status */}
             {isConnected ? (
               <div className="flex items-center justify-between pt-4 border-t border-border/50">
                 <div className="text-sm">
                   <div className="text-foreground font-medium capitalize">
-                    {userRole === 'lessor' ? 'Owner' : userRole === 'lessee' ? 'Renter' : userRole}
+                    {userRole === 'lessor' ? 'Admin' : userRole === 'inspector' ? 'Inspector' : 'User'}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Connected
@@ -191,6 +215,13 @@ export const LuxuryNavigation: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Global Preview Mode Indicator */}
+      {previewMode && (
+        <div className="bg-blue-100 border-b border-blue-300 text-blue-800 px-4 py-2 text-center text-sm">
+          🔍 <strong>Preview Mode Active</strong> - Viewing demo UI without blockchain interaction
+        </div>
+      )}
     </nav>
   );
 };
