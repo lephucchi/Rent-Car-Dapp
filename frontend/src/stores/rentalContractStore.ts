@@ -204,11 +204,11 @@ export const useRentalContractStore = create<RentalContractStore>((set, get) => 
     }
   },
 
-  setActualUsage: async (minutes: number) => {
+  setActualUsage: async (days: number) => {
     try {
       set({ isTransacting: true, error: null });
-      
-      const txHash = await rentalContractService.setActualUsage(minutes);
+
+      const txHash = await rentalContractService.setActualUsage(days);
       
       set({ 
         lastTransactionHash: txHash,
