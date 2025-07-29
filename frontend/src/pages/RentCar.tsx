@@ -286,7 +286,7 @@ export default function RentCar() {
                 <button
                   onClick={rent}
                   disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
+                  className="aurora-button w-full disabled:opacity-50"
                 >
                   <Car className="w-5 h-5 mr-2" />
                   {isTransacting ? 'Processing...' : `Rent Now - ${rentalContractService.formatEther(feeCalculation.deposit)} ETH`}
@@ -317,7 +317,7 @@ export default function RentCar() {
                 <button
                   onClick={completeRental}
                   disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
+                  className="aurora-button w-full disabled:opacity-50"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
                   {isTransacting ? 'Processing...' : `Complete Rental - ${rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH`}
