@@ -3,6 +3,8 @@ import { Car, Clock, Shield, CreditCard, AlertCircle, CheckCircle } from 'lucide
 import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/rentalContractStore';
 import { rentalContractService } from '../services/rentalContractService';
 import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import { RentalFlowStepper } from '../components/RentalFlowStepper';
+import { RentalConfirmationModal } from '../components/RentalConfirmationModal';
 
 export default function RentCar() {
   const {
