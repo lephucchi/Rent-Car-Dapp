@@ -1,142 +1,467 @@
-// Contract configuration loaded from deployed contract
+// Contract configuration for FixedRentalContract
 export const contractConfig = {
-  address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+  address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   network: "localhost",
   chainId: 1337,
   abi: [
     {
-      "type": "constructor",
-      "payable": false,
       "inputs": [
-        {"type": "string", "name": "_assetName"},
-        {"type": "uint256", "name": "_rentalFeePerMinute"},
-        {"type": "uint256", "name": "_durationMinutes"},
-        {"type": "uint256", "name": "_insuranceFee"},
-        {"type": "uint256", "name": "_insuranceCompensation"}
-      ]
+        {
+          "internalType": "string",
+          "name": "_assetName",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_rentalFeePerDay",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_durationDays",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_insuranceFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_damageAssessor",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
     },
     {
-      "type": "function",
-      "name": "rent",
-      "constant": false,
-      "payable": true,
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "requestReturn",
-      "constant": false,
-      "payable": false,
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "confirmReturn",
-      "constant": false,
-      "payable": false,
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "setActualUsage",
-      "constant": false,
-      "payable": false,
-      "inputs": [{"type": "uint256", "name": "_actualMinutes"}],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "reportDamage",
-      "constant": false,
-      "payable": false,
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "completeRental",
-      "constant": false,
-      "payable": true,
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "withdrawFunds",
-      "constant": false,
-      "payable": false,
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "getContractDetails",
-      "constant": true,
-      "payable": false,
-      "inputs": [],
-      "outputs": [
-        {"type": "string", "name": ""},
-        {"type": "uint256", "name": ""},
-        {"type": "uint256", "name": ""},
-        {"type": "uint256", "name": ""},
-        {"type": "uint256", "name": ""},
-        {"type": "address", "name": ""},
-        {"type": "address", "name": ""},
-        {"type": "uint8", "name": ""},
-        {"type": "uint256", "name": ""},
-        {"type": "uint256", "name": ""},
-        {"type": "uint256", "name": ""},
-        {"type": "bool", "name": ""}
-      ]
-    },
-    {
-      "type": "function",
-      "name": "getRemainingPayment",
-      "constant": true,
-      "payable": false,
-      "inputs": [],
-      "outputs": [{"type": "uint256", "name": ""}]
-    },
-    {
-      "type": "event",
-      "name": "RentalStarted",
+      "anonymous": false,
       "inputs": [
-        {"type": "address", "name": "lessee", "indexed": true},
-        {"type": "uint256", "name": "startTime", "indexed": false}
-      ]
-    },
-    {
-      "type": "event",
-      "name": "RenterRequestedReturn",
-      "inputs": []
-    },
-    {
-      "type": "event",
-      "name": "OwnerConfirmedReturn",
-      "inputs": []
-    },
-    {
-      "type": "event",
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "daysUsed",
+          "type": "uint256"
+        }
+      ],
       "name": "ActualUsageSet",
-      "inputs": [
-        {"type": "uint256", "name": "actualMinutes", "indexed": false}
-      ]
+      "type": "event"
     },
     {
-      "type": "event",
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "assessor",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "DamageAssessed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "lessor",
+          "type": "address"
+        }
+      ],
       "name": "DamageReported",
-      "inputs": []
+      "type": "event"
     },
     {
-      "type": "event",
-      "name": "FundsTransferred",
+      "anonymous": false,
       "inputs": [
-        {"type": "address", "name": "to", "indexed": true},
-        {"type": "uint256", "name": "amount", "indexed": false}
-      ]
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "FundsTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "lessor",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerConfirmedReturn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "lessee",
+          "type": "address"
+        }
+      ],
+      "name": "RentalCancelled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "lessee",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "deposit",
+          "type": "uint256"
+        }
+      ],
+      "name": "RentalStarted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "lessee",
+          "type": "address"
+        }
+      ],
+      "name": "RenterRequestedReturn",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "actualDays",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountInEther",
+          "type": "uint256"
+        }
+      ],
+      "name": "assessDamage",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "assessedDamageAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "assetName",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cancelRental",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "completeRental",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "confirmReturn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "damageAssessor",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "durationDays",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getDeposit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getFinalPaymentAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getRemainingPayment",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTotalRentalFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "insuranceFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isDamaged",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isRented",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lessee",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lessor",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ownerConfirmedReturn",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "rent",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "rentalFeePerDay",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renterRequestedReturn",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "reportDamage",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "requestReturn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_actualDays",
+          "type": "uint256"
+        }
+      ],
+      "name": "setActualUsage",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "startTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
     }
   ]
 };
