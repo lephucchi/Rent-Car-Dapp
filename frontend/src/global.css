@@ -30,13 +30,13 @@
     --ring: 0 0% 3.9%;
     --radius: 0.75rem;
 
-    /* Ferrari-inspired luxury colors */
-    --ferrari-red: 0 85% 55%;
-    --ferrari-yellow: 45 95% 60%;
-    --luxury-gold: 38 88% 58%;
-    --platinum: 240 12% 92%;
-    --carbon: 0 0% 8%;
-    --steel: 220 12% 52%;
+    /* Arctic Aurora luxury colors */
+    --aurora-teal: 180 85% 55%;
+    --aurora-cyan: 190 95% 60%;
+    --arctic-blue: 200 88% 58%;
+    --ice-blue: 200 25% 92%;
+    --deep-ocean: 210 45% 15%;
+    --glacier-blue: 190 30% 70%;
 
     /* Enhanced glassmorphism colors */
     --glass-bg: 255 255 255 / 0.08;
@@ -66,13 +66,13 @@
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
 
-    /* Dark theme luxury colors */
-    --ferrari-red: 0 85% 62%;
-    --ferrari-yellow: 45 95% 68%;
-    --luxury-gold: 38 88% 65%;
-    --platinum: 240 15% 85%;
-    --carbon: 0 0% 12%;
-    --steel: 220 15% 68%;
+    /* Dark theme arctic aurora colors */
+    --aurora-teal: 180 85% 65%;
+    --aurora-cyan: 190 95% 68%;
+    --arctic-blue: 200 88% 65%;
+    --ice-blue: 200 35% 85%;
+    --deep-ocean: 210 45% 20%;
+    --glacier-blue: 190 40% 75%;
 
     /* Enhanced glassmorphism colors for dark theme */
     --glass-bg: 0 0 0 / 0.15;
@@ -143,29 +143,35 @@
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   }
 
-  .ferrari-gradient {
-    background: linear-gradient(135deg, hsl(var(--ferrari-red)) 0%, hsl(var(--luxury-gold)) 100%);
+  .aurora-gradient {
+    background: linear-gradient(135deg, hsl(var(--aurora-teal)) 0%, hsl(var(--arctic-blue)) 100%);
     position: relative;
   }
 
-  .ferrari-gradient::before {
+  .aurora-gradient::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
     border-radius: inherit;
   }
 
-  .ferrari-gradient-subtle {
+  .aurora-gradient-subtle {
     background: linear-gradient(135deg,
-      hsla(var(--ferrari-red), 0.1) 0%,
-      hsla(var(--luxury-gold), 0.1) 100%);
+      hsla(var(--aurora-teal), 0.12) 0%,
+      hsla(var(--arctic-blue), 0.12) 100%);
   }
 
-  .gold-gradient {
+  .cyan-gradient {
     background: linear-gradient(135deg,
-      hsl(var(--luxury-gold)) 0%,
-      hsl(var(--ferrari-yellow)) 100%);
+      hsl(var(--aurora-cyan)) 0%,
+      hsl(var(--glacier-blue)) 100%);
+  }
+
+  .ice-gradient {
+    background: linear-gradient(135deg,
+      hsl(var(--ice-blue)) 0%,
+      hsl(var(--glacier-blue)) 100%);
   }
 
   .luxury-card {
@@ -224,14 +230,14 @@
     @apply border-foreground/30 bg-muted;
   }
 
-  .ferrari-button {
-    @apply ferrari-gradient text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300;
-    box-shadow: 0 12px 32px rgba(220, 38, 38, 0.25), 0 4px 12px rgba(220, 38, 38, 0.12);
+  .aurora-button {
+    @apply aurora-gradient text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300;
+    box-shadow: 0 12px 32px rgba(6, 182, 212, 0.25), 0 4px 12px rgba(6, 182, 212, 0.12);
     position: relative;
     overflow: hidden;
   }
 
-  .ferrari-button::after {
+  .aurora-button::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -240,12 +246,12 @@
     transition: opacity 0.3s ease;
   }
 
-  .ferrari-button:hover {
+  .aurora-button:hover {
     @apply transform translate-y-[-4px] scale-105;
-    box-shadow: 0 20px 48px rgba(220, 38, 38, 0.35), 0 8px 20px rgba(220, 38, 38, 0.18);
+    box-shadow: 0 20px 48px rgba(6, 182, 212, 0.35), 0 8px 20px rgba(6, 182, 212, 0.18);
   }
 
-  .ferrari-button:hover::after {
+  .aurora-button:hover::after {
     opacity: 1;
   }
 
@@ -522,15 +528,22 @@
   }
 
   /* Gradient text effects */
-  .gradient-text-ferrari {
-    background: linear-gradient(135deg, hsl(var(--ferrari-red)), hsl(var(--luxury-gold)));
+  .gradient-text-aurora {
+    background: linear-gradient(135deg, hsl(var(--aurora-teal)), hsl(var(--arctic-blue)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .gradient-text-gold {
-    background: linear-gradient(135deg, hsl(var(--luxury-gold)), hsl(var(--ferrari-yellow)));
+  .gradient-text-ice {
+    background: linear-gradient(135deg, hsl(var(--aurora-cyan)), hsl(var(--glacier-blue)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-ocean {
+    background: linear-gradient(135deg, hsl(var(--deep-ocean)), hsl(var(--aurora-teal)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
