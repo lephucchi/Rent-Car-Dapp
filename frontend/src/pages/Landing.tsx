@@ -51,15 +51,15 @@ export default function Landing() {
   };
 
   const handleSetActualUsage = async () => {
-    const minutes = parseInt(actualMinutesInput);
-    if (isNaN(minutes) || minutes <= 0) {
-      alert('Please enter a valid number of minutes');
+    const days = parseInt(actualDaysInput);
+    if (isNaN(days) || days <= 0) {
+      alert('Please enter a valid number of days');
       return;
     }
-    
+
     try {
-      await setActualUsage(minutes);
-      setActualMinutesInput('');
+      await setActualUsage(days);
+      setActualDaysInput('');
     } catch (error) {
       console.error('Failed to set actual usage:', error);
     }
