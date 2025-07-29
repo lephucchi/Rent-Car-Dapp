@@ -30,13 +30,13 @@
     --ring: 0 0% 3.9%;
     --radius: 0.75rem;
 
-    /* Arctic Aurora luxury colors */
-    --aurora-teal: 180 85% 55%;
-    --aurora-cyan: 190 95% 60%;
-    --arctic-blue: 200 88% 58%;
-    --ice-blue: 200 25% 92%;
-    --deep-ocean: 210 45% 15%;
-    --glacier-blue: 190 30% 70%;
+    /* Arctic Aurora luxury colors - deeper/darker for light mode */
+    --aurora-teal: 180 90% 45%;
+    --aurora-cyan: 190 95% 48%;
+    --arctic-blue: 200 92% 46%;
+    --ice-blue: 200 35% 88%;
+    --deep-ocean: 210 55% 12%;
+    --glacier-blue: 190 40% 62%;
 
     /* Enhanced glassmorphism colors */
     --glass-bg: 255 255 255 / 0.08;
