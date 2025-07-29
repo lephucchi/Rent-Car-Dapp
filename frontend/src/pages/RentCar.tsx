@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Clock, Shield, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
-import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/rentalContractStore';
-import { rentalContractService } from '../services/rentalContractService';
+import { Car, Clock, Shield, CreditCard, AlertCircle, CheckCircle, Settings, Wrench, DollarSign, ArrowLeft } from 'lucide-react';
+import { useFixedRentalStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/fixedRentalStore';
+import { fixedRentalService } from '../services/fixedRentalService';
 import { MetaMaskConnect } from '../components/MetaMaskConnect';
-import { RentalFlowStepper } from '../components/RentalFlowStepper';
-import { RentalConfirmationModal } from '../components/RentalConfirmationModal';
 
 export default function RentCar() {
   const {
@@ -13,8 +11,12 @@ export default function RentCar() {
     rent,
     cancelRental,
     requestReturn,
+    confirmReturn,
+    setActualUsage,
+    reportDamage,
+    assessDamage,
     completeRental
-  } = useRentalContractStore();
+  } = useFixedRentalStore();
 
   const contractState = useContractState();
   const feeCalculation = useFeeCalculation();
@@ -26,6 +28,10 @@ export default function RentCar() {
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [actualDaysInput, setActualDaysInput] = useState('');
+  const [damageAmountInput, setDamageAmountInput] = useState('');
+  const [showActualUsageModal, setShowActualUsageModal] = useState(false);
+  const [showDamageAssessModal, setShowDamageAssessModal] = useState(false);
 
   useEffect(() => {
     if (isConnected) {
@@ -52,6 +58,38 @@ export default function RentCar() {
     setShowConfirmationModal(false);
   };
 
+  const handleSetActualUsage = async () => {
+    const days = parseInt(actualDaysInput);
+    if (isNaN(days) || days < 0) {
+      setConnectionError('Please enter a valid number of days');
+      return;
+    }
+    
+    try {
+      await setActualUsage(days);
+      setShowActualUsageModal(false);
+      setActualDaysInput('');
+    } catch (error) {
+      console.error('Failed to set actual usage:', error);
+    }
+  };
+
+  const handleAssessDamage = async () => {
+    const amount = parseFloat(damageAmountInput);
+    if (isNaN(amount) || amount < 0) {
+      setConnectionError('Please enter a valid damage amount');
+      return;
+    }
+    
+    try {
+      await assessDamage(amount);
+      setShowDamageAssessModal(false);
+      setDamageAmountInput('');
+    } catch (error) {
+      console.error('Failed to assess damage:', error);
+    }
+  };
+
   const getRentalSteps = () => {
     const steps = [
       {
@@ -63,23 +101,30 @@ export default function RentCar() {
       {
         id: 2,
         title: 'Pay Deposit',
-        description: `Pay ${feeCalculation ? rentalContractService.formatEther(feeCalculation.deposit) : '0'} ETH deposit (50% of total)`,
+        description: `Pay ${feeCalculation?.deposit ? fixedRentalService.formatEther(feeCalculation.deposit) : '0'} ETH deposit (30% of total)`,
         status: contractState?.isRented ? 'completed' as const :
                 availableActions?.canRent ? 'current' as const : 'pending' as const
       },
       {
         id: 3,
-        title: 'Enjoy Your Ride',
+        title: 'Use Vehicle',
         description: 'Use the vehicle for the agreed rental period',
         status: contractState?.isRented && !contractState?.renterRequestedReturn ? 'current' as const :
                 contractState?.renterRequestedReturn ? 'completed' as const : 'pending' as const
       },
       {
         id: 4,
-        title: 'Return & Complete',
-        description: 'Return vehicle and complete final payment',
-        status: contractState?.ownerConfirmedReturn ? 'completed' as const :
+        title: 'Return Process',
+        description: 'Request return and wait for owner confirmation',
+        status: contractState?.renterRequestedReturn && contractState?.ownerConfirmedReturn ? 'completed' as const :
                 contractState?.renterRequestedReturn ? 'current' as const : 'pending' as const
+      },
+      {
+        id: 5,
+        title: 'Final Payment',
+        description: 'Complete final payment and finish rental',
+        status: !contractState?.isRented && contractState?.ownerConfirmedReturn ? 'completed' as const :
+                contractState?.renterRequestedReturn && contractState?.ownerConfirmedReturn ? 'current' as const : 'pending' as const
       }
     ];
     return steps;
@@ -188,11 +233,31 @@ export default function RentCar() {
 
         {/* Rental Flow Steps */}
         {(isConnected && contractState && feeCalculation && availableActions) && (
-          <RentalFlowStepper
-            currentStep={contractState.isRented ? 3 : 2}
-            steps={getRentalSteps()}
-            userRole={userRole}
-          />
+          <div className="luxury-card p-6 mb-8">
+            <h3 className="luxury-title mb-4">Rental Process</h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
+              {getRentalSteps().map((step, index) => (
+                <div key={step.id} className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                      step.status === 'completed' ? 'bg-green-500 text-white' :
+                      step.status === 'current' ? 'bg-blue-500 text-white' :
+                      'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {step.status === 'completed' ? <CheckCircle className="w-4 h-4" /> : step.id}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{step.title}</h4>
+                      <p className="text-xs text-muted-foreground">{step.description}</p>
+                    </div>
+                  </div>
+                  {index < getRentalSteps().length - 1 && (
+                    <div className="hidden md:block w-full h-px bg-border mt-2"></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         <div className="luxury-grid-2 gap-8">
@@ -219,28 +284,28 @@ export default function RentCar() {
               
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Rate per minute:</span>
+                  <span className="text-muted-foreground">Rate per day:</span>
                   <span className="font-semibold">
-                    {rentalContractService.formatEther(contractState.rentalFeePerMinute)} ETH
+                    {fixedRentalService.formatEther(contractState.rentalFeePerDay)} ETH
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Duration:</span>
                   <span className="font-semibold">
-                    {contractState.durationMinutes.toString()} minutes
+                    {contractState.durationDays.toString()} days
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Insurance:</span>
                   <span className="font-semibold">
-                    {rentalContractService.formatEther(contractState.insuranceFee)} ETH
+                    {fixedRentalService.formatEther(contractState.insuranceFee)} ETH
                   </span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between text-lg">
                     <span className="font-medium">Total Cost:</span>
                     <span className="font-bold">
-                      {rentalContractService.formatEther(feeCalculation.totalRentalFee)} ETH
+                      {feeCalculation?.totalRentalFee ? fixedRentalService.formatEther(feeCalculation.totalRentalFee) : '0'} ETH
                     </span>
                   </div>
                 </div>
@@ -257,30 +322,38 @@ export default function RentCar() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Base rental fee:</span>
                   <span>
-                    {rentalContractService.formatEther(
-                      contractState.rentalFeePerMinute * contractState.durationMinutes
+                    {fixedRentalService.formatEther(
+                      contractState.rentalFeePerDay * contractState.durationDays
                     )} ETH
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Insurance fee:</span>
                   <span>
-                    {rentalContractService.formatEther(contractState.insuranceFee)} ETH
+                    {fixedRentalService.formatEther(contractState.insuranceFee)} ETH
                   </span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between font-semibold">
-                    <span>Required deposit (50%):</span>
+                    <span>Required deposit (30%):</span>
                     <span className="text-primary">
-                      {rentalContractService.formatEther(feeCalculation.deposit)} ETH
+                      {feeCalculation?.deposit ? fixedRentalService.formatEther(feeCalculation.deposit) : '0'} ETH
                     </span>
                   </div>
                 </div>
-                {contractState.isRented && feeCalculation.remainingPayment > 0 && (
+                {contractState.isRented && feeCalculation?.finalPaymentAmount && feeCalculation.finalPaymentAmount > 0 && (
                   <div className="flex justify-between text-red-600 dark:text-red-400">
-                    <span>Remaining payment:</span>
+                    <span>Final payment needed:</span>
                     <span className="font-semibold">
-                      {rentalContractService.formatEther(feeCalculation.remainingPayment)} ETH
+                      {fixedRentalService.formatEther(feeCalculation.finalPaymentAmount)} ETH
+                    </span>
+                  </div>
+                )}
+                {contractState.isDamaged && contractState.assessedDamageAmount > 0 && (
+                  <div className="flex justify-between text-red-600 dark:text-red-400">
+                    <span>Damage compensation:</span>
+                    <span className="font-semibold">
+                      {fixedRentalService.formatEther(contractState.assessedDamageAmount * BigInt(10**18))} ETH
                     </span>
                   </div>
                 )}
@@ -320,10 +393,18 @@ export default function RentCar() {
                       <span className="status-indicator status-error">Yes</span>
                     </div>
                   )}
-                  {contractState.actualMinutes > 0 && (
+                  {contractState.actualDays > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Actual usage:</span>
-                      <span>{contractState.actualMinutes.toString()} minutes</span>
+                      <span>{contractState.actualDays.toString()} days</span>
+                    </div>
+                  )}
+                  {contractState.assessedDamageAmount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Assessed damage:</span>
+                      <span className="text-red-600 dark:text-red-400 font-semibold">
+                        {contractState.assessedDamageAmount.toString()} ETH
+                      </span>
                     </div>
                   )}
                 </div>
@@ -332,6 +413,7 @@ export default function RentCar() {
 
             {/* Action Buttons */}
             <div className="space-y-4">
+              {/* Renter Actions */}
               {availableActions.canRent && (
                 <button
                   onClick={() => setShowConfirmationModal(true)}
@@ -339,7 +421,7 @@ export default function RentCar() {
                   className="aurora-button w-full disabled:opacity-50"
                 >
                   <Car className="w-5 h-5 mr-2" />
-                  {isTransacting ? 'Processing...' : `Rent Now - ${rentalContractService.formatEther(feeCalculation.deposit)} ETH`}
+                  {isTransacting ? 'Processing...' : `Rent Now - ${feeCalculation?.deposit ? fixedRentalService.formatEther(feeCalculation.deposit) : '0'} ETH`}
                 </button>
               )}
 
@@ -359,7 +441,53 @@ export default function RentCar() {
                   disabled={isTransacting}
                   className="luxury-button w-full disabled:opacity-50"
                 >
+                  <ArrowLeft className="w-5 h-5 mr-2" />
                   {isTransacting ? 'Processing...' : 'Request Return'}
+                </button>
+              )}
+
+              {/* Owner/Lessor Actions */}
+              {availableActions.canConfirmReturn && (
+                <button
+                  onClick={confirmReturn}
+                  disabled={isTransacting}
+                  className="luxury-button w-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                >
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {isTransacting ? 'Processing...' : 'Confirm Return'}
+                </button>
+              )}
+
+              {availableActions.canSetActualUsage && (
+                <button
+                  onClick={() => setShowActualUsageModal(true)}
+                  disabled={isTransacting}
+                  className="luxury-button w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                >
+                  <Settings className="w-5 h-5 mr-2" />
+                  Set Actual Usage Days
+                </button>
+              )}
+
+              {availableActions.canReportDamage && (
+                <button
+                  onClick={reportDamage}
+                  disabled={isTransacting}
+                  className="luxury-button w-full bg-yellow-600 hover:bg-yellow-700 text-white disabled:opacity-50"
+                >
+                  <Wrench className="w-5 h-5 mr-2" />
+                  {isTransacting ? 'Processing...' : 'Report Damage'}
+                </button>
+              )}
+
+              {availableActions.canAssessDamage && (
+                <button
+                  onClick={() => setShowDamageAssessModal(true)}
+                  disabled={isTransacting}
+                  className="luxury-button w-full bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
+                >
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  Assess Damage Amount
                 </button>
               )}
 
@@ -370,23 +498,44 @@ export default function RentCar() {
                   className="aurora-button w-full disabled:opacity-50"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
-                  {isTransacting ? 'Processing...' : `Complete Rental - ${rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH`}
+                  {isTransacting ? 'Processing...' : `Complete Rental - ${feeCalculation?.finalPaymentAmount ? fixedRentalService.formatEther(feeCalculation.finalPaymentAmount) : '0'} ETH`}
                 </button>
               )}
             </div>
 
-            {/* Info Box */}
-            <div className="luxury-card p-4 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-700 dark:text-blue-300">
-                  <p className="font-medium mb-1">How it works:</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• Pay 50% deposit to secure your rental</li>
-                    <li>• Use the vehicle for the agreed duration</li>
-                    <li>• Request return when finished</li>
-                    <li>• Complete final payment after owner confirms return</li>
-                  </ul>
+            {/* Role and Info Box */}
+            <div className="space-y-4">
+              {/* User Role Display */}
+              {userRole && (
+                <div className="luxury-card p-4 border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Shield className="w-5 h-5 text-blue-500" />
+                    <p className="font-medium text-blue-700 dark:text-blue-300">
+                      Your role:
+                    </p>
+                  </div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400">
+                    {userRole.isLessor && <span className="inline-block bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded text-xs mr-2">Vehicle Owner</span>}
+                    {userRole.isLessee && <span className="inline-block bg-green-100 dark:bg-green-800 px-2 py-1 rounded text-xs mr-2">Renter</span>}
+                    {!userRole.isLessor && !userRole.isLessee && <span className="inline-block bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs mr-2">Visitor</span>}
+                  </div>
+                </div>
+              )}
+
+              {/* Info Box */}
+              <div className="luxury-card p-4 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-700 dark:text-blue-300">
+                    <p className="font-medium mb-1">How it works:</p>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Pay 30% deposit to secure your rental</li>
+                      <li>• Use the vehicle for the agreed duration</li>
+                      <li>• Request return when finished</li>
+                      <li>• Owner confirms return and sets actual usage</li>
+                      <li>• Complete final payment including any overdue or damage fees</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -395,17 +544,131 @@ export default function RentCar() {
 
         {/* Confirmation Modal */}
         {showConfirmationModal && contractState && feeCalculation && (
-          <RentalConfirmationModal
-            isOpen={showConfirmationModal}
-            onClose={() => setShowConfirmationModal(false)}
-            onConfirm={handleRentConfirm}
-            vehicleName={contractState.assetName}
-            depositAmount={rentalContractService.formatEther(feeCalculation.deposit)}
-            totalCost={rentalContractService.formatEther(feeCalculation.totalRentalFee)}
-            duration={`${contractState.durationMinutes.toString()} minutes`}
-            insuranceFee={rentalContractService.formatEther(contractState.insuranceFee)}
-            processing={isTransacting}
-          />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+            <div className="luxury-glass rounded-lg p-8 w-full max-w-md mx-4">
+              <h3 className="text-xl font-semibold mb-6">Confirm Rental</h3>
+              <div className="space-y-4 mb-6">
+                <div className="flex justify-between">
+                  <span>Vehicle:</span>
+                  <span className="font-semibold">{contractState.assetName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Duration:</span>
+                  <span>{contractState.durationDays.toString()} days</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Total cost:</span>
+                  <span>{feeCalculation.totalRentalFee ? fixedRentalService.formatEther(feeCalculation.totalRentalFee) : '0'} ETH</span>
+                </div>
+                <div className="flex justify-between font-semibold text-primary">
+                  <span>Deposit (30%):</span>
+                  <span>{feeCalculation.deposit ? fixedRentalService.formatEther(feeCalculation.deposit) : '0'} ETH</span>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowConfirmationModal(false)}
+                  disabled={isTransacting}
+                  className="luxury-button-outline flex-1 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRentConfirm}
+                  disabled={isTransacting}
+                  className="aurora-button flex-1 disabled:opacity-50"
+                >
+                  {isTransacting ? 'Processing...' : 'Confirm Rental'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Actual Usage Modal */}
+        {showActualUsageModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+            <div className="luxury-glass rounded-lg p-8 w-full max-w-md mx-4">
+              <h3 className="text-xl font-semibold mb-6">Set Actual Usage</h3>
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Actual days used:</label>
+                  <input
+                    type="number"
+                    value={actualDaysInput}
+                    onChange={(e) => setActualDaysInput(e.target.value)}
+                    className="luxury-input w-full"
+                    placeholder="Enter number of days"
+                    min="0"
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>Enter the actual number of days the vehicle was used. This affects the final payment calculation.</p>
+                  {contractState && (
+                    <p className="mt-2">Originally planned: {contractState.durationDays.toString()} days</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowActualUsageModal(false)}
+                  disabled={isTransacting}
+                  className="luxury-button-outline flex-1 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSetActualUsage}
+                  disabled={isTransacting || !actualDaysInput}
+                  className="luxury-button flex-1 disabled:opacity-50"
+                >
+                  {isTransacting ? 'Processing...' : 'Set Usage'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Damage Assessment Modal */}
+        {showDamageAssessModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+            <div className="luxury-glass rounded-lg p-8 w-full max-w-md mx-4">
+              <h3 className="text-xl font-semibold mb-6">Assess Damage Amount</h3>
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Damage compensation (ETH):</label>
+                  <input
+                    type="number"
+                    value={damageAmountInput}
+                    onChange={(e) => setDamageAmountInput(e.target.value)}
+                    className="luxury-input w-full"
+                    placeholder="Enter damage amount in ETH"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>Enter the compensation amount for damages in ETH. This will be added to the final payment.</p>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDamageAssessModal(false)}
+                  disabled={isTransacting}
+                  className="luxury-button-outline flex-1 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssessDamage}
+                  disabled={isTransacting || !damageAmountInput}
+                  className="luxury-button flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                >
+                  {isTransacting ? 'Processing...' : 'Assess Damage'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
