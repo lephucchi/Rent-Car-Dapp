@@ -31,12 +31,18 @@
     --radius: 0.75rem;
 
     /* Ferrari-inspired luxury colors */
-    --ferrari-red: 0 100% 45%;
-    --ferrari-yellow: 45 100% 51%;
-    --luxury-gold: 38 100% 50%;
-    --platinum: 240 9% 89%;
-    --carbon: 0 0% 7%;
-    --steel: 220 9% 46%;
+    --ferrari-red: 0 85% 55%;
+    --ferrari-yellow: 45 95% 60%;
+    --luxury-gold: 38 88% 58%;
+    --platinum: 240 12% 92%;
+    --carbon: 0 0% 8%;
+    --steel: 220 12% 52%;
+
+    /* Enhanced glassmorphism colors */
+    --glass-bg: 255 255 255 / 0.08;
+    --glass-border: 255 255 255 / 0.12;
+    --glass-hover-bg: 255 255 255 / 0.15;
+    --glass-hover-border: 255 255 255 / 0.25;
   }
 
   .dark {
@@ -61,12 +67,18 @@
     --ring: 0 0% 83.1%;
 
     /* Dark theme luxury colors */
-    --ferrari-red: 0 100% 35%;
-    --ferrari-yellow: 45 100% 41%;
-    --luxury-gold: 38 100% 40%;
-    --platinum: 240 9% 70%;
-    --carbon: 0 0% 4%;
-    --steel: 220 9% 56%;
+    --ferrari-red: 0 85% 62%;
+    --ferrari-yellow: 45 95% 68%;
+    --luxury-gold: 38 88% 65%;
+    --platinum: 240 15% 85%;
+    --carbon: 0 0% 12%;
+    --steel: 220 15% 68%;
+
+    /* Enhanced glassmorphism colors for dark theme */
+    --glass-bg: 0 0 0 / 0.15;
+    --glass-border: 255 255 255 / 0.08;
+    --glass-hover-bg: 0 0 0 / 0.25;
+    --glass-hover-border: 255 255 255 / 0.15;
   }
 }
 
@@ -108,51 +120,100 @@
 }
 
 @layer components {
-  /* Ferrari-inspired luxury components */
+  /* Enhanced Ferrari-inspired luxury components */
   .luxury-glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-  }
-
-  .dark .luxury-glass {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgb(var(--glass-bg));
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgb(var(--glass-border));
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   }
 
   .luxury-glass:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
+    background: rgb(var(--glass-hover-bg));
+    border-color: rgb(var(--glass-hover-border));
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
   }
 
-  .dark .luxury-glass:hover {
-    background: rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.1);
+  .luxury-glass-intense {
+    background: rgb(var(--glass-hover-bg));
+    backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgb(var(--glass-hover-border));
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   }
 
   .ferrari-gradient {
-    background: linear-gradient(135deg, hsl(var(--ferrari-red)), hsl(var(--luxury-gold)));
+    background: linear-gradient(135deg, hsl(var(--ferrari-red)) 0%, hsl(var(--luxury-gold)) 100%);
+    position: relative;
+  }
+
+  .ferrari-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+    border-radius: inherit;
+  }
+
+  .ferrari-gradient-subtle {
+    background: linear-gradient(135deg,
+      hsla(var(--ferrari-red), 0.1) 0%,
+      hsla(var(--luxury-gold), 0.1) 100%);
+  }
+
+  .gold-gradient {
+    background: linear-gradient(135deg,
+      hsl(var(--luxury-gold)) 0%,
+      hsl(var(--ferrari-yellow)) 100%);
   }
 
   .luxury-card {
-    @apply bg-card border border-border rounded-xl shadow-sm transition-all duration-300;
+    @apply bg-card border border-border rounded-2xl shadow-sm transition-all duration-400;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
   }
 
   .luxury-card:hover {
-    @apply shadow-lg border-muted-foreground/20;
-    transform: translateY(-1px);
+    @apply shadow-xl border-muted-foreground/30;
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04);
+  }
+
+  .luxury-card-elevated {
+    @apply luxury-card;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .luxury-card-elevated:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.12), 0 12px 24px rgba(0, 0, 0, 0.06);
   }
 
   .luxury-button {
-    @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium transition-all duration-300;
-    box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium transition-all duration-300;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.03);
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .luxury-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .luxury-button:hover {
-    @apply transform translate-y-[-2px];
-    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.15);
+    @apply transform translate-y-[-3px];
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  .luxury-button:hover::before {
+    opacity: 1;
   }
 
   .luxury-button-outline {
@@ -164,13 +225,28 @@
   }
 
   .ferrari-button {
-    @apply ferrari-gradient text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300;
-    box-shadow: 0 8px 25px 0 rgba(220, 38, 38, 0.2);
+    @apply ferrari-gradient text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300;
+    box-shadow: 0 12px 32px rgba(220, 38, 38, 0.25), 0 4px 12px rgba(220, 38, 38, 0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ferrari-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%, rgba(255, 255, 255, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .ferrari-button:hover {
-    @apply transform translate-y-[-2px];
-    box-shadow: 0 12px 35px 0 rgba(220, 38, 38, 0.3);
+    @apply transform translate-y-[-4px] scale-105;
+    box-shadow: 0 20px 48px rgba(220, 38, 38, 0.35), 0 8px 20px rgba(220, 38, 38, 0.18);
+  }
+
+  .ferrari-button:hover::after {
+    opacity: 1;
   }
 
   .luxury-input {
