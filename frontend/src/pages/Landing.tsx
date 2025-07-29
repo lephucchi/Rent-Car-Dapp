@@ -395,7 +395,7 @@ export default function Landing() {
                     />
                     <button
                       onClick={handleSetActualUsage}
-                      disabled={!actualMinutesInput}
+                      disabled={!actualDaysInput}
                       className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400"
                     >
                       Set Usage
