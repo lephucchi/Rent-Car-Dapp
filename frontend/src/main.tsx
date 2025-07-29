@@ -9,7 +9,7 @@ import "./global.css";
 import Landing from "./pages/Landing";
 import RentCar from "./pages/RentCar";
 import LendCar from "./pages/LendCar";
-import Transactions from "./pages/Transaction";
+import Transactions from "./pages/Transactions";
 import Inspector from "./pages/Inspector";
 import Admin from "./pages/Admin";
 
