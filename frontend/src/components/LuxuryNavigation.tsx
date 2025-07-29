@@ -65,11 +65,11 @@ export const LuxuryNavigation: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 ferrari-gradient rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+            <div className="w-10 h-10 aurora-gradient rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
               <Car className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-foreground">
-              Luxe<span className="text-primary">Rent</span>
+            <span className="text-2xl font-bold gradient-text-aurora">
+              Arctic<span className="gradient-text-ice">Rent</span>
             </span>
           </Link>
 
