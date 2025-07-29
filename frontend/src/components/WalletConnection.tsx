@@ -1,9 +1,7 @@
 import React from 'react';
-import { useAuthStore } from '../stores/authStore';
 import { useWeb3Store } from '../stores/web3Store';
 
 export const WalletConnection: React.FC = () => {
-  const { user, connectMetamask } = useAuthStore();
   const { 
     isConnected, 
     address, 
@@ -17,18 +15,8 @@ export const WalletConnection: React.FC = () => {
   } = useWeb3Store();
 
   const handleConnectWallet = async () => {
-    if (!user) {
-      alert('Please login first before connecting your wallet');
-      return;
-    }
-
     try {
       await connectWallet();
-      
-      // If wallet connected successfully and user doesn't have metamask ID, save it
-      if (!user.metamask_address && address) {
-        await connectMetamask(address);
-      }
     } catch (error) {
       console.error('Failed to connect wallet:', error);
     }
@@ -64,17 +52,11 @@ export const WalletConnection: React.FC = () => {
         
         <button
           onClick={handleConnectWallet}
-          disabled={isLoading || !user}
+          disabled={isLoading}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Connecting...' : 'Connect Wallet'}
         </button>
-        
-        {!user && (
-          <p className="text-sm text-gray-600 text-center">
-            Please login to your account first
-          </p>
-        )}
       </div>
     );
   }

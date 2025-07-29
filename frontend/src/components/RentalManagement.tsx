@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Car, Calendar, Clock, User, AlertTriangle } from "lucide-react";
 import Button from "./Button";
 import { useContractStore } from "../stores/contractStore";
-import { useAuthStore } from "../stores/authStore";
 
 interface RentalData {
   id: string;
@@ -19,7 +18,6 @@ interface RentalData {
 export default function RentalManagement() {
   const [rentals, setRentals] = useState<RentalData[]>([]);
   const { contractStatus, accounts, loadContractStatus, loadAccounts } = useContractStore();
-  const { user } = useAuthStore();
 
   useEffect(() => {
     loadContractStatus();

@@ -3,12 +3,10 @@ import { motion } from "framer-motion";
 import { Car, Home, BarChart3, User, Wallet, ClipboardCheck } from "lucide-react";
 import { Shield } from "lucide-react";
 import { useWeb3Store } from "../stores/web3Store";
-import { useAuthStore } from "../stores/authStore";
 import { formatAddress, cn } from "../lib/utils";
 
 export function Navigation() {
   const location = useLocation();
-  const { user } = useAuthStore();
   const {
     isConnected,
     address,
@@ -20,13 +18,11 @@ export function Navigation() {
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },
-    { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
-    { href: "/marketplace", label: "Marketplace", icon: Car },
+    { href: "/rent", label: "Rent Car", icon: Car },
     { href: "/lend", label: "Lend Car", icon: User },
-    { href: "/active-rentals", label: "Active Rentals", icon: BarChart3 },
     { href: "/transactions", label: "Transactions", icon: ClipboardCheck },
     { href: "/inspector", label: "Inspector", icon: ClipboardCheck },
-    ...(user?.role === 'admin' ? [{ href: "/admin", label: "Admin", icon: Shield }] : []),
+    { href: "/admin", label: "Admin", icon: Shield }
   ];
 
   const handleWalletAction = async () => {
@@ -91,19 +87,6 @@ export function Navigation() {
           <div className="flex items-center space-x-4">
             {isConnected ? (
               <>
-                <Link
-                  to="/profile"
-                  className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200",
-                    location.pathname === "/profile"
-                      ? "text-neon-cyan neon-glow"
-                      : "text-gray-300 hover:text-white",
-                  )}
-                >
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">Profile</span>
-                </Link>
-
                 <div className="hidden sm:flex items-center space-x-3 glass px-3 py-2 rounded-lg">
                   <div className="text-sm">
                     <div className="text-neon-cyan font-mono">
@@ -122,26 +105,17 @@ export function Navigation() {
                 </button>
               </>
             ) : (
-              <>
-                <Link
-                  to="/auth"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Sign In
-                </Link>
-
-                <button
-                  onClick={handleWalletAction}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-neon-purple to-neon-cyan hover:shadow-lg hover:shadow-neon-purple/25 text-white"
-                >
-                  <Wallet className="w-4 h-4" />
-                  <span>
-                    {!isMetaMaskInstalled
-                      ? "Install MetaMask"
-                      : "Connect Wallet"}
-                  </span>
-                </button>
-              </>
+              <button
+                onClick={handleWalletAction}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-neon-purple to-neon-cyan hover:shadow-lg hover:shadow-neon-purple/25 text-white"
+              >
+                <Wallet className="w-4 h-4" />
+                <span>
+                  {!isMetaMaskInstalled
+                    ? "Install MetaMask"
+                    : "Connect Wallet"}
+                </span>
+              </button>
             )}
           </div>
         </div>
