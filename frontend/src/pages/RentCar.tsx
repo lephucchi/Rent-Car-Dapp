@@ -186,6 +186,15 @@ export default function RentCar() {
           </div>
         )}
 
+        {/* Rental Flow Steps */}
+        {(isConnected && contractState && feeCalculation && availableActions) && (
+          <RentalFlowStepper
+            currentStep={contractState.isRented ? 3 : 2}
+            steps={getRentalSteps()}
+            userRole={userRole}
+          />
+        )}
+
         <div className="luxury-grid-2 gap-8">
           {/* Vehicle Card */}
           <div className="luxury-card overflow-hidden">
