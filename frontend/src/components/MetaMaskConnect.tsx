@@ -157,7 +157,7 @@ export const MetaMaskConnect: React.FC<MetaMaskConnectProps> = ({
             <button
               onClick={handleConnect}
               disabled={connecting}
-              className="ferrari-button w-full disabled:opacity-50 relative overflow-hidden"
+              className="aurora-button w-full disabled:opacity-50 relative overflow-hidden"
             >
               <div className="flex items-center justify-center">
                 {connecting ? (
