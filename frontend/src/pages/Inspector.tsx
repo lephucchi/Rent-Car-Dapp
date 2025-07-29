@@ -30,7 +30,7 @@ export default function Inspector() {
     compensationAmount: '0',
     photos: []
   });
-  const [actualMinutesInput, setActualMinutesInput] = useState('');
+  const [actualDaysInput, setActualDaysInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
