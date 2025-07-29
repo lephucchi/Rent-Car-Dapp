@@ -47,6 +47,44 @@ export default function RentCar() {
     }
   };
 
+  const handleRentConfirm = async () => {
+    await rent();
+    setShowConfirmationModal(false);
+  };
+
+  const getRentalSteps = () => {
+    const steps = [
+      {
+        id: 1,
+        title: 'Connect Wallet',
+        description: 'MetaMask wallet connected and ready',
+        status: isConnected ? 'completed' as const : 'current' as const
+      },
+      {
+        id: 2,
+        title: 'Pay Deposit',
+        description: `Pay ${feeCalculation ? rentalContractService.formatEther(feeCalculation.deposit) : '0'} ETH deposit (50% of total)`,
+        status: contractState?.isRented ? 'completed' as const :
+                availableActions?.canRent ? 'current' as const : 'pending' as const
+      },
+      {
+        id: 3,
+        title: 'Enjoy Your Ride',
+        description: 'Use the vehicle for the agreed rental period',
+        status: contractState?.isRented && !contractState?.renterRequestedReturn ? 'current' as const :
+                contractState?.renterRequestedReturn ? 'completed' as const : 'pending' as const
+      },
+      {
+        id: 4,
+        title: 'Return & Complete',
+        description: 'Return vehicle and complete final payment',
+        status: contractState?.ownerConfirmedReturn ? 'completed' as const :
+                contractState?.renterRequestedReturn ? 'current' as const : 'pending' as const
+      }
+    ];
+    return steps;
+  };
+
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-background">
