@@ -1,120 +1,210 @@
-import { motion } from "framer-motion";
-import { MapPin, Calendar, DollarSign, Star, Fuel, Users } from "lucide-react";
-import Button from "./Button";
+import React from 'react';
+import { Car, Clock, Shield, User, DollarSign, Calendar } from 'lucide-react';
+import { rentalContractService } from '../services/rentalContractService';
 
-interface CarCardProps {
-  car: {
-    id: string;
-    name: string;
-    image: string;
-    location: string;
-    pricePerDay: number;
-    rating: number;
-    reviews: number;
-    fuelType: string;
-    seats: number;
-    year: number;
-    brand: string;
-    available: boolean;
-    owner?: string;
-  };
-  onRent?: (carId: string) => void;
-  onView?: (carId: string) => void;
-  showOwner?: boolean;
+interface CarData {
+  id: string;
+  assetName: string;
+  rentalFeePerDay: string;
+  insuranceFee: string;
+  durationDays: number;
+  isRented: boolean;
+  lessor: string;
+  lessee?: string;
+  status: 'Available' | 'Rented' | 'Awaiting Return Confirmation' | 'Damaged';
+  depositRequired?: string;
+  totalRentalFee?: string;
 }
 
-export default function CarCard({
+interface CarCardProps {
+  car: CarData;
+  userRole: 'lessor' | 'inspector' | 'lessee' | 'other';
+  onRentCar?: (carId: string) => void;
+  onManageCar?: (carId: string) => void;
+  onInspectCar?: (carId: string) => void;
+  isPreview?: boolean;
+}
+
+export const CarCard: React.FC<CarCardProps> = ({
   car,
-  onRent,
-  onView,
-  showOwner = false,
-}: CarCardProps) {
+  userRole,
+  onRentCar,
+  onManageCar,
+  onInspectCar,
+  isPreview = false
+}) => {
+  const getStatusColor = () => {
+    switch (car.status) {
+      case 'Available':
+        return 'status-indicator status-active';
+      case 'Rented':
+        return 'status-indicator status-pending';
+      case 'Awaiting Return Confirmation':
+        return 'status-indicator status-pending';
+      case 'Damaged':
+        return 'status-indicator status-error';
+      default:
+        return 'status-indicator status-inactive';
+    }
+  };
+
+  const getActionButton = () => {
+    if (isPreview) {
+      if (userRole === 'lessor') {
+        return (
+          <button className="luxury-button w-full" disabled>
+            <Shield className="w-4 h-4 mr-2" />
+            Manage Car (Preview)
+          </button>
+        );
+      } else if (userRole === 'inspector' && car.status === 'Awaiting Return Confirmation') {
+        return (
+          <button className="luxury-button w-full" disabled>
+            <Calendar className="w-4 h-4 mr-2" />
+            Inspect Car (Preview)
+          </button>
+        );
+      } else if (car.status === 'Available') {
+        return (
+          <button className="ferrari-button w-full" disabled>
+            <Car className="w-4 h-4 mr-2" />
+            Rent Car (Preview)
+          </button>
+        );
+      }
+      return null;
+    }
+
+    // Real action buttons
+    if (userRole === 'lessor') {
+      return (
+        <button 
+          onClick={() => onManageCar?.(car.id)}
+          className="luxury-button w-full"
+        >
+          <Shield className="w-4 h-4 mr-2" />
+          Manage Car
+        </button>
+      );
+    } else if (userRole === 'inspector' && car.status === 'Awaiting Return Confirmation') {
+      return (
+        <button 
+          onClick={() => onInspectCar?.(car.id)}
+          className="luxury-button w-full"
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Inspect Car
+        </button>
+      );
+    } else if (car.status === 'Available') {
+      return (
+        <button 
+          onClick={() => onRentCar?.(car.id)}
+          className="ferrari-button w-full"
+        >
+          <Car className="w-4 h-4 mr-2" />
+          Rent Car
+        </button>
+      );
+    }
+
+    return null;
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      className="glass-hover rounded-xl overflow-hidden group"
-    >
-      {/* Car Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={car.image}
-          alt={car.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-        />
-        <div className="absolute top-4 left-4">
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
-              car.available
-                ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                : "bg-red-500/20 text-red-400 border border-red-500/30"
-            }`}
-          >
-            {car.available ? "Available" : "Rented"}
-          </span>
-        </div>
-        <div className="absolute top-4 right-4 flex items-center space-x-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-lg">
-          <Star className="w-3 h-3 text-yellow-400 fill-current" />
-          <span className="text-xs text-white">{car.rating}</span>
-          <span className="text-xs text-gray-300">({car.reviews})</span>
+    <div className="luxury-card p-6 hover:shadow-lg transition-all duration-300">
+      {/* Car Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 ferrari-gradient rounded-lg flex items-center justify-center">
+            <Car className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">{car.assetName}</h3>
+            <div className={getStatusColor()}>
+              {car.status}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Car Details */}
-      <div className="p-6 space-y-4">
-        <div>
-          <h3 className="text-xl font-semibold text-white mb-1">{car.name}</h3>
-          <p className="text-gray-400 text-sm">
-            {car.brand} • {car.year}
-          </p>
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center">
+            <DollarSign className="w-4 h-4 mr-1" />
+            Daily Rate
+          </span>
+          <span className="font-semibold">
+            {rentalContractService.formatEther(car.rentalFeePerDay)} ETH
+          </span>
         </div>
 
-        <div className="flex items-center space-x-4 text-sm text-gray-400">
-          <div className="flex items-center space-x-1">
-            <MapPin className="w-4 h-4" />
-            <span>{car.location}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Users className="w-4 h-4" />
-            <span>{car.seats} seats</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Fuel className="w-4 h-4" />
-            <span>{car.fuelType}</span>
-          </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center">
+            <Shield className="w-4 h-4 mr-1" />
+            Insurance
+          </span>
+          <span className="font-semibold">
+            {rentalContractService.formatEther(car.insuranceFee)} ETH
+          </span>
         </div>
 
-        {showOwner && car.owner && (
-          <div className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-400">Owner:</span>
-            <span className="text-neon-cyan font-mono">{car.owner}</span>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center">
+            <Clock className="w-4 h-4 mr-1" />
+            Duration
+          </span>
+          <span className="font-semibold">
+            {car.durationDays} days
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground flex items-center">
+            <User className="w-4 h-4 mr-1" />
+            Owner
+          </span>
+          <span className="font-mono text-sm">
+            {car.lessor.slice(0, 6)}...{car.lessor.slice(-4)}
+          </span>
+        </div>
+
+        {car.isRented && car.lessee && (
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center">
+              <User className="w-4 h-4 mr-1" />
+              Renter
+            </span>
+            <span className="font-mono text-sm">
+              {car.lessee.slice(0, 6)}...{car.lessee.slice(-4)}
+            </span>
           </div>
         )}
+      </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-          <div className="flex items-center space-x-1">
-            <DollarSign className="w-5 h-5 text-neon-cyan" />
-            <span className="text-2xl font-bold text-white">
-              {car.pricePerDay}
+      {/* Rental Pricing (for Available cars) */}
+      {car.status === 'Available' && car.depositRequired && car.totalRentalFee && (
+        <div className="bg-muted/30 rounded-lg p-4 mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-muted-foreground">Deposit Required:</span>
+            <span className="font-semibold text-foreground">
+              {rentalContractService.formatEther(car.depositRequired)} ETH
             </span>
-            <span className="text-gray-400">ETH/day</span>
           </div>
-
-          <div className="flex space-x-2">
-            {onView && (
-              <Button variant="ghost" size="sm" onClick={() => onView(car.id)}>
-                View
-              </Button>
-            )}
-            {onRent && car.available && (
-              <Button size="sm" onClick={() => onRent(car.id)}>
-                Rent Now
-              </Button>
-            )}
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Total Rental Fee:</span>
+            <span className="font-semibold text-foreground">
+              {rentalContractService.formatEther(car.totalRentalFee)} ETH
+            </span>
           </div>
         </div>
-      </div>
-    </motion.div>
+      )}
+
+      {/* Action Button */}
+      {getActionButton()}
+    </div>
   );
-}
+};
+
+export default CarCard;
