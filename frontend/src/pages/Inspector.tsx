@@ -216,19 +216,19 @@ export default function Inspector() {
             {/* Actual Usage Input */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-foreground mb-2">
-                Actual Usage (Minutes)
+                Actual Usage (Days)
               </label>
               <div className="flex space-x-3">
                 <input
                   type="number"
-                  value={actualMinutesInput}
-                  onChange={(e) => setActualMinutesInput(e.target.value)}
-                  placeholder="Enter actual minutes used"
+                  value={actualDaysInput}
+                  onChange={(e) => setActualDaysInput(e.target.value)}
+                  placeholder="Enter actual days used"
                   min="1"
                   className="luxury-input flex-1"
                 />
                 <div className="text-sm text-muted-foreground flex items-center">
-                  Agreed: {contractState.durationMinutes.toString()} min
+                  Agreed: {(contractState.durationDays || contractState.durationMinutes)?.toString()} {contractState.durationDays ? 'days' : 'min'}
                 </div>
               </div>
             </div>
