@@ -4,28 +4,24 @@ import {
   Car, 
   Home, 
   BarChart3, 
-  User, 
   Wallet, 
-  ClipboardCheck, 
   Shield, 
   Sun, 
   Moon, 
   Menu, 
   X, 
-  CreditCard,
-  PlusCircle,
   History
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useRentalContractStore, useUserRole, useIsConnected } from '../stores/rentalContractStore';
-import { rentalContractService } from '../services/rentalContractService';
+import { useContractStore, useUserRole, useIsConnected } from '../stores/contractStore';
+import { contractService } from '../services/contractService';
 
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const userRole = useUserRole();
   const isConnected = useIsConnected();
-  const { connectWallet } = useRentalContractStore();
+  const { connectWallet } = useContractStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
@@ -43,20 +39,26 @@ export const LuxuryNavigation: React.FC = () => {
   const navItems = [
     { href: '/', label: 'Home', icon: Home, roles: ['all'] },
     { href: '/rent', label: 'Rent Car', icon: Car, roles: ['all'] },
-    { href: '/lend', label: 'Lend Car', icon: PlusCircle, roles: ['lessor', 'other'] },
     { href: '/transactions', label: 'Transactions', icon: History, roles: ['all'] },
     { href: '/admin', label: 'Admin', icon: Shield, roles: ['lessor'] },
-    { href: '/inspector', label: 'Inspector', icon: ClipboardCheck, roles: ['inspector'] },
   ];
 
   const filteredNavItems = navItems.filter(item => {
     if (item.roles.includes('all')) return true;
     if (!isConnected && item.roles.includes('other')) return true;
-    return item.roles.includes(userRole);
+    if (userRole?.isLessor && item.roles.includes('lessor')) return true;
+    return false;
   });
 
   const isActiveRoute = (href: string) => {
     return location.pathname === href;
+  };
+
+  const getRoleDisplay = () => {
+    if (!userRole) return 'Visitor';
+    if (userRole.isLessor) return 'Owner';
+    if (userRole.isLessee) return 'Renter';
+    return 'Visitor';
   };
 
   return (
@@ -69,7 +71,7 @@ export const LuxuryNavigation: React.FC = () => {
               <Car className="w-6 h-6 text-white" />
             </div>
             <span className="text-2xl font-bold gradient-text-aurora">
-              Arctic<span className="gradient-text-ice">Rent</span>
+              Car<span className="gradient-text-ice">Rental</span>
             </span>
           </Link>
 
@@ -111,8 +113,8 @@ export const LuxuryNavigation: React.FC = () => {
             {isConnected ? (
               <div className="hidden sm:flex items-center space-x-3">
                 <div className="text-sm">
-                  <div className="text-foreground font-medium capitalize">
-                    {userRole === 'lessor' ? 'Owner' : userRole === 'lessee' ? 'Renter' : userRole}
+                  <div className="text-foreground font-medium">
+                    {getRoleDisplay()}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Connected
@@ -169,8 +171,8 @@ export const LuxuryNavigation: React.FC = () => {
             {isConnected ? (
               <div className="flex items-center justify-between pt-4 border-t border-border/50">
                 <div className="text-sm">
-                  <div className="text-foreground font-medium capitalize">
-                    {userRole === 'lessor' ? 'Owner' : userRole === 'lessee' ? 'Renter' : userRole}
+                  <div className="text-foreground font-medium">
+                    {getRoleDisplay()}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Connected

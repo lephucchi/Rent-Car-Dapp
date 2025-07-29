@@ -8,10 +8,10 @@ export const contractConfig = {
       "type": "constructor",
       "inputs": [
         {"type": "string", "name": "_assetName"},
-        {"type": "uint256", "name": "_rentalFeePerDay"},
-        {"type": "uint256", "name": "_durationDays"},
+        {"type": "uint256", "name": "_rentalFeePerMinute"},
+        {"type": "uint256", "name": "_durationMinutes"},
         {"type": "uint256", "name": "_insuranceFee"},
-        {"type": "address", "name": "_damageAssessor"}
+        {"type": "uint256", "name": "_insuranceCompensation"}
       ]
     },
     {
@@ -23,14 +23,14 @@ export const contractConfig = {
     },
     {
       "type": "function",
-      "name": "rentalFeePerDay",
+      "name": "rentalFeePerMinute",
       "constant": true,
       "inputs": [],
       "outputs": [{"type": "uint256"}]
     },
     {
       "type": "function",
-      "name": "durationDays",
+      "name": "durationMinutes",
       "constant": true,
       "inputs": [],
       "outputs": [{"type": "uint256"}]
@@ -38,6 +38,13 @@ export const contractConfig = {
     {
       "type": "function",
       "name": "insuranceFee",
+      "constant": true,
+      "inputs": [],
+      "outputs": [{"type": "uint256"}]
+    },
+    {
+      "type": "function",
+      "name": "insuranceCompensation",
       "constant": true,
       "inputs": [],
       "outputs": [{"type": "uint256"}]
@@ -86,14 +93,14 @@ export const contractConfig = {
     },
     {
       "type": "function",
-      "name": "actualDays",
+      "name": "actualMinutes",
       "constant": true,
       "inputs": [],
       "outputs": [{"type": "uint256"}]
     },
     {
       "type": "function",
-      "name": "assessedDamageAmount",
+      "name": "startTime",
       "constant": true,
       "inputs": [],
       "outputs": [{"type": "uint256"}]
@@ -138,7 +145,6 @@ export const contractConfig = {
       "type": "function",
       "name": "cancelRental",
       "constant": false,
-      "payable": false,
       "inputs": [],
       "outputs": []
     },
@@ -146,7 +152,6 @@ export const contractConfig = {
       "type": "function",
       "name": "requestReturn",
       "constant": false,
-      "payable": false,
       "inputs": [],
       "outputs": []
     },
@@ -154,7 +159,6 @@ export const contractConfig = {
       "type": "function",
       "name": "confirmReturn",
       "constant": false,
-      "payable": false,
       "inputs": [],
       "outputs": []
     },
@@ -162,24 +166,14 @@ export const contractConfig = {
       "type": "function",
       "name": "setActualUsage",
       "constant": false,
-      "payable": false,
-      "inputs": [{"type": "uint256", "name": "_actualDays"}],
+      "inputs": [{"type": "uint256", "name": "_actualMinutes"}],
       "outputs": []
     },
     {
       "type": "function",
       "name": "reportDamage",
       "constant": false,
-      "payable": false,
       "inputs": [],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "assessDamage",
-      "constant": false,
-      "payable": false,
-      "inputs": [{"type": "uint256", "name": "amountInEther"}],
       "outputs": []
     },
     {
@@ -207,21 +201,6 @@ export const contractConfig = {
     },
     {
       "type": "event",
-      "name": "DamageReported",
-      "inputs": [
-        {"type": "address", "name": "lessor", "indexed": false}
-      ]
-    },
-    {
-      "type": "event",
-      "name": "FundsTransferred",
-      "inputs": [
-        {"type": "address", "name": "to", "indexed": false},
-        {"type": "uint256", "name": "amount", "indexed": false}
-      ]
-    },
-    {
-      "type": "event",
       "name": "RenterRequestedReturn",
       "inputs": [
         {"type": "address", "name": "lessee", "indexed": false}
@@ -238,14 +217,21 @@ export const contractConfig = {
       "type": "event",
       "name": "ActualUsageSet",
       "inputs": [
-        {"type": "uint256", "name": "daysUsed", "indexed": false}
+        {"type": "uint256", "name": "minutesUsed", "indexed": false}
       ]
     },
     {
       "type": "event",
-      "name": "DamageAssessed",
+      "name": "DamageReported",
       "inputs": [
-        {"type": "address", "name": "assessor", "indexed": false},
+        {"type": "address", "name": "lessor", "indexed": false}
+      ]
+    },
+    {
+      "type": "event",
+      "name": "FundsTransferred",
+      "inputs": [
+        {"type": "address", "name": "to", "indexed": false},
         {"type": "uint256", "name": "amount", "indexed": false}
       ]
     }
