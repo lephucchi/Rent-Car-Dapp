@@ -79,9 +79,10 @@ export default function Landing() {
         {/* Hero Section */}
         <section className="relative overflow-hidden section-padding">
           {/* Background Effects */}
-          <div className="absolute inset-0 ferrari-gradient-subtle opacity-30"></div>
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full ferrari-gradient opacity-10 blur-3xl float-animation"></div>
-          <div className="absolute bottom-1/4 left-1/4 w-72 h-72 rounded-full gold-gradient opacity-10 blur-3xl float-animation" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute inset-0 aurora-gradient-subtle opacity-30"></div>
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full aurora-gradient opacity-15 blur-3xl float-animation"></div>
+          <div className="absolute bottom-1/4 left-1/4 w-72 h-72 rounded-full cyan-gradient opacity-12 blur-3xl float-animation" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full ice-gradient opacity-8 blur-3xl float-animation" style={{ animationDelay: '4s' }}></div>
           
           <div className="luxury-container relative">
             <div className="text-center max-w-5xl mx-auto">
@@ -89,7 +90,7 @@ export default function Landing() {
                 <h1 className="luxury-heading mb-8">
                   The Future of
                   <br />
-                  <span className="gradient-text-ferrari">Luxury Car Rental</span>
+                  <span className="gradient-text-aurora">Arctic Luxury Rental</span>
                 </h1>
                 <p className="luxury-subheading max-w-3xl mx-auto mb-12">
                   Experience premium vehicles with blockchain security, transparent pricing, 
@@ -101,24 +102,24 @@ export default function Landing() {
               <div className="fade-in-delayed">
                 <div className="luxury-grid-3 max-w-4xl mx-auto mb-16">
                   <div className="text-center">
-                    <div className="w-16 h-16 ferrari-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Shield className="w-8 h-8 text-white" />
                     </div>
-                    <div className="text-3xl font-bold gradient-text-ferrari mb-2">100%</div>
+                    <div className="text-3xl font-bold gradient-text-aurora mb-2">100%</div>
                     <div className="text-muted-foreground">Secure Transactions</div>
                   </div>
                   <div className="text-center">
-                    <div className="w-16 h-16 gold-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 cyan-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Zap className="w-8 h-8 text-white" />
                     </div>
-                    <div className="text-3xl font-bold gradient-text-gold mb-2">&lt;30s</div>
+                    <div className="text-3xl font-bold gradient-text-ice mb-2">&lt;30s</div>
                     <div className="text-muted-foreground">Average Booking Time</div>
                   </div>
                   <div className="text-center">
-                    <div className="w-16 h-16 ferrari-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Globe className="w-8 h-8 text-white" />
                     </div>
-                    <div className="text-3xl font-bold gradient-text-ferrari mb-2">24/7</div>
+                    <div className="text-3xl font-bold gradient-text-aurora mb-2">24/7</div>
                     <div className="text-muted-foreground">Global Availability</div>
                   </div>
                 </div>
@@ -151,7 +152,7 @@ export default function Landing() {
           <div className="luxury-container">
             <div className="text-center mb-16 fade-in">
               <h2 className="text-4xl font-light text-foreground mb-4">
-                Why Choose <span className="gradient-text-ferrari">LuxeRent</span>?
+                Why Choose <span className="gradient-text-aurora">ArcticRent</span>?
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Experience the perfect blend of luxury, technology, and trust
@@ -160,7 +161,7 @@ export default function Landing() {
             
             <div className="luxury-grid-3 gap-8">
               <div className="luxury-card-elevated p-8 text-center fade-in">
-                <div className="w-16 h-16 ferrari-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Shield className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4">Blockchain Security</h3>
@@ -184,7 +185,7 @@ export default function Landing() {
               </div>
 
               <div className="luxury-card-elevated p-8 text-center fade-in" style={{ animationDelay: '0.1s' }}>
-                <div className="w-16 h-16 gold-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 cyan-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Clock className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4">Instant Rental</h3>
@@ -208,7 +209,7 @@ export default function Landing() {
               </div>
 
               <div className="luxury-card-elevated p-8 text-center fade-in" style={{ animationDelay: '0.2s' }}>
-                <div className="w-16 h-16 ferrari-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 ice-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <CreditCard className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4">Transparent Pricing</h3>
@@ -274,7 +275,7 @@ export default function Landing() {
                 ].map((item, index) => (
                   <div key={index} className="text-center fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="relative mb-8">
-                      <div className="w-20 h-20 ferrari-gradient rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
+                      <div className="w-20 h-20 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
                         <div className="text-white">{item.icon}</div>
                         <div className="absolute -top-2 -right-2 w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center text-sm font-bold">
                           {item.step}
@@ -298,7 +299,7 @@ export default function Landing() {
         {/* CTA Section */}
         <section className="section-padding bg-muted/30">
           <div className="luxury-container">
-            <div className="luxury-card-elevated p-12 text-center ferrari-gradient-subtle">
+            <div className="luxury-card-elevated p-12 text-center aurora-gradient-subtle">
               <div className="max-w-3xl mx-auto fade-in">
                 <h2 className="text-4xl font-light text-foreground mb-6">
                   Ready to Experience the Future?
@@ -324,7 +325,7 @@ export default function Landing() {
                 </div>
                 <button
                   onClick={() => document.querySelector('.luxury-glass-intense')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="ferrari-button"
+                  className="aurora-button"
                 >
                   <Wallet className="w-5 h-5 mr-2" />
                   Connect Wallet to Start
@@ -370,7 +371,7 @@ export default function Landing() {
         {/* Welcome Header */}
         <div className="text-center mb-12 fade-in">
           <h1 className="text-4xl font-light text-foreground mb-4">
-            Welcome to <span className="gradient-text-ferrari">LuxeRent</span>
+            Welcome to <span className="gradient-text-aurora">ArcticRent</span>
           </h1>
           <p className="text-xl text-muted-foreground">
             Your premium vehicle is ready. Manage your rental below.
@@ -410,7 +411,7 @@ export default function Landing() {
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground mb-1">Total Cost</div>
-                <div className="text-2xl font-bold gradient-text-ferrari">
+                <div className="text-2xl font-bold gradient-text-aurora">
                   {rentalContractService.formatEther(feeCalculation.totalRentalFee)} ETH
                 </div>
               </div>
@@ -516,7 +517,7 @@ export default function Landing() {
                 <button
                   onClick={rent}
                   disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
+                  className="aurora-button w-full disabled:opacity-50"
                 >
                   <Car className="w-5 h-5 mr-2" />
                   {isTransacting ? 'Processing...' : `Rent Now - ${rentalContractService.formatEther(feeCalculation.deposit)} ETH`}
@@ -567,7 +568,7 @@ export default function Landing() {
                 <button
                   onClick={completeRental}
                   disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
+                  className="aurora-button w-full disabled:opacity-50"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
                   {isTransacting ? 'Processing...' : `Complete Rental - ${rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH`}
