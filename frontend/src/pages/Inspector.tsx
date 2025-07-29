@@ -65,10 +65,10 @@ export default function Inspector() {
       setSubmitting(true);
 
       // Set actual usage if provided
-      if (actualMinutesInput) {
-        const minutes = parseInt(actualMinutesInput);
-        if (!isNaN(minutes) && minutes > 0) {
-          await setActualUsage(minutes);
+      if (actualDaysInput) {
+        const days = parseInt(actualDaysInput);
+        if (!isNaN(days) && days > 0) {
+          await setActualUsage(days);
         }
       }
 
