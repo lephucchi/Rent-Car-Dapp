@@ -3,6 +3,7 @@ import { ClipboardCheck, AlertTriangle, CheckCircle, XCircle, Camera, DollarSign
 import { useRentalContractStore, useContractState, useAvailableActions, useUserRole, useIsConnected } from '../stores/rentalContractStore';
 import { rentalContractService } from '../services/rentalContractService';
 import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import { PreviewMode, createMockContractData } from '../components/PreviewMode';
 
 // Hardcoded inspector address (in real app, this would be configured)
 const INSPECTOR_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
