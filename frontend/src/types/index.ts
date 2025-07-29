@@ -1,31 +1,3 @@
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  display_name: string;
-  role: 'user' | 'admin' | 'inspector';
-  metamask_address?: string;
-  wallet_address?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface AuthResponse {
-  message: string;
-  access_token: string;
-  token_type: string;
-  user: User;
-}
-
-export interface ApiError {
-  error: string;
-  errors?: Array<{
-    field: string;
-    message: string;
-  }>;
-}
-
 export interface ContractInfo {
   address: string;
   network: string;
