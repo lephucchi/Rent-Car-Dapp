@@ -27,7 +27,7 @@ interface RentalContractStore {
   cancelRental: () => Promise<void>;
   requestReturn: () => Promise<void>;
   confirmReturn: () => Promise<void>;
-  setActualUsage: (minutes: number) => Promise<void>;
+  setActualUsage: (days: number) => Promise<void>;
   reportDamage: () => Promise<void>;
   completeRental: () => Promise<void>;
   
