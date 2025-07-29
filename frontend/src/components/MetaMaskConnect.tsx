@@ -193,7 +193,7 @@ export const MetaMaskConnect: React.FC<MetaMaskConnectProps> = ({
             <div className="space-y-3">
               <button
                 onClick={handleInstallMetaMask}
-                className="ferrari-button w-full"
+                className="aurora-button w-full"
               >
                 <Download className="w-5 h-5 mr-2" />
                 Install MetaMask
