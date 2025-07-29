@@ -392,6 +392,21 @@ export default function RentCar() {
             </div>
           </div>
         </div>
+
+        {/* Confirmation Modal */}
+        {showConfirmationModal && contractState && feeCalculation && (
+          <RentalConfirmationModal
+            isOpen={showConfirmationModal}
+            onClose={() => setShowConfirmationModal(false)}
+            onConfirm={handleRentConfirm}
+            vehicleName={contractState.assetName}
+            depositAmount={rentalContractService.formatEther(feeCalculation.deposit)}
+            totalCost={rentalContractService.formatEther(feeCalculation.totalRentalFee)}
+            duration={`${contractState.durationMinutes.toString()} minutes`}
+            insuranceFee={rentalContractService.formatEther(contractState.insuranceFee)}
+            processing={isTransacting}
+          />
+        )}
       </div>
     </div>
   );
