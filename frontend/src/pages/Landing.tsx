@@ -387,9 +387,9 @@ export default function Landing() {
                   <div className="flex space-x-3">
                     <input
                       type="number"
-                      placeholder="Actual minutes used"
-                      value={actualMinutesInput}
-                      onChange={(e) => setActualMinutesInput(e.target.value)}
+                      placeholder="Actual days used"
+                      value={actualDaysInput}
+                      onChange={(e) => setActualDaysInput(e.target.value)}
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                       min="1"
                     />
