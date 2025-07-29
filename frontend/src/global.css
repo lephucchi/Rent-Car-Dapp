@@ -66,13 +66,13 @@
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
 
-    /* Dark theme arctic aurora colors */
-    --aurora-teal: 180 85% 65%;
-    --aurora-cyan: 190 95% 68%;
-    --arctic-blue: 200 88% 65%;
-    --ice-blue: 200 35% 85%;
-    --deep-ocean: 210 45% 20%;
-    --glacier-blue: 190 40% 75%;
+    /* Dark theme arctic aurora colors - brighter sea blue */
+    --aurora-teal: 185 92% 72%;
+    --aurora-cyan: 195 98% 76%;
+    --arctic-blue: 205 95% 72%;
+    --ice-blue: 200 45% 88%;
+    --deep-ocean: 210 55% 25%;
+    --glacier-blue: 190 50% 80%;
 
     /* Enhanced glassmorphism colors for dark theme */
     --glass-bg: 0 0 0 / 0.15;
