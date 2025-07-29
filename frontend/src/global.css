@@ -169,7 +169,7 @@
   }
 
   .luxury-card {
-    @apply bg-card border border-border rounded-2xl shadow-sm transition-all duration-400;
+    @apply bg-card border border-border rounded-2xl shadow-sm transition-all duration-300;
     backdrop-filter: blur(8px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
   }
