@@ -380,13 +380,13 @@ class RentalContractService {
     }
   }
 
-  async setActualUsage(actualMinutes: number): Promise<string> {
+  async setActualUsage(actualDays: number): Promise<string> {
     if (!this.contract) {
       throw new Error('Contract not initialized');
     }
 
     try {
-      const tx = await this.contract.setActualUsage(actualMinutes);
+      const tx = await this.contract.setActualUsage(actualDays);
       await tx.wait();
       return tx.hash;
     } catch (error) {
