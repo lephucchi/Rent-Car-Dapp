@@ -3,6 +3,8 @@ import { Car, Clock, Shield, CreditCard, AlertCircle, CheckCircle } from 'lucide
 import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/rentalContractStore';
 import { rentalContractService } from '../services/rentalContractService';
 import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import { RentalFlowStepper } from '../components/RentalFlowStepper';
+import { RentalConfirmationModal } from '../components/RentalConfirmationModal';
 
 export default function RentCar() {
   const {
@@ -23,6 +25,7 @@ export default function RentCar() {
 
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   useEffect(() => {
     if (isConnected) {
@@ -42,6 +45,44 @@ export default function RentCar() {
     } finally {
       setConnecting(false);
     }
+  };
+
+  const handleRentConfirm = async () => {
+    await rent();
+    setShowConfirmationModal(false);
+  };
+
+  const getRentalSteps = () => {
+    const steps = [
+      {
+        id: 1,
+        title: 'Connect Wallet',
+        description: 'MetaMask wallet connected and ready',
+        status: isConnected ? 'completed' as const : 'current' as const
+      },
+      {
+        id: 2,
+        title: 'Pay Deposit',
+        description: `Pay ${feeCalculation ? rentalContractService.formatEther(feeCalculation.deposit) : '0'} ETH deposit (50% of total)`,
+        status: contractState?.isRented ? 'completed' as const :
+                availableActions?.canRent ? 'current' as const : 'pending' as const
+      },
+      {
+        id: 3,
+        title: 'Enjoy Your Ride',
+        description: 'Use the vehicle for the agreed rental period',
+        status: contractState?.isRented && !contractState?.renterRequestedReturn ? 'current' as const :
+                contractState?.renterRequestedReturn ? 'completed' as const : 'pending' as const
+      },
+      {
+        id: 4,
+        title: 'Return & Complete',
+        description: 'Return vehicle and complete final payment',
+        status: contractState?.ownerConfirmedReturn ? 'completed' as const :
+                contractState?.renterRequestedReturn ? 'current' as const : 'pending' as const
+      }
+    ];
+    return steps;
   };
 
   if (!isConnected) {
@@ -143,6 +184,15 @@ export default function RentCar() {
               {lastTransactionHash}
             </p>
           </div>
+        )}
+
+        {/* Rental Flow Steps */}
+        {(isConnected && contractState && feeCalculation && availableActions) && (
+          <RentalFlowStepper
+            currentStep={contractState.isRented ? 3 : 2}
+            steps={getRentalSteps()}
+            userRole={userRole}
+          />
         )}
 
         <div className="luxury-grid-2 gap-8">
@@ -284,9 +334,9 @@ export default function RentCar() {
             <div className="space-y-4">
               {availableActions.canRent && (
                 <button
-                  onClick={rent}
+                  onClick={() => setShowConfirmationModal(true)}
                   disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
+                  className="aurora-button w-full disabled:opacity-50"
                 >
                   <Car className="w-5 h-5 mr-2" />
                   {isTransacting ? 'Processing...' : `Rent Now - ${rentalContractService.formatEther(feeCalculation.deposit)} ETH`}
@@ -317,7 +367,7 @@ export default function RentCar() {
                 <button
                   onClick={completeRental}
                   disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
+                  className="aurora-button w-full disabled:opacity-50"
                 >
                   <CreditCard className="w-5 h-5 mr-2" />
                   {isTransacting ? 'Processing...' : `Complete Rental - ${rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH`}
@@ -342,6 +392,21 @@ export default function RentCar() {
             </div>
           </div>
         </div>
+
+        {/* Confirmation Modal */}
+        {showConfirmationModal && contractState && feeCalculation && (
+          <RentalConfirmationModal
+            isOpen={showConfirmationModal}
+            onClose={() => setShowConfirmationModal(false)}
+            onConfirm={handleRentConfirm}
+            vehicleName={contractState.assetName}
+            depositAmount={rentalContractService.formatEther(feeCalculation.deposit)}
+            totalCost={rentalContractService.formatEther(feeCalculation.totalRentalFee)}
+            duration={`${contractState.durationMinutes.toString()} minutes`}
+            insuranceFee={rentalContractService.formatEther(contractState.insuranceFee)}
+            processing={isTransacting}
+          />
+        )}
       </div>
     </div>
   );
