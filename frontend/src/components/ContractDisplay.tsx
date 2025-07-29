@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useContractStore } from '../stores/contractStore';
-import { apiService } from '../services/api';
 
 interface ContractDetailsProps {
   contractAddress?: string;
