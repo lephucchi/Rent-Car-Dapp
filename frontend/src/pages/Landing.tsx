@@ -4,6 +4,7 @@ import { useRentalContractStore, useContractState, useFeeCalculation, useAvailab
 import { rentalContractService } from '../services/rentalContractService';
 import { ContractStatus } from '../components/ContractStatus';
 import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import { PreviewMode, createMockContractData } from '../components/PreviewMode';
 import { debugMetaMaskConnection } from '../lib/debugMetaMask';
 
 export default function Landing() {
