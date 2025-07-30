@@ -71,13 +71,6 @@ export const LuxuryNavigation: React.FC = () => {
     return location.pathname === href;
   };
 
-  const getRoleDisplay = () => {
-    if (!userRole) return 'Visitor';
-    if (userRole.isLessor) return 'Owner';
-    if (userRole.isLessee) return 'Renter';
-    return 'Visitor';
-  };
-
   return (
     <nav className="sticky top-0 z-50 aurora-glass border-b border-border/50">
       <div className="luxury-container">

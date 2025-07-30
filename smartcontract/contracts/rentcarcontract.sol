@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 contract FixedRentalContract {
     address public lessor;
     address public lessee;
-    address public damageAssessor;
 
     string public assetName;
-    uint public rentalFeePerDay;
-    uint public durationDays;
+    uint public rentalFeePerMinute;
+    uint public durationMinutes;
     uint public insuranceFee;
+    uint public insuranceCompensation;
 
     uint public startTime;
     bool public isRented;
@@ -18,8 +18,7 @@ contract FixedRentalContract {
     bool public renterRequestedReturn;
     bool public ownerConfirmedReturn;
 
-    uint public actualDays;
-    uint public assessedDamageAmount;
+    uint public actualMinutes;
 
     // Events
     event RentalStarted(address lessee, uint deposit);
@@ -28,30 +27,29 @@ contract FixedRentalContract {
     event FundsTransferred(address to, uint amount);
     event RenterRequestedReturn(address lessee);
     event OwnerConfirmedReturn(address lessor);
-    event ActualUsageSet(uint daysUsed);
-    event DamageAssessed(address assessor, uint amount);
+    event ActualUsageSet(uint minutesUsed);
 
     constructor(
         string memory _assetName,
-        uint _rentalFeePerDay,
-        uint _durationDays,
+        uint _rentalFeePerMinute,
+        uint _durationMinutes,
         uint _insuranceFee,
-        address _damageAssessor
+        uint _insuranceCompensation
     ) {
         lessor = msg.sender;
         assetName = _assetName;
-        rentalFeePerDay = _rentalFeePerDay;
-        durationDays = _durationDays;
+        rentalFeePerMinute = _rentalFeePerMinute;
+        durationMinutes = _durationMinutes;
         insuranceFee = _insuranceFee;
-        damageAssessor = _damageAssessor;
+        insuranceCompensation = _insuranceCompensation;
     }
 
     function getTotalRentalFee() public view returns (uint) {
-        return (rentalFeePerDay * durationDays) + insuranceFee;
+        return (rentalFeePerMinute * durationMinutes) + insuranceFee;
     }
 
     function getDeposit() public view returns (uint) {
-        return (getTotalRentalFee() * 30) / 100;
+        return (getTotalRentalFee() * 50) / 100;
     }
 
     function rent() external payable {
@@ -71,6 +69,7 @@ contract FixedRentalContract {
         require(isRented, "Not rented");
 
         uint refund = (getDeposit() * 1 ether) / 2;
+
         payable(lessee).transfer(refund);
         payable(lessor).transfer(refund);
 
@@ -78,66 +77,57 @@ contract FixedRentalContract {
         reset();
     }
 
-    function setActualUsage(uint _actualDays) external {
+    function setActualUsage(uint _actualMinutes) external {
         require(msg.sender == lessor, "Only lessor can set actual usage");
         require(isRented, "Asset not rented");
+        actualMinutes = _actualMinutes;
 
-        actualDays = _actualDays;
-        emit ActualUsageSet(_actualDays);
+        emit ActualUsageSet(_actualMinutes);
     }
 
     function reportDamage() external {
         require(msg.sender == lessor, "Only lessor can report");
         require(isRented, "Not rented");
-
         isDamaged = true;
+
         emit DamageReported(lessor);
     }
 
     function requestReturn() external {
         require(msg.sender == lessee, "Only lessee can request return");
         require(isRented, "Not rented");
-
         renterRequestedReturn = true;
+
         emit RenterRequestedReturn(msg.sender);
     }
 
     function confirmReturn() external {
         require(msg.sender == lessor, "Only lessor can confirm return");
         require(isRented, "Not rented");
-
         ownerConfirmedReturn = true;
+
         emit OwnerConfirmedReturn(msg.sender);
-    }
-
-    function assessDamage(uint amountInEther) external {
-        require(msg.sender == damageAssessor, "Only damage assessor allowed");
-        require(isRented, "Rental not active");
-        require(renterRequestedReturn && ownerConfirmedReturn, "Vehicle must be returned");
-
-        assessedDamageAmount = amountInEther;
-        emit DamageAssessed(msg.sender, amountInEther);
     }
 
     function getRemainingPayment() public view returns (uint) {
         require(isRented, "Asset is not rented");
 
-        uint usedDays = actualDays > 0 ? actualDays : durationDays;
+        uint usedMinutes = actualMinutes > 0 ? actualMinutes : durationMinutes;
         uint baseFee;
         uint overdueFee = 0;
 
-        if (usedDays <= durationDays) {
-            baseFee = rentalFeePerDay * usedDays;
+        if (usedMinutes <= durationMinutes) {
+            baseFee = rentalFeePerMinute * usedMinutes;
         } else {
-            uint overdue = usedDays - durationDays;
-            baseFee = rentalFeePerDay * durationDays;
-            overdueFee = (rentalFeePerDay * 150 / 100) * overdue;
+            uint overdue = usedMinutes - durationMinutes;
+            baseFee = rentalFeePerMinute * durationMinutes;
+            overdueFee = (rentalFeePerMinute * 150 / 100) * overdue;
         }
 
         uint finalRentalFee = baseFee + overdueFee + insuranceFee;
 
         if (isDamaged) {
-            finalRentalFee += assessedDamageAmount;
+            finalRentalFee += insuranceCompensation;
         }
 
         uint deposit = getDeposit();
@@ -155,12 +145,12 @@ contract FixedRentalContract {
         require(renterRequestedReturn && ownerConfirmedReturn, "Both parties must confirm return");
 
         uint remaining = getRemainingPayment();
-        require(msg.value == remaining * 1 ether, "Incorrect payment");
+        require(msg.value == remaining * 1 ether, "Incorrect payment for remaining + damage");
 
         uint deposit = getDeposit();
         uint totalPaid = msg.value + deposit * 1 ether;
-
         payable(lessor).transfer(totalPaid);
+
         emit FundsTransferred(lessor, totalPaid / 1 ether);
 
         reset();
@@ -173,8 +163,7 @@ contract FixedRentalContract {
         startTime = 0;
         renterRequestedReturn = false;
         ownerConfirmedReturn = false;
-        actualDays = 0;
-        assessedDamageAmount = 0;
+        actualMinutes = 0;
     }
 
     receive() external payable {}

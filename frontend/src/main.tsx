@@ -9,9 +9,11 @@ import { GlobalErrorDisplay } from "./components/GlobalErrorDisplay";
 import { AuroraPreviewPanel } from "./components/AuroraPreviewPanel";
 import "./global.css";
 
-import Home from "./pages/Home";
-import Rent from "./pages/Rent";
-import Transactions from "./pages/Transactions";
+import Landing from "./pages/Landing";
+import RentCar from "./pages/RentCar";
+import LendCar from "./pages/LendCar";
+import Transactions from "./pages/Transaction";
+import Inspector from "./pages/Inspector";
 import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();

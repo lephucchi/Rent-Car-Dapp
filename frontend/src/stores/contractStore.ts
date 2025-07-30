@@ -1,309 +1,102 @@
 import { create } from "zustand";
-import { contractService, type ContractState, type FeeCalculation, type UserRole, type AvailableActions, type TransactionEvent } from "../services/contractService";
+import { apiService } from "../services/api";
 
-interface ContractStoreState {
-  // Connection state
-  isConnected: boolean;
-  currentAccount: string | null;
-  
+interface ContractState {
   // Contract data
-  contractState: ContractState | null;
-  feeCalculation: FeeCalculation | null;
-  userRole: UserRole | null;
-  availableActions: AvailableActions | null;
-  transactionHistory: TransactionEvent[];
-  
-  // UI state
+  contractStatus: any | null;
+  accounts: any[] | null;
+
+  // UI
   isLoading: boolean;
-  isTransacting: boolean;
   error: string | null;
-  lastTransactionHash: string | null;
-  
+
   // Actions
-  connectWallet: () => Promise<void>;
-  refreshContractData: () => Promise<void>;
-  refreshTransactionHistory: () => Promise<void>;
-  
-  // Contract interactions
-  rent: () => Promise<void>;
-  cancelRental: () => Promise<void>;
-  requestReturn: () => Promise<void>;
-  confirmReturn: () => Promise<void>;
-  setActualUsage: (minutes: number) => Promise<void>;
-  reportDamage: () => Promise<void>;
-  completeRental: () => Promise<void>;
-  
-  // Utility functions
+  loadContractStatus: () => Promise<void>;
+  loadAccounts: () => Promise<void>;
+  startRental: (renterAddress: string, privateKey: string) => Promise<void>;
+  endRental: (ownerAddress: string, privateKey: string) => Promise<void>;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
-  clearTransaction: () => void;
 }
 
-export const useContractStore = create<ContractStoreState>((set, get) => ({
+export const useContractStore = create<ContractState>((set, get) => ({
   // Initial state
-  isConnected: false,
-  currentAccount: null,
-  contractState: null,
-  feeCalculation: null,
-  userRole: null,
-  availableActions: null,
-  transactionHistory: [],
+  contractStatus: null,
+  accounts: null,
   isLoading: false,
-  isTransacting: false,
   error: null,
-  lastTransactionHash: null,
 
-  // Connect wallet and initialize contract
-  connectWallet: async () => {
+  // Actions
+  loadContractStatus: async () => {
     try {
       set({ isLoading: true, error: null });
       
-      const account = await contractService.connectWallet();
-      
-      set({ 
-        isConnected: true, 
-        currentAccount: account,
-        isLoading: false 
-      });
-      
-      // Refresh contract data after connection
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
-      set({ 
-        error: errorMessage, 
-        isLoading: false,
-        isConnected: false,
-        currentAccount: null 
-      });
-      throw error;
-    }
-  },
-
-  // Refresh all contract data
-  refreshContractData: async () => {
-    if (!get().isConnected) return;
-    
-    try {
-      set({ isLoading: true, error: null });
-      
-      const [contractState, feeCalculation, userRole] = await Promise.all([
-        contractService.getContractState(),
-        contractService.getFeeCalculation(),
-        contractService.getUserRole()
-      ]);
-      
-      const availableActions = await contractService.getAvailableActions(contractState, userRole);
+      const status = await apiService.getContractStatus();
       
       set({
-        contractState,
-        feeCalculation,
-        userRole,
-        availableActions,
+        contractStatus: status,
         isLoading: false
       });
-      
     } catch (error) {
-      console.error('Failed to refresh contract data:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to refresh contract data';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load contract status';
       set({ error: errorMessage, isLoading: false });
     }
   },
 
-  // Refresh transaction history
-  refreshTransactionHistory: async () => {
-    if (!get().isConnected) return;
-    
+  loadAccounts: async () => {
     try {
-      const transactionHistory = await contractService.getTransactionHistory();
-      set({ transactionHistory });
+      set({ error: null });
+      
+      const response = await apiService.getHardhatAccounts();
+      
+      set({
+        accounts: response.accounts
+      });
     } catch (error) {
-      console.error('Failed to refresh transaction history:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load accounts';
+      set({ error: errorMessage });
     }
   },
 
-  // Contract interaction functions
-  rent: async () => {
+  startRental: async (renterAddress: string, privateKey: string) => {
     try {
-      set({ isTransacting: true, error: null });
+      set({ isLoading: true, error: null });
       
-      const txHash = await contractService.rent();
+      await apiService.startRental(renterAddress, privateKey);
       
-      set({ 
-        lastTransactionHash: txHash,
-        isTransacting: false 
-      });
+      // Reload contract status after successful transaction
+      await get().loadContractStatus();
       
-      // Refresh data after successful transaction
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
+      set({ isLoading: false });
     } catch (error) {
-      console.error('Failed to rent:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to rent';
-      set({ error: errorMessage, isTransacting: false });
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start rental';
+      set({ error: errorMessage, isLoading: false });
       throw error;
     }
   },
 
-  cancelRental: async () => {
+  endRental: async (ownerAddress: string, privateKey: string) => {
     try {
-      set({ isTransacting: true, error: null });
+      set({ isLoading: true, error: null });
       
-      const txHash = await contractService.cancelRental();
+      await apiService.endRental(ownerAddress, privateKey);
       
-      set({ 
-        lastTransactionHash: txHash,
-        isTransacting: false 
-      });
+      // Reload contract status after successful transaction
+      await get().loadContractStatus();
       
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
+      set({ isLoading: false });
     } catch (error) {
-      console.error('Failed to cancel rental:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to cancel rental';
-      set({ error: errorMessage, isTransacting: false });
+      const errorMessage = error instanceof Error ? error.message : 'Failed to end rental';
+      set({ error: errorMessage, isLoading: false });
       throw error;
     }
   },
 
-  requestReturn: async () => {
-    try {
-      set({ isTransacting: true, error: null });
-      
-      const txHash = await contractService.requestReturn();
-      
-      set({ 
-        lastTransactionHash: txHash,
-        isTransacting: false 
-      });
-      
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
-    } catch (error) {
-      console.error('Failed to request return:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to request return';
-      set({ error: errorMessage, isTransacting: false });
-      throw error;
-    }
-  },
-
-  confirmReturn: async () => {
-    try {
-      set({ isTransacting: true, error: null });
-      
-      const txHash = await contractService.confirmReturn();
-      
-      set({ 
-        lastTransactionHash: txHash,
-        isTransacting: false 
-      });
-      
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
-    } catch (error) {
-      console.error('Failed to confirm return:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to confirm return';
-      set({ error: errorMessage, isTransacting: false });
-      throw error;
-    }
-  },
-
-  setActualUsage: async (minutes: number) => {
-    try {
-      set({ isTransacting: true, error: null });
-      
-      const txHash = await contractService.setActualUsage(minutes);
-      
-      set({ 
-        lastTransactionHash: txHash,
-        isTransacting: false 
-      });
-      
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
-    } catch (error) {
-      console.error('Failed to set actual usage:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to set actual usage';
-      set({ error: errorMessage, isTransacting: false });
-      throw error;
-    }
-  },
-
-  reportDamage: async () => {
-    try {
-      set({ isTransacting: true, error: null });
-      
-      const txHash = await contractService.reportDamage();
-      
-      set({ 
-        lastTransactionHash: txHash,
-        isTransacting: false 
-      });
-      
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
-    } catch (error) {
-      console.error('Failed to report damage:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to report damage';
-      set({ error: errorMessage, isTransacting: false });
-      throw error;
-    }
-  },
-
-  completeRental: async () => {
-    try {
-      set({ isTransacting: true, error: null });
-      
-      const txHash = await contractService.completeRental();
-      
-      set({ 
-        lastTransactionHash: txHash,
-        isTransacting: false 
-      });
-      
-      await get().refreshContractData();
-      await get().refreshTransactionHistory();
-      
-    } catch (error) {
-      console.error('Failed to complete rental:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to complete rental';
-      set({ error: errorMessage, isTransacting: false });
-      throw error;
-    }
-  },
-
-  // Utility functions
   setError: (error: string | null) => {
     set({ error });
   },
 
   setLoading: (isLoading: boolean) => {
     set({ isLoading });
-  },
-
-  clearTransaction: () => {
-    set({ lastTransactionHash: null, error: null });
   }
 }));
-
-// Selector hooks for easier component usage
-export const useContractState = () => useContractStore((state) => state.contractState);
-export const useFeeCalculation = () => useContractStore((state) => state.feeCalculation);
-export const useAvailableActions = () => useContractStore((state) => state.availableActions);
-export const useUserRole = () => useContractStore((state) => state.userRole);
-export const useIsConnected = () => useContractStore((state) => state.isConnected);
-export const useTransactionState = () => useContractStore((state) => ({
-  isTransacting: state.isTransacting,
-  lastTransactionHash: state.lastTransactionHash,
-  error: state.error
-}));
-export const useTransactionHistory = () => useContractStore((state) => state.transactionHistory);

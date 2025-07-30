@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "deploy:local": "npx hardhat run scripts/deploy-fixed-rental.js --network localhost",
+    "deploy:local": "npx hardhat run scripts/deploy-carrental.js --network localhost",
     "deploy:sepolia": "npx hardhat run scripts/deploy-carrental.js --network sepolia",
     "deploy:mumbai": "npx hardhat run scripts/deploy-carrental.js --network mumbai",
     "verify:sepolia": "npx hardhat verify --network sepolia",
