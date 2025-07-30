@@ -146,7 +146,7 @@ export default function Landing() {
                   <button
                     onClick={handleConnectWallet}
                     disabled={isLoading}
-                    className="luxury-button w-full disabled:opacity-50"
+                    className="aurora-button w-full disabled:opacity-50"
                   >
                     <Wallet className="w-4 h-4 mr-2" />
                     {isLoading ? 'Connecting...' : 'Connect Wallet'}
