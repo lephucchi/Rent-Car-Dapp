@@ -281,12 +281,19 @@ export const LuxuryNavigation: React.FC = () => {
         )}
       </div>
 
-      {/* Global Preview Mode Indicator */}
+      {/* Aurora Preview Mode Indicator */}
       {isPreviewMode && (
-        <div className="bg-blue-100 border-b border-blue-300 text-blue-800 px-4 py-2 text-center text-sm dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">
-          🔍 <strong>Preview Mode Active</strong> - Viewing demo UI as {effectiveRole === 'admin' ? 'Admin/Owner' : effectiveRole === 'inspector' ? 'Inspector' : 'User'} without blockchain interaction
-        </div>
+        <button
+          onClick={exitPreviewMode}
+          className="bg-primary/20 border-b border-primary/30 text-primary px-4 py-2 text-center text-sm hover:bg-primary/30 transition-colors w-full"
+        >
+          <Eye className="w-4 h-4 inline mr-2" />
+          <strong>Preview Mode Active</strong> - {effectiveRole === 'admin' ? 'Admin/Owner' : effectiveRole === 'inspector' ? 'Inspector' : 'User'} role | Click to exit
+        </button>
       )}
+
+      {/* Aurora Preview Panel */}
+      <AuroraPreviewPanel />
     </nav>
   );
 };
