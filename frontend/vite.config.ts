@@ -13,8 +13,7 @@ export default defineConfig({
     global: "globalThis",
   },
   server: {
-    port: 3000,
+    port: 5173,
     host: true,
-    hmr: false, // Temporarily disable HMR to test if app loads
   },
 });
