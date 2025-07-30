@@ -16,9 +16,7 @@ export default defineConfig({
     port: 3000,
     host: true,
     strictPort: true,
-    hmr: {
-      port: 3000, // Use same port as server to avoid fetch issues
-    },
+    hmr: false, // Disable HMR to prevent fetch errors in proxied environment
   },
   clearScreen: false,
 });
