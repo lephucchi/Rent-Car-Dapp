@@ -124,185 +124,84 @@ export default function Landing() {
                 </div>
               )}
 
-              {/* Detailed Connection Guide */}
-              <div className="max-w-6xl mx-auto">
+              {/* Simple Connection Guide */}
+              <div className="max-w-4xl mx-auto">
                 {!isMetaMaskInstalled ? (
                   <div className="space-y-8">
                     {/* Header Section */}
-                    <div className="text-center mb-12">
-                      <h2 className="text-3xl font-bold text-foreground mb-4">
-                        🔧 Hướng dẫn cài đặt và kết nối ví
+                    <div className="text-center mb-8">
+                      <h2 className="text-2xl font-semibold text-foreground mb-4">
+                        Hướng dẫn cài đặt và kết nối ví
                       </h2>
-                      <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                        Làm theo từng bước để thiết lập ví MetaMask và bắt đầu trải nghiệm dịch vụ thuê xe blockchain an toàn
+                      <p className="text-muted-foreground">
+                        Thực hiện các bước sau để bắt đầu sử dụng dịch vụ thuê xe blockchain
                       </p>
                     </div>
 
-                    {/* Progress Indicator */}
-                    <div className="aurora-glass border border-aurora-teal/30 rounded-lg p-6 mb-8">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-foreground">Tiến trình thiết lập</h3>
-                        <span className="text-sm text-muted-foreground">Bước 1/4</span>
+                    {/* 4 Steps Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                      {/* Step 1 */}
+                      <div className="aurora-glass border border-primary/30 rounded-lg p-4 text-center">
+                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">1</div>
+                        <h3 className="font-semibold text-foreground mb-2">Tải MetaMask</h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Tải extension MetaMask cho trình duyệt
+                        </p>
+                        <a
+                          href="https://metamask.io/download/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          metamask.io
+                        </a>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-2 bg-red-500 rounded-full"></div>
-                        <div className="w-8 h-2 bg-gray-300 rounded-full"></div>
-                        <div className="w-8 h-2 bg-gray-300 rounded-full"></div>
-                        <div className="w-8 h-2 bg-gray-300 rounded-full"></div>
+
+                      {/* Step 2 */}
+                      <div className="aurora-glass border border-secondary/30 rounded-lg p-4 text-center">
+                        <div className="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">2</div>
+                        <h3 className="font-semibold text-foreground mb-2">Cài đặt</h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Thêm extension vào trình duyệt của bạn
+                        </p>
+                        <div className="flex items-center justify-center text-xs text-gray-500">
+                          <Clock className="w-3 h-3 mr-1" />
+                          1-2 phút
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Step 1: Install MetaMask - Active */}
-                    <div className="aurora-glass border-2 border-red-500 rounded-xl p-8 shadow-lg">
-                      <div className="flex items-start space-x-6">
-                        <div className="w-12 h-12 bg-red-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">1</div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-4">
-                            <h3 className="text-2xl font-bold text-foreground">Cài đặt MetaMask</h3>
-                            <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">Bắt buộc</span>
-                          </div>
+                      {/* Step 3 */}
+                      <div className="aurora-glass border border-aurora-green/30 rounded-lg p-4 text-center">
+                        <div className="w-8 h-8 bg-aurora-green text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">3</div>
+                        <h3 className="font-semibold text-foreground mb-2">Thiết lập ví</h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Tạo ví mới hoặc import ví hiện có
+                        </p>
+                        <div className="flex items-center justify-center text-xs text-gray-500">
+                          <Shield className="w-3 h-3 mr-1" />
+                          Bảo mật
+                        </div>
+                      </div>
 
-                          <p className="text-muted-foreground mb-6 text-lg leading-relaxed">
-                            MetaMask là ví tiền điện tử phổ biến nhất thế giới, cho phép bạn lưu trữ, gửi và nhận Ethereum và các token khác một cách an toàn.
-                          </p>
-
-                          {/* Requirements */}
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-                            <h4 className="font-semibold text-red-800 mb-3 flex items-center">
-                              <span className="w-5 h-5 text-red-600 mr-2">���️</span>
-                              Yêu cầu hệ thống
-                            </h4>
-                            <ul className="text-red-700 text-sm space-y-2">
-                              <li>• Trình duyệt: Chrome, Firefox, Brave, hoặc Edge</li>
-                              <li>• Hệ điều hành: Windows, macOS, hoặc Linux</li>
-                              <li>• Kết nối internet ổn định</li>
-                            </ul>
-                          </div>
-
-                          {/* Installation Options */}
-                          <div className="grid md:grid-cols-2 gap-4 mb-6">
-                            <div className="border border-gray-200 rounded-lg p-4">
-                              <h4 className="font-medium text-foreground mb-2">🌐 Extension trình duyệt</h4>
-                              <p className="text-sm text-muted-foreground mb-3">Phổ biến nhất, dễ sử dụng</p>
-                              <a
-                                href="https://metamask.io/download/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="aurora-button w-full text-center text-sm"
-                              >
-                                Tải Extension
-                              </a>
-                            </div>
-                            <div className="border border-gray-200 rounded-lg p-4">
-                              <h4 className="font-medium text-foreground mb-2">���� Ứng dụng mobile</h4>
-                              <p className="text-sm text-muted-foreground mb-3">Cho iOS và Android</p>
-                              <a
-                                href="https://metamask.io/download/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="aurora-button-outline w-full text-center text-sm"
-                              >
-                                Tải Mobile App
-                              </a>
-                            </div>
-                          </div>
-
-                          {/* Main CTA */}
-                          <a
-                            href="https://metamask.io/download/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="aurora-button w-full text-center text-lg py-4"
-                          >
-                            <Wallet className="w-5 h-5 mr-3" />
-                            Bắt đầu cài đặt MetaMask ngay
-                          </a>
+                      {/* Step 4 */}
+                      <div className="aurora-glass border border-aurora-teal/30 rounded-lg p-4 text-center">
+                        <div className="w-8 h-8 bg-aurora-teal text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">4</div>
+                        <h3 className="font-semibold text-foreground mb-2">Hoàn tất</h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Sẵn sàng kết nối với AuroraRent
+                        </p>
+                        <div className="flex items-center justify-center text-xs text-gray-500">
+                          <Car className="w-3 h-3 mr-1" />
+                          Sẵn sàng
                         </div>
                       </div>
                     </div>
 
-                    {/* Next Steps Preview */}
-                    <div className="grid md:grid-cols-3 gap-6">
-                      {/* Step 2 Preview */}
-                      <div className="aurora-glass border border-gray-200 rounded-lg p-6 opacity-70">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Thiết lập ví</h3>
-                            <p className="text-muted-foreground text-sm mb-3">
-                              Tạo ví mới hoặc khôi phục từ seed phrase
-                            </p>
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Clock className="w-3 h-3 mr-1" />
-                              2-3 phút
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Step 3 Preview */}
-                      <div className="aurora-glass border border-gray-200 rounded-lg p-6 opacity-70">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Bảo mật ví</h3>
-                            <p className="text-muted-foreground text-sm mb-3">
-                              Thiết lập mật khẩu và backup seed phrase
-                            </p>
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Shield className="w-3 h-3 mr-1" />
-                              Rất quan trọng
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Step 4 Preview */}
-                      <div className="aurora-glass border border-gray-200 rounded-lg p-6 opacity-70">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center font-bold">4</div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Kết nối với AuroraRent</h3>
-                            <p className="text-muted-foreground text-sm mb-3">
-                              Kết nối ví và bắt đầu thuê xe
-                            </p>
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Car className="w-3 h-3 mr-1" />
-                              Sẵn sàng sử dụng
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Help Section */}
-                    <div className="aurora-glass border border-aurora-blue/30 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                        <span className="text-aurora-blue mr-2">💡</span>
-                        Cần hỗ trợ?
-                      </h3>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="flex items-start space-x-3">
-                          <span className="text-aurora-blue">📚</span>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">Hướng dẫn chi tiết</p>
-                            <a href="https://metamask.io/faqs/" target="_blank" rel="noopener noreferrer"
-                               className="text-xs text-aurora-blue hover:underline">
-                              Xem FAQ của MetaMask
-                            </a>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <span className="text-aurora-blue">🎥</span>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">Video hướng dẫn</p>
-                            <a href="https://www.youtube.com/results?search_query=metamask+setup+guide" target="_blank" rel="noopener noreferrer"
-                               className="text-xs text-aurora-blue hover:underline">
-                              Xem trên YouTube
-                            </a>
-                          </div>
-                        </div>
-                      </div>
+                    {/* Install MetaMask Notice */}
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                      <p className="text-red-600 text-sm font-medium text-center">
+                        ⚠️ Bạn cần cài đặt MetaMask trước khi kết nối ví
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -354,7 +253,7 @@ export default function Landing() {
                               Điều gì sẽ xảy ra tiếp theo?
                             </h4>
                             <ul className="text-primary text-sm space-y-2">
-                              <li>• Một popup MetaMask sẽ xuất hiện</li>
+                              <li>• Một popup MetaMask sẽ xuất hi��n</li>
                               <li>• Chọn tài khoản bạn muốn kết nối</li>
                               <li>• Xác nhận kết nối - hoàn toàn miễn phí</li>
                               <li>• Bắt đầu khám phá và thuê xe ngay lập tức</li>
