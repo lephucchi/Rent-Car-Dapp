@@ -21,21 +21,23 @@ import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRo
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const userRole = useUserRole();
-  const isConnected = useIsConnected();
-  const { connectWallet } = useRentalContractStore();
+  const { isPreviewMode, simulatedRole, setSimulatedRole, togglePreviewMode } = usePreviewMode();
+  const { isConnected, address, connectWallet } = useWalletConnection();
+  const { isLoading, error } = useConnectionState();
+  const globalUserRole = useGlobalUserRole();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+
+  // Determine effective role (preview role when in preview mode, otherwise actual role)
+  const effectiveRole = isPreviewMode ? simulatedRole :
+    (globalUserRole === 'admin' ? 'admin' :
+     globalUserRole === 'inspector' ? 'inspector' : 'user');
 
   const handleConnectWallet = async () => {
     try {
-      setConnecting(true);
       await connectWallet();
     } catch (error) {
       console.error('Failed to connect wallet:', error);
-    } finally {
-      setConnecting(false);
     }
   };
 
