@@ -25,17 +25,30 @@ interface PreviewModeProviderProps {
 export const PreviewModeProvider: React.FC<PreviewModeProviderProps> = ({ children }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [simulatedRole, setSimulatedRole] = useState<SimulatedRole>('user');
+  const [simulatedTheme, setSimulatedTheme] = useState<SimulatedTheme>('light-aurora');
+  const [showPreviewPanel, setShowPreviewPanel] = useState(false);
 
-  const togglePreviewMode = () => {
-    setIsPreviewMode(!isPreviewMode);
+  const enterPreviewMode = () => {
+    setIsPreviewMode(true);
+    setShowPreviewPanel(false); // Hide panel after entering preview
+  };
+
+  const exitPreviewMode = () => {
+    setIsPreviewMode(false);
+    setShowPreviewPanel(false);
   };
 
   const value: PreviewModeContextType = {
     isPreviewMode,
     simulatedRole,
+    simulatedTheme,
+    showPreviewPanel,
     setIsPreviewMode,
     setSimulatedRole,
-    togglePreviewMode,
+    setSimulatedTheme,
+    setShowPreviewPanel,
+    enterPreviewMode,
+    exitPreviewMode,
   };
 
   return (
