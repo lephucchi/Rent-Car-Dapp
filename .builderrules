@@ -1,0 +1,163 @@
+# 🚗 Car Rental DApp – Frontend Functional Specification
+
+This document provides **detailed functional requirements** for the frontend integration with the `FixedRentalContract` smart contract.  
+
+✅ **Theme and styling descriptions are omitted**.  
+✅ **Navigation bar will NOT include links to Admin or Inspector** (they will be accessed via role detection).  
+✅ **Every page includes a MetaMask Connect button + Preview Mode toggle**.  
+✅ **When MetaMask is connected or Preview Mode is ON**, the page expands to show its detailed contents.
+
+---
+
+## 🌐 Global Behavior
+
+- **Wallet Connection**
+  - A `Connect Wallet` button is present on every page.
+  - When clicked, MetaMask prompts the user to connect.
+  - Once connected, the frontend detects role based on wallet address:
+    - `Admin/Lessor` → the wallet that deployed the contract.
+    - `Inspector` → a predefined wallet address assigned at deployment.
+    - `User` → any other wallet.
+- **Preview Mode**
+  - A toggle switch next to the Connect Wallet button.
+  - When activated, the UI displays all page sections **without MetaMask**.
+  - Preview Mode **disables transaction calls** and **shows demo state only** (read-only simulation).
+
+---
+
+## 🏠 1. Homepage
+
+**Purpose:** Overview of the platform and quick access to actions.
+
+### 🔑 Functional Flow
+- Show `Connect Wallet` button and `Preview Mode` toggle side by side.
+- After wallet connection or Preview Mode:
+  - **Car List Section**
+    - Displays all cars from the contract with:
+      - `assetName`
+      - `rentalFeePerDay`
+      - `insuranceFee`
+      - Current state: `Available`, `Rented`, `Awaiting Return Confirmation`
+    - Each car card shows:
+      - Owner wallet
+      - If currently rented: show renter wallet
+      - Status tags (colored label)
+    - **Action buttons on each car card**:
+      - If role = User → “Rent Car”
+      - If role = Admin → “Manage Car”
+      - If role = Inspector → “Inspect Car” (only cars in return state)
+
+---
+
+## 🚙 2. Lend Car Page (Admin)
+
+**Purpose:** For the Lessor/Admin to add and manage cars.
+
+### 🔑 Functional Flow
+- Visible only if connected wallet = Admin OR Preview Mode with Admin role selected.
+- **Car Registration Form**
+  - Inputs: `Car Name`, `Rental Fee Per Day`, `Duration (days)`, `Insurance Fee`.
+  - Button **“Deploy Car Contract”**: Deploys a new contract instance (calls constructor).
+- **Owned Cars List**
+  - Shows all cars owned by the Admin.
+  - Each card displays:
+    - Car status
+    - Current renter (if any)
+    - Deposit amount collected
+  - **Action Buttons:**
+    - `Set Actual Usage` → Opens modal to input days used → calls `setActualUsage()`.
+    - `Confirm Return` → Calls `confirmReturn()`.
+    - `Report Damage` → Calls `reportDamage()`.
+
+---
+
+## 🚗 3. Rent Car Page (Users)
+
+**Purpose:** For general users to rent available cars.
+
+### 🔑 Functional Flow
+- All available cars (status = Available) shown.
+- **Car Detail Popup** when a car is clicked:
+  - Displays:
+    - Deposit required (`getDeposit()`)
+    - Total rental fee (`getTotalRentalFee()`)
+    - Rental duration
+  - Buttons:
+    - **Rent** → triggers `rent()` with ETH deposit.
+    - **Cancel Rental** → triggers `cancelRental()` if they already rented this car.
+    - **Request Return** → triggers `requestReturn()` (lessee only).
+    - **Complete Rental** → triggers `completeRental()` with ETH payment of `getRemainingPayment()`.
+
+---
+
+## 📜 4. Transaction Page
+
+**Purpose:** A transparent feed of all contract activity.
+
+### 🔑 Functional Flow
+- Uses Ethers.js to listen for events:
+  - `RentalStarted`
+  - `RenterRequestedReturn`
+  - `OwnerConfirmedReturn`
+  - `DamageReported`
+  - `DamageAssessed`
+  - `FundsTransferred`
+- **Filter/Sort options:**
+  - Filter by `Car`, `Date`, or `Wallet Address`.
+- **Export**: Button to download transaction log as CSV.
+
+---
+
+## 🛠 5. Admin Panel (Auto-shown when Admin Wallet is connected)
+
+**Purpose:** Central management for the Lessor.
+
+### 🔑 Functional Flow
+- Summary of all cars:
+  - Number of active rentals
+  - Total revenue from `FundsTransferred`
+- Actions per car:
+  - Same as Lend Car page (set usage, confirm return, report damage).
+
+---
+
+## 🕵️ 6. Inspector Panel (Auto-shown when Inspector Wallet is connected)
+
+**Purpose:** Dedicated view for the damage assessor.
+
+### 🔑 Functional Flow
+- List of cars **awaiting inspection** (returned but not finalized).
+- **Damage Assessment Form**
+  - Input: Damage fee (ETH).
+  - Button: **Submit Assessment** → calls `assessDamage()`.
+- **History Section**
+  - Displays all past `DamageAssessed` events.
+
+---
+
+## 📦 UI Component Behavior
+
+- **MetaMask/Preview Header Section**
+  - Always visible at top of each page.
+  - Includes:
+    - “Connect Wallet” button.
+    - “Preview Mode” toggle.
+    - When connected:
+      - Shows connected wallet address.
+      - Shows detected role (Admin, User, Inspector).
+    - When Preview Mode is active:
+      - Dropdown to simulate roles.
+
+- **Conditional Page Content**
+  - Content only expands **after wallet connection OR Preview Mode**.
+
+---
+
+## ✅ Notes for Frontend Dev
+
+- **No mock data when connected to wallet**: Must pull real contract state from chain.
+- **Preview Mode** can use **temporary local state** just for layout purposes.
+- **Role detection** must occur on wallet connect:
+  - `lessor` → Admin Panel + Lend Car features.
+  - `damageAssessor` → Inspector Panel features.
+  - Others → Rent Car features.
