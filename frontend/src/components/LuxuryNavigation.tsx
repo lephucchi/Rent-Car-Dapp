@@ -290,9 +290,6 @@ export const LuxuryNavigation: React.FC = () => {
           <strong>Preview Mode Active</strong> - {effectiveRole === 'admin' ? 'Admin/Owner' : effectiveRole === 'inspector' ? 'Inspector' : 'User'} role | Click to exit
         </button>
       )}
-
-      {/* Temporary Debug Component */}
-      <PreviewDebug />
     </nav>
   );
 };
