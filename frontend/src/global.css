@@ -210,32 +210,61 @@
     transform: translateY(-1px);
   }
 
-  .luxury-button {
+  .aurora-button {
     @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium transition-all duration-300;
-    box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
+    background: hsl(var(--aurora-teal));
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(45, 212, 191, 0.3);
   }
 
-  .luxury-button:hover {
+  .aurora-button:hover {
     @apply transform translate-y-[-2px];
-    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.15);
+    background: hsl(var(--aurora-teal-hover));
+    box-shadow: 0 6px 20px 0 rgba(45, 212, 191, 0.4);
+  }
+
+  .aurora-button-outline {
+    @apply border border-border text-foreground px-6 py-3 rounded-lg font-medium transition-all duration-300 bg-transparent;
+    border-color: hsl(var(--aurora-teal));
+    color: hsl(var(--aurora-teal));
+  }
+
+  .aurora-button-outline:hover {
+    background: hsl(var(--aurora-teal) / 0.1);
+    border-color: hsl(var(--aurora-teal-hover));
+    color: hsl(var(--aurora-teal-hover));
+  }
+
+  .aurora-button-secondary {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-300;
+    background: hsl(var(--icy-blue));
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(56, 189, 248, 0.3);
+  }
+
+  .aurora-button-secondary:hover {
+    @apply transform translate-y-[-2px];
+    background: hsl(var(--icy-blue-hover));
+    box-shadow: 0 6px 20px 0 rgba(56, 189, 248, 0.4);
+  }
+
+  /* Legacy button support */
+  .luxury-button {
+    @apply aurora-button;
   }
 
   .luxury-button-outline {
-    @apply border border-border text-foreground px-6 py-3 rounded-lg font-medium transition-all duration-300 bg-background;
-  }
-
-  .luxury-button-outline:hover {
-    @apply border-foreground/30 bg-muted;
+    @apply aurora-button-outline;
   }
 
   .ferrari-button {
-    @apply ferrari-gradient text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300;
-    box-shadow: 0 8px 25px 0 rgba(220, 38, 38, 0.2);
+    @apply aurora-gradient text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300;
+    box-shadow: 0 8px 25px 0 rgba(45, 212, 191, 0.3);
   }
 
   .ferrari-button:hover {
     @apply transform translate-y-[-2px];
-    box-shadow: 0 12px 35px 0 rgba(220, 38, 38, 0.3);
+    box-shadow: 0 12px 35px 0 rgba(45, 212, 191, 0.4);
   }
 
   .luxury-input {
