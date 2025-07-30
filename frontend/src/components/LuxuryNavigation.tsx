@@ -17,6 +17,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { usePreviewMode } from '../contexts/PreviewModeContext';
 import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
+import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
 
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
