@@ -237,7 +237,7 @@ export default function Landing() {
               </div>
             </div>
             {isPreviewMode && (
-              <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded dark:bg-blue-900/30 dark:text-blue-400">
+              <span className="text-sm text-primary bg-primary/20 px-2 py-1 rounded border border-primary/30">
                 Demo Data
               </span>
             )}
