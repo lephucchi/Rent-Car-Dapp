@@ -39,7 +39,7 @@ export const useGlobalWeb3Store = create<Web3State>((set, get) => ({
   address: null,
   balance: "0",
   network: "Unknown",
-  isMetaMaskInstalled: typeof window !== "undefined" && !!window.ethereum && !!window.ethereum.isMetaMask,
+  isMetaMaskInstalled: isMetaMaskInstalled(),
   userRole: 'user',
   adminAddress: null,
   inspectorAddress: null,
