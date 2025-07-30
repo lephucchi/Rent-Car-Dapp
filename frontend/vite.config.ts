@@ -15,5 +15,6 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    hmr: false, // Temporarily disable HMR to test if app loads
   },
 });
