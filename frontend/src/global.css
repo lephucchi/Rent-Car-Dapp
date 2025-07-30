@@ -38,6 +38,8 @@
     --icy-blue: 199 89% 48%; /* #38BDF8 */
     --icy-blue-hover: 199 89% 48%; /* #0EA5E9 */
     --aurora-green: 142 76% 73%; /* #4ADE80 */
+    --aurora-blue: 199 89% 48%; /* #38BDF8 - Alias for icy-blue */
+    --aurora-purple: 256 92% 79%; /* #A78BFA */
     --arctic-white: 220 13% 98%; /* #F9FAFB */
     --arctic-gray: 220 13% 91%; /* #E5E7EB */
     --aurora-text: 217 33% 17%; /* #111827 */
