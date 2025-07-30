@@ -1,412 +1,426 @@
-import React, { useState, useEffect } from 'react';
-import { PlusCircle, Car, Settings, CheckCircle, Clock, AlertTriangle, DollarSign } from 'lucide-react';
-import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/rentalContractStore';
-import { rentalContractService } from '../services/rentalContractService';
-import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import React, { useState } from 'react';
+import { Car, Plus, Shield, Settings, Clock, DollarSign, AlertTriangle, CheckCircle } from 'lucide-react';
+import { usePreviewMode } from '../contexts/PreviewModeContext';
+import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole } from '../stores/globalWeb3Store';
+import { mockDataService, type MockCar } from '../services/mockDataService';
+import { ethers } from 'ethers';
+
+interface CarFormData {
+  carName: string;
+  rentalFeePerDay: string;
+  duration: string;
+  insuranceFee: string;
+}
 
 export default function LendCar() {
-  const {
-    connectWallet,
-    refreshContractData,
-    confirmReturn,
-    setActualUsage,
-    reportDamage
-  } = useRentalContractStore();
+  const { isPreviewMode, simulatedRole } = usePreviewMode();
+  const { isConnected, address, connectWallet } = useWalletConnection();
+  const globalUserRole = useGlobalUserRole();
+  const [formData, setFormData] = useState<CarFormData>({
+    carName: '',
+    rentalFeePerDay: '',
+    duration: '',
+    insuranceFee: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showModal, setShowModal] = useState<{ type: 'usage' | 'damage' | null; carId: string | null }>({ type: null, carId: null });
+  const [modalInput, setModalInput] = useState('');
 
-  const contractState = useContractState();
-  const feeCalculation = useFeeCalculation();
-  const availableActions = useAvailableActions();
-  const userRole = useUserRole();
-  const isConnected = useIsConnected();
-  const { isTransacting, lastTransactionHash, error: transactionError } = useTransactionState();
+  // Determine effective role and access
+  const effectiveRole = isPreviewMode ? simulatedRole : 
+    (globalUserRole === 'admin' ? 'admin' : globalUserRole);
+  
+  const hasAccess = isConnected || isPreviewMode;
+  const isAdmin = effectiveRole === 'admin';
 
-  const [connecting, setConnecting] = useState(false);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [actualMinutesInput, setActualMinutesInput] = useState('');
-  const [showDamageReport, setShowDamageReport] = useState(false);
-
-  useEffect(() => {
-    if (isConnected) {
-      refreshContractData();
-    }
-  }, [isConnected, refreshContractData]);
-
-  const handleConnectWallet = async () => {
-    try {
-      setConnecting(true);
-      setConnectionError(null);
-      await connectWallet();
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
-      setConnectionError(errorMessage);
-    } finally {
-      setConnecting(false);
-    }
-  };
-
-  const handleSetActualUsage = async () => {
-    const minutes = parseInt(actualMinutesInput);
-    if (isNaN(minutes) || minutes <= 0) {
-      alert('Please enter a valid number of minutes');
-      return;
-    }
-    
-    try {
-      await setActualUsage(minutes);
-      setActualMinutesInput('');
-    } catch (error) {
-      console.error('Failed to set actual usage:', error);
-    }
-  };
-
-  const handleReportDamage = async () => {
-    if (!window.confirm('Are you sure you want to report damage? This will add compensation charges to the rental.')) {
-      return;
-    }
-
-    try {
-      await reportDamage();
-      setShowDamageReport(false);
-    } catch (error) {
-      console.error('Failed to report damage:', error);
-    }
-  };
-
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="luxury-container py-16">
-          <div className="max-w-4xl mx-auto">
-            {/* Hero Section */}
-            <div className="text-center mb-12">
-              <h1 className="luxury-heading mb-6">Lend Your Vehicle</h1>
-              <p className="luxury-subheading mb-8">
-                Earn passive income by lending your luxury vehicles on the blockchain
-              </p>
-            </div>
-
-            {/* Benefits Grid */}
-            <div className="luxury-grid-3 mb-12">
-              <div className="luxury-card p-6 text-center">
-                <DollarSign className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Passive Income</h3>
-                <p className="text-muted-foreground text-sm">
-                  Earn ETH by renting out your vehicles when not in use
-                </p>
-              </div>
-              <div className="luxury-card p-6 text-center">
-                <CheckCircle className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Secure Contracts</h3>
-                <p className="text-muted-foreground text-sm">
-                  Smart contracts ensure secure payments and insurance coverage
-                </p>
-              </div>
-              <div className="luxury-card p-6 text-center">
-                <Settings className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Full Control</h3>
-                <p className="text-muted-foreground text-sm">
-                  Set your own rates, terms, and manage rental confirmations
-                </p>
-              </div>
-            </div>
-
-            {/* Connect Wallet */}
-            <div className="max-w-md mx-auto">
-              <MetaMaskConnect
-                onConnect={handleConnectWallet}
-                connecting={connecting}
-                error={connectionError}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!contractState || !feeCalculation || !availableActions) {
+  // Redirect non-admin users
+  if (hasAccess && !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="luxury-spinner w-8 h-8 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your vehicle information...</p>
+        <div className="luxury-card p-8 max-w-md mx-auto text-center">
+          <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Access Restricted</h2>
+          <p className="text-muted-foreground mb-6">
+            This page is only accessible to Admin/Owner accounts.
+          </p>
+          <a href="/" className="luxury-button">
+            Go to Homepage
+          </a>
         </div>
       </div>
     );
   }
+
+  // Show connection prompt if not connected and not in preview mode
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="luxury-card p-8 max-w-md mx-auto text-center">
+          <Car className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Connect Your Wallet</h2>
+          <p className="text-muted-foreground mb-6">
+            Connect your wallet to access the car management interface.
+          </p>
+          <button onClick={connectWallet} className="luxury-button w-full">
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const getOwnedCars = (): MockCar[] => {
+    if (isPreviewMode) {
+      return mockDataService.getOwnedCars('0x1234567890123456789012345678901234567890');
+    }
+    // In real implementation, get cars owned by connected address
+    return mockDataService.getOwnedCars(address || '');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      if (isPreviewMode) {
+        // Simulate car addition in preview mode
+        mockDataService.addCar({
+          assetName: formData.carName,
+          rentalFeePerDay: ethers.parseEther(formData.rentalFeePerDay || '0').toString(),
+          insuranceFee: ethers.parseEther(formData.insuranceFee || '0').toString(),
+          durationDays: parseInt(formData.duration) || 1,
+          lessor: '0x1234567890123456789012345678901234567890',
+          depositRequired: ethers.parseEther((parseFloat(formData.rentalFeePerDay || '0') * 1.5).toString()).toString(),
+          totalRentalFee: ethers.parseEther((parseFloat(formData.rentalFeePerDay || '0') * parseInt(formData.duration || '1')).toString()).toString()
+        });
+        
+        alert('Preview Mode: Car would be deployed to blockchain');
+        setFormData({ carName: '', rentalFeePerDay: '', duration: '', insuranceFee: '' });
+      } else {
+        // Real implementation would deploy contract here
+        console.log('Deploying car contract:', formData);
+        alert('Real deployment would happen here');
+      }
+    } catch (error) {
+      console.error('Failed to deploy car contract:', error);
+      alert('Failed to deploy car contract');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSetActualUsage = (carId: string) => {
+    if (isPreviewMode) {
+      alert(`Preview Mode: Would set actual usage to ${modalInput} days for car ${carId}`);
+    } else {
+      // Real implementation
+      console.log('Setting actual usage:', carId, modalInput);
+    }
+    setShowModal({ type: null, carId: null });
+    setModalInput('');
+  };
+
+  const handleConfirmReturn = (carId: string) => {
+    if (isPreviewMode) {
+      mockDataService.updateCarStatus(carId, 'Available');
+      alert('Preview Mode: Return confirmed, car is now available');
+    } else {
+      // Real implementation
+      console.log('Confirming return for car:', carId);
+    }
+  };
+
+  const handleReportDamage = (carId: string) => {
+    if (isPreviewMode) {
+      mockDataService.updateCarStatus(carId, 'Damaged');
+      alert('Preview Mode: Damage reported, awaiting inspector assessment');
+    } else {
+      // Real implementation
+      console.log('Reporting damage for car:', carId);
+    }
+  };
+
+  const ownedCars = getOwnedCars();
 
   return (
     <div className="min-h-screen bg-background">
       <div className="luxury-container py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="luxury-heading mb-4">Manage Your Vehicle</h1>
-          <p className="luxury-subheading">
-            {userRole === 'lessor' ? 'Monitor and manage your rental contract' : 'View available lending opportunities'}
+          <h1 className="text-3xl font-light text-foreground mb-2">Car Management</h1>
+          <p className="text-muted-foreground">
+            {isPreviewMode ? 'Preview: Admin car management interface' : 'Add and manage your car rentals'}
           </p>
         </div>
 
-        {/* Error/Success Display */}
-        {(connectionError || transactionError) && (
-          <div className="luxury-card p-4 mb-6 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              <p className="text-red-700 dark:text-red-400">
-                {connectionError || transactionError}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {lastTransactionHash && (
-          <div className="luxury-card p-4 mb-6 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
-            <div className="flex items-center space-x-2 mb-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <p className="text-green-700 dark:text-green-400 font-medium">
-                Transaction successful!
-              </p>
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-500 font-mono break-all">
-              {lastTransactionHash}
+        {/* Preview Mode Notice */}
+        {isPreviewMode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 dark:bg-blue-900/30 dark:border-blue-800">
+            <p className="text-blue-700 dark:text-blue-400 text-sm">
+              🔍 Preview Mode: Transactions are disabled. This interface shows admin functionality.
             </p>
           </div>
         )}
 
-        <div className="luxury-grid-2 gap-8">
-          {/* Vehicle Information */}
-          <div className="luxury-card overflow-hidden">
-            <div className="relative">
-              <img
-                src="https://images.pexels.com/photos/28772164/pexels-photo-28772164.jpeg"
-                alt={contractState.assetName}
-                className="w-full h-64 object-cover"
-              />
-              <div className="absolute top-4 left-4">
-                <span className={`status-indicator ${
-                  contractState.isRented ? 'status-active' : 'status-inactive'
-                }`}>
-                  {contractState.isRented ? 'Currently Rented' : 'Available'}
-                </span>
-              </div>
-              {userRole === 'lessor' && (
-                <div className="absolute top-4 right-4">
-                  <span className="status-indicator bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                    Owner
-                  </span>
-                </div>
-              )}
-            </div>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Car Registration Form */}
+          <div className="luxury-card p-6">
+            <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center">
+              <Plus className="w-5 h-5 mr-2" />
+              Add New Car
+            </h2>
             
-            <div className="p-6">
-              <h2 className="luxury-title mb-2">{contractState.assetName}</h2>
-              <p className="text-muted-foreground mb-4">
-                {userRole === 'lessor' ? 'Your luxury vehicle' : 'Available for rent'}
-              </p>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Rate per minute:</span>
-                  <span className="font-semibold">
-                    {rentalContractService.formatEther(contractState.rentalFeePerMinute)} ETH
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Duration:</span>
-                  <span className="font-semibold">
-                    {contractState.durationMinutes.toString()} minutes
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Insurance fee:</span>
-                  <span className="font-semibold">
-                    {rentalContractService.formatEther(contractState.insuranceFee)} ETH
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Damage compensation:</span>
-                  <span className="font-semibold">
-                    {rentalContractService.formatEther(contractState.insuranceCompensation)} ETH
-                  </span>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="carName" className="block text-sm font-medium text-foreground mb-2">
+                  Car Name
+                </label>
+                <input
+                  type="text"
+                  id="carName"
+                  name="carName"
+                  value={formData.carName}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Tesla Model S"
+                  className="luxury-input w-full"
+                  required
+                />
               </div>
-            </div>
+
+              <div>
+                <label htmlFor="rentalFeePerDay" className="block text-sm font-medium text-foreground mb-2">
+                  Rental Fee Per Day (ETH)
+                </label>
+                <input
+                  type="number"
+                  id="rentalFeePerDay"
+                  name="rentalFeePerDay"
+                  value={formData.rentalFeePerDay}
+                  onChange={handleInputChange}
+                  placeholder="1.0"
+                  step="0.01"
+                  min="0"
+                  className="luxury-input w-full"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="duration" className="block text-sm font-medium text-foreground mb-2">
+                  Duration (Days)
+                </label>
+                <input
+                  type="number"
+                  id="duration"
+                  name="duration"
+                  value={formData.duration}
+                  onChange={handleInputChange}
+                  placeholder="7"
+                  min="1"
+                  className="luxury-input w-full"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="insuranceFee" className="block text-sm font-medium text-foreground mb-2">
+                  Insurance Fee (ETH)
+                </label>
+                <input
+                  type="number"
+                  id="insuranceFee"
+                  name="insuranceFee"
+                  value={formData.insuranceFee}
+                  onChange={handleInputChange}
+                  placeholder="0.5"
+                  step="0.01"
+                  min="0"
+                  className="luxury-input w-full"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="ferrari-button w-full disabled:opacity-50"
+              >
+                {isSubmitting ? 'Deploying...' : 'Deploy Car Contract'}
+              </button>
+            </form>
           </div>
 
-          {/* Management Panel */}
-          <div className="space-y-6">
-            {/* Rental Status */}
-            {contractState.isRented && (
-              <div className="luxury-card p-6">
-                <h3 className="luxury-title mb-4">Current Rental</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Renter:</span>
-                    <span className="font-mono text-sm">
-                      {contractState.lessee.slice(0, 6)}...{contractState.lessee.slice(-4)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Return requested:</span>
-                    <span className={`status-indicator ${
-                      contractState.renterRequestedReturn ? 'status-active' : 'status-pending'
-                    }`}>
-                      {contractState.renterRequestedReturn ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Return confirmed:</span>
-                    <span className={`status-indicator ${
-                      contractState.ownerConfirmedReturn ? 'status-active' : 'status-pending'
-                    }`}>
-                      {contractState.ownerConfirmedReturn ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Damage reported:</span>
-                    <span className={`status-indicator ${
-                      contractState.isDamaged ? 'status-error' : 'status-active'
-                    }`}>
-                      {contractState.isDamaged ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  {contractState.actualMinutes > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Actual usage:</span>
-                      <span>{contractState.actualMinutes.toString()} minutes</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Owner Actions */}
-            {userRole === 'lessor' && (
-              <div className="luxury-card p-6">
-                <h3 className="luxury-title mb-4">Owner Actions</h3>
-                
+          {/* Statistics Panel */}
+          <div className="luxury-card p-6">
+            <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center">
+              <Shield className="w-5 h-5 mr-2" />
+              Your Statistics
+            </h2>
+            
+            {(() => {
+              const stats = mockDataService.getAdminStatistics();
+              return (
                 <div className="space-y-4">
-                  {/* Confirm Return */}
-                  {availableActions.canConfirmReturn && (
-                    <button
-                      onClick={confirmReturn}
-                      disabled={isTransacting}
-                      className="luxury-button w-full disabled:opacity-50"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      {isTransacting ? 'Processing...' : 'Confirm Return'}
-                    </button>
-                  )}
-
-                  {/* Set Actual Usage */}
-                  {availableActions.canSetActualUsage && (
-                    <div className="border border-border rounded-lg p-4">
-                      <h4 className="font-medium mb-3">Set Actual Usage</h4>
-                      <div className="flex space-x-3">
-                        <input
-                          type="number"
-                          placeholder="Actual minutes used"
-                          value={actualMinutesInput}
-                          onChange={(e) => setActualMinutesInput(e.target.value)}
-                          min="1"
-                          className="luxury-input flex-1"
-                        />
-                        <button
-                          onClick={handleSetActualUsage}
-                          disabled={isTransacting || !actualMinutesInput}
-                          className="luxury-button disabled:opacity-50"
-                        >
-                          {isTransacting ? 'Setting...' : 'Set'}
-                        </button>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Agreed duration: {contractState.durationMinutes.toString()} minutes
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Report Damage */}
-                  {availableActions.canReportDamage && (
-                    <div className="border border-red-200 rounded-lg p-4 bg-red-50/50 dark:bg-red-900/10">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-red-700 dark:text-red-400">Report Damage</h4>
-                        <AlertTriangle className="w-5 h-5 text-red-500" />
-                      </div>
-                      <p className="text-sm text-red-600 dark:text-red-400 mb-3">
-                        Report if the vehicle was returned with damage. This will apply compensation charges.
-                      </p>
-                      <button
-                        onClick={handleReportDamage}
-                        disabled={isTransacting}
-                        className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-                      >
-                        {isTransacting ? 'Processing...' : 'Report Damage'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Earnings Summary */}
-            {userRole === 'lessor' && (
-              <div className="luxury-card p-6">
-                <h3 className="luxury-title mb-4">Earnings Summary</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Base rental fee:</span>
-                    <span className="font-semibold">
-                      {rentalContractService.formatEther(
-                        contractState.rentalFeePerMinute * contractState.durationMinutes
-                      )} ETH
-                    </span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Total Cars:</span>
+                    <span className="font-semibold text-foreground">{stats.totalCars}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Insurance fee:</span>
-                    <span className="font-semibold">
-                      {rentalContractService.formatEther(contractState.insuranceFee)} ETH
-                    </span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Currently Rented:</span>
+                    <span className="font-semibold text-foreground">{stats.activeCars}</span>
                   </div>
-                  {contractState.isDamaged && (
-                    <div className="flex justify-between text-green-600 dark:text-green-400">
-                      <span>Damage compensation:</span>
-                      <span className="font-semibold">
-                        +{rentalContractService.formatEther(contractState.insuranceCompensation)} ETH
-                      </span>
-                    </div>
-                  )}
-                  <div className="border-t pt-3">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total earnings:</span>
-                      <span className="text-green-600 dark:text-green-400">
-                        {rentalContractService.formatEther(
-                          contractState.rentalFeePerMinute * contractState.durationMinutes + 
-                          contractState.insuranceFee +
-                          (contractState.isDamaged ? contractState.insuranceCompensation : BigInt(0))
-                        )} ETH
-                      </span>
-                    </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Available:</span>
+                    <span className="font-semibold text-foreground">{stats.availableCars}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Awaiting Inspection:</span>
+                    <span className="font-semibold text-foreground">{stats.awaitingInspection}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Damaged:</span>
+                    <span className="font-semibold text-foreground">{stats.damagedCars}</span>
+                  </div>
+                  <hr className="border-border" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Total Revenue:</span>
+                    <span className="font-semibold text-foreground">{stats.totalRevenue.toFixed(2)} ETH</span>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* No Management Actions for Non-Owners */}
-            {userRole !== 'lessor' && !contractState.isRented && (
-              <div className="luxury-card p-6 text-center">
-                <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="luxury-title mb-2">Vehicle Available</h3>
-                <p className="text-muted-foreground mb-4">
-                  This vehicle is available for rent. Visit the rent page to book it.
-                </p>
-                <button className="luxury-button">
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Rent This Vehicle
-                </button>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
+
+        {/* Owned Cars List */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-semibold text-foreground mb-6 flex items-center">
+            <Car className="w-6 h-6 mr-2" />
+            Your Cars ({ownedCars.length})
+          </h2>
+          
+          {ownedCars.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {ownedCars.map((car) => (
+                <div key={car.id} className="luxury-card p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">{car.assetName}</h3>
+                      <div className={`status-indicator ${
+                        car.status === 'Available' ? 'status-active' :
+                        car.status === 'Rented' ? 'status-pending' :
+                        car.status === 'Awaiting Return Confirmation' ? 'status-pending' :
+                        'status-error'
+                      }`}>
+                        {car.status}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mb-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Daily Rate:</span>
+                      <span>{ethers.formatEther(car.rentalFeePerDay)} ETH</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration:</span>
+                      <span>{car.durationDays} days</span>
+                    </div>
+                    {car.lessee && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Renter:</span>
+                        <span className="font-mono text-xs">{car.lessee.slice(0, 6)}...{car.lessee.slice(-4)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Management Actions */}
+                  <div className="space-y-2">
+                    {car.status === 'Rented' && (
+                      <button
+                        onClick={() => setShowModal({ type: 'usage', carId: car.id })}
+                        className="luxury-button-outline w-full text-sm"
+                      >
+                        <Clock className="w-4 h-4 mr-2" />
+                        Set Actual Usage
+                      </button>
+                    )}
+                    
+                    {car.status === 'Awaiting Return Confirmation' && (
+                      <>
+                        <button
+                          onClick={() => handleConfirmReturn(car.id)}
+                          className="luxury-button w-full text-sm"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Confirm Return
+                        </button>
+                        <button
+                          onClick={() => handleReportDamage(car.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg w-full text-sm transition-colors"
+                        >
+                          <AlertTriangle className="w-4 h-4 mr-2" />
+                          Report Damage
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="luxury-card p-12 text-center">
+              <Car className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">No Cars Added</h3>
+              <p className="text-muted-foreground">
+                Start by adding your first car to the platform using the form above.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Modal for Set Actual Usage */}
+        {showModal.type === 'usage' && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="luxury-card p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Set Actual Usage</h3>
+              <p className="text-muted-foreground mb-4">
+                Enter the actual number of days the car was used.
+              </p>
+              <input
+                type="number"
+                value={modalInput}
+                onChange={(e) => setModalInput(e.target.value)}
+                placeholder="Days used"
+                min="1"
+                className="luxury-input w-full mb-4"
+                autoFocus
+              />
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => handleSetActualUsage(showModal.carId!)}
+                  className="luxury-button flex-1"
+                  disabled={!modalInput}
+                >
+                  Set Usage
+                </button>
+                <button
+                  onClick={() => setShowModal({ type: null, carId: null })}
+                  className="luxury-button-outline flex-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
