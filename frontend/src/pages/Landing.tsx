@@ -127,14 +127,32 @@ export default function Landing() {
 
               {/* Connect Wallet Control */}
               <div className="max-w-md mx-auto space-y-4">
-                <button
-                  onClick={handleConnectWallet}
-                  disabled={isLoading}
-                  className="luxury-button w-full disabled:opacity-50"
-                >
-                  <Wallet className="w-4 h-4 mr-2" />
-                  {isLoading ? 'Connecting...' : 'Connect Wallet'}
-                </button>
+                {!isMetaMaskInstalled ? (
+                  <div className="space-y-3">
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 dark:bg-orange-900/30 dark:border-orange-800">
+                      <p className="text-orange-700 dark:text-orange-400 text-sm mb-2">
+                        MetaMask is required to connect your wallet
+                      </p>
+                      <a
+                        href="https://metamask.io/download/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="luxury-button w-full"
+                      >
+                        Install MetaMask
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleConnectWallet}
+                    disabled={isLoading}
+                    className="luxury-button w-full disabled:opacity-50"
+                  >
+                    <Wallet className="w-4 h-4 mr-2" />
+                    {isLoading ? 'Connecting...' : 'Connect Wallet'}
+                  </button>
+                )}
 
                 <div className="text-center">
                   <span className="text-muted-foreground text-sm">
