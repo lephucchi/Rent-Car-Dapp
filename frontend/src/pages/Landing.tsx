@@ -203,6 +203,17 @@ export default function Landing() {
                         ⚠️ Bạn cần cài đặt MetaMask trước khi kết nối ví
                       </p>
                     </div>
+
+                    {/* Connect Button - Disabled */}
+                    <div className="text-center">
+                      <button
+                        disabled={true}
+                        className="aurora-button w-full max-w-md mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Wallet className="w-4 h-4 mr-2" />
+                        Kết nối ví (Cần cài đặt MetaMask trước)
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-8">
