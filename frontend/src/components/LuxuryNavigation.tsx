@@ -44,9 +44,7 @@ export const LuxuryNavigation: React.FC = () => {
   };
 
   // Check if MetaMask is installed
-  const isMetaMaskInstalled = typeof window !== "undefined" &&
-    !!window.ethereum &&
-    !!window.ethereum.isMetaMask;
+  const isMetaMaskInstalled = checkMetaMaskInstalled();
 
   // Navigation items - NO Admin/Inspector links as per specification
   const navItems = [
