@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { ethers } from "ethers";
+import { isMetaMaskInstalled, getMetaMaskError, connectToMetaMask } from "../utils/metamaskUtils";
 
 export type UserRole = 'admin' | 'inspector' | 'user';
 
