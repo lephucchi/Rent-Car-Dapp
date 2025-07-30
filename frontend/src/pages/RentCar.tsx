@@ -1,347 +1,427 @@
-import React, { useState, useEffect } from 'react';
-import { Car, Clock, Shield, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
-import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/rentalContractStore';
-import { rentalContractService } from '../services/rentalContractService';
-import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import React, { useState } from 'react';
+import { Car, DollarSign, Shield, Clock, User, CreditCard, ChevronRight, X } from 'lucide-react';
+import { usePreviewMode } from '../contexts/PreviewModeContext';
+import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole } from '../stores/globalWeb3Store';
+import { mockDataService, type MockCar } from '../services/mockDataService';
+import { ethers } from 'ethers';
+
+interface CarDetailModalProps {
+  car: MockCar;
+  isOpen: boolean;
+  onClose: () => void;
+  onRent: (carId: string) => void;
+  onCancel: (carId: string) => void;
+  onRequestReturn: (carId: string) => void;
+  onCompleteRental: (carId: string) => void;
+  isPreview: boolean;
+  userRole: string;
+}
+
+const CarDetailModal: React.FC<CarDetailModalProps> = ({
+  car,
+  isOpen,
+  onClose,
+  onRent,
+  onCancel,
+  onRequestReturn,
+  onCompleteRental,
+  isPreview,
+  userRole
+}) => {
+  if (!isOpen) return null;
+
+  const dailyRate = parseFloat(ethers.formatEther(car.rentalFeePerDay));
+  const insurance = parseFloat(ethers.formatEther(car.insuranceFee));
+  const totalRental = dailyRate * car.durationDays;
+  const deposit = totalRental + insurance;
+  const remainingPayment = totalRental * 0.7; // Simulate remaining payment
+
+  const isUserRenter = car.lessee === '0x0987654321098765432109876543210987654321'; // Mock user address
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="luxury-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-foreground">{car.assetName}</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Car Status */}
+          <div className="mb-6">
+            <div className={`status-indicator inline-block ${
+              car.status === 'Available' ? 'status-active' :
+              car.status === 'Rented' ? 'status-pending' :
+              car.status === 'Awaiting Return Confirmation' ? 'status-pending' :
+              'status-error'
+            }`}>
+              {car.status}
+            </div>
+          </div>
+
+          {/* Pricing Details */}
+          <div className="bg-muted/30 rounded-lg p-6 mb-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Rental Details</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Daily Rate:</span>
+                <span className="font-semibold">{dailyRate} ETH</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Duration:</span>
+                <span className="font-semibold">{car.durationDays} days</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Insurance Fee:</span>
+                <span className="font-semibold">{insurance} ETH</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Rental:</span>
+                <span className="font-semibold">{totalRental} ETH</span>
+              </div>
+              <hr className="border-border" />
+              <div className="flex justify-between text-lg">
+                <span className="text-muted-foreground">Deposit Required:</span>
+                <span className="font-bold text-foreground">{deposit} ETH</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Owner Information */}
+          <div className="bg-muted/30 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground flex items-center">
+                <User className="w-4 h-4 mr-2" />
+                Owner:
+              </span>
+              <span className="font-mono text-sm">
+                {car.lessor.slice(0, 8)}...{car.lessor.slice(-6)}
+              </span>
+            </div>
+            {car.lessee && (
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-muted-foreground flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Current Renter:
+                </span>
+                <span className="font-mono text-sm">
+                  {car.lessee.slice(0, 8)}...{car.lessee.slice(-6)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            {car.status === 'Available' && (
+              <button
+                onClick={() => onRent(car.id)}
+                className="ferrari-button w-full"
+              >
+                <Car className="w-5 h-5 mr-2" />
+                Rent Car - {deposit} ETH {isPreview && '(Preview)'}
+              </button>
+            )}
+
+            {car.status === 'Rented' && isUserRenter && (
+              <>
+                <button
+                  onClick={() => onCancel(car.id)}
+                  className="luxury-button-outline w-full"
+                >
+                  Cancel Rental {isPreview && '(Preview)'}
+                </button>
+                <button
+                  onClick={() => onRequestReturn(car.id)}
+                  className="luxury-button w-full"
+                >
+                  <ChevronRight className="w-5 h-5 mr-2" />
+                  Request Return {isPreview && '(Preview)'}
+                </button>
+              </>
+            )}
+
+            {car.status === 'Awaiting Return Confirmation' && isUserRenter && (
+              <button
+                onClick={() => onCompleteRental(car.id)}
+                className="ferrari-button w-full"
+              >
+                <CreditCard className="w-5 h-5 mr-2" />
+                Complete Rental - {remainingPayment.toFixed(2)} ETH {isPreview && '(Preview)'}
+              </button>
+            )}
+
+            {car.status === 'Rented' && !isUserRenter && (
+              <div className="text-center text-muted-foreground py-4">
+                This car is currently rented by another user
+              </div>
+            )}
+          </div>
+
+          {isPreview && (
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/30 dark:border-blue-800">
+              <p className="text-blue-700 dark:text-blue-400 text-sm">
+                🔍 Preview Mode: All transactions are simulated
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function RentCar() {
-  const {
-    connectWallet,
-    refreshContractData,
-    rent,
-    cancelRental,
-    requestReturn,
-    completeRental
-  } = useRentalContractStore();
+  const { isPreviewMode, simulatedRole } = usePreviewMode();
+  const { isConnected, address, connectWallet } = useWalletConnection();
+  const globalUserRole = useGlobalUserRole();
+  const [selectedCar, setSelectedCar] = useState<MockCar | null>(null);
 
-  const contractState = useContractState();
-  const feeCalculation = useFeeCalculation();
-  const availableActions = useAvailableActions();
-  const userRole = useUserRole();
-  const isConnected = useIsConnected();
-  const { isTransacting, lastTransactionHash, error: transactionError } = useTransactionState();
+  // Determine effective role and access
+  const effectiveRole = isPreviewMode ? simulatedRole : 
+    (globalUserRole === 'admin' ? 'admin' : globalUserRole);
+  
+  const hasAccess = isConnected || isPreviewMode;
 
-  const [connecting, setConnecting] = useState(false);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
+  // Show connection prompt if not connected and not in preview mode
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="luxury-card p-8 max-w-md mx-auto text-center">
+          <Car className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Connect Your Wallet</h2>
+          <p className="text-muted-foreground mb-6">
+            Connect your wallet to browse and rent available cars.
+          </p>
+          <button onClick={connectWallet} className="luxury-button w-full">
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (isConnected) {
-      refreshContractData();
+  const getAvailableCars = (): MockCar[] => {
+    if (isPreviewMode) {
+      return mockDataService.getAvailableCars();
     }
-  }, [isConnected, refreshContractData]);
+    // In real implementation, get available cars from contract
+    return mockDataService.getAvailableCars();
+  };
 
-  const handleConnectWallet = async () => {
-    try {
-      setConnecting(true);
-      setConnectionError(null);
-      await connectWallet();
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
-      setConnectionError(errorMessage);
-    } finally {
-      setConnecting(false);
+  const getUserRentals = (): MockCar[] => {
+    if (isPreviewMode) {
+      // Simulate user having rented some cars
+      return mockDataService.getAllCars().filter(car => 
+        car.lessee === '0x0987654321098765432109876543210987654321'
+      );
+    }
+    // In real implementation, get user's current rentals
+    return mockDataService.getAllCars().filter(car => 
+      car.lessee?.toLowerCase() === address?.toLowerCase()
+    );
+  };
+
+  const handleRent = (carId: string) => {
+    if (isPreviewMode) {
+      mockDataService.updateCarStatus(carId, 'Rented', '0x0987654321098765432109876543210987654321');
+      alert('Preview Mode: Car rental initiated successfully!');
+      setSelectedCar(null);
+    } else {
+      // Real rental logic
+      console.log('Renting car:', carId);
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="luxury-container py-16">
-          <div className="max-w-4xl mx-auto">
-            {/* Hero Section */}
-            <div className="text-center mb-12">
-              <h1 className="luxury-heading mb-6">Rent a Luxury Vehicle</h1>
-              <p className="luxury-subheading mb-8">
-                Experience premium cars with blockchain-secured rentals
-              </p>
-            </div>
+  const handleCancel = (carId: string) => {
+    if (isPreviewMode) {
+      mockDataService.updateCarStatus(carId, 'Available');
+      alert('Preview Mode: Rental cancelled successfully!');
+      setSelectedCar(null);
+    } else {
+      // Real cancellation logic
+      console.log('Cancelling rental:', carId);
+    }
+  };
 
-            {/* Features Grid */}
-            <div className="luxury-grid-3 mb-12">
-              <div className="luxury-card p-6 text-center">
-                <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Secure Payments</h3>
-                <p className="text-muted-foreground text-sm">
-                  Smart contract ensures secure and transparent transactions
-                </p>
-              </div>
-              <div className="luxury-card p-6 text-center">
-                <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Instant Booking</h3>
-                <p className="text-muted-foreground text-sm">
-                  Book and start your rental immediately with crypto payments
-                </p>
-              </div>
-              <div className="luxury-card p-6 text-center">
-                <CreditCard className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Transparent Pricing</h3>
-                <p className="text-muted-foreground text-sm">
-                  All fees calculated on-chain with no hidden costs
-                </p>
-              </div>
-            </div>
+  const handleRequestReturn = (carId: string) => {
+    if (isPreviewMode) {
+      mockDataService.updateCarStatus(carId, 'Awaiting Return Confirmation', '0x0987654321098765432109876543210987654321');
+      alert('Preview Mode: Return request submitted!');
+      setSelectedCar(null);
+    } else {
+      // Real return request logic
+      console.log('Requesting return for car:', carId);
+    }
+  };
 
-            {/* Connect Wallet */}
-            <div className="max-w-md mx-auto">
-              <MetaMaskConnect
-                onConnect={handleConnectWallet}
-                connecting={connecting}
-                error={connectionError}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleCompleteRental = (carId: string) => {
+    if (isPreviewMode) {
+      mockDataService.updateCarStatus(carId, 'Available');
+      alert('Preview Mode: Rental completed successfully!');
+      setSelectedCar(null);
+    } else {
+      // Real completion logic
+      console.log('Completing rental for car:', carId);
+    }
+  };
 
-  if (!contractState || !feeCalculation || !availableActions) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="luxury-spinner w-8 h-8 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading vehicle information...</p>
-        </div>
-      </div>
-    );
-  }
+  const availableCars = getAvailableCars();
+  const userRentals = getUserRentals();
 
   return (
     <div className="min-h-screen bg-background">
       <div className="luxury-container py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="luxury-heading mb-4">Rent Vehicle</h1>
-          <p className="luxury-subheading">
-            Secure your luxury vehicle rental with cryptocurrency
+          <h1 className="text-3xl font-light text-foreground mb-2">Rent a Car</h1>
+          <p className="text-muted-foreground">
+            {isPreviewMode ? 'Preview: Browse and rent luxury vehicles' : 'Browse and rent luxury vehicles with blockchain security'}
           </p>
         </div>
 
-        {/* Error Display */}
-        {(connectionError || transactionError) && (
-          <div className="luxury-card p-4 mb-6 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              <p className="text-red-700 dark:text-red-400">
-                {connectionError || transactionError}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Success Display */}
-        {lastTransactionHash && (
-          <div className="luxury-card p-4 mb-6 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
-            <div className="flex items-center space-x-2 mb-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <p className="text-green-700 dark:text-green-400 font-medium">
-                Transaction successful!
-              </p>
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-500 font-mono break-all">
-              {lastTransactionHash}
+        {/* Preview Mode Notice */}
+        {isPreviewMode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 dark:bg-blue-900/30 dark:border-blue-800">
+            <p className="text-blue-700 dark:text-blue-400 text-sm">
+              🔍 Preview Mode: Transactions are disabled. Click on cars to see rental interface.
             </p>
           </div>
         )}
 
-        <div className="luxury-grid-2 gap-8">
-          {/* Vehicle Card */}
-          <div className="luxury-card overflow-hidden">
-            <div className="relative">
-              <img
-                src="https://images.pexels.com/photos/28772164/pexels-photo-28772164.jpeg"
-                alt={contractState.assetName}
-                className="w-full h-64 object-cover"
-              />
-              <div className="absolute top-4 left-4">
-                <span className={`status-indicator ${
-                  contractState.isRented ? 'status-error' : 'status-active'
-                }`}>
-                  {contractState.isRented ? 'Currently Rented' : 'Available'}
-                </span>
-              </div>
-            </div>
+        {/* User's Current Rentals */}
+        {userRentals.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-semibold text-foreground mb-6 flex items-center">
+              <Shield className="w-6 h-6 mr-2" />
+              Your Current Rentals ({userRentals.length})
+            </h2>
             
-            <div className="p-6">
-              <h2 className="luxury-title mb-2">{contractState.assetName}</h2>
-              <p className="text-muted-foreground mb-4">Premium luxury vehicle</p>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Rate per minute:</span>
-                  <span className="font-semibold">
-                    {rentalContractService.formatEther(contractState.rentalFeePerMinute)} ETH
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Duration:</span>
-                  <span className="font-semibold">
-                    {contractState.durationMinutes.toString()} minutes
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Insurance:</span>
-                  <span className="font-semibold">
-                    {rentalContractService.formatEther(contractState.insuranceFee)} ETH
-                  </span>
-                </div>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between text-lg">
-                    <span className="font-medium">Total Cost:</span>
-                    <span className="font-bold">
-                      {rentalContractService.formatEther(feeCalculation.totalRentalFee)} ETH
-                    </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userRentals.map((car) => (
+                <div 
+                  key={car.id} 
+                  className="luxury-card p-6 cursor-pointer hover:shadow-lg transition-all duration-300"
+                  onClick={() => setSelectedCar(car)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">{car.assetName}</h3>
+                      <div className={`status-indicator ${
+                        car.status === 'Rented' ? 'status-pending' :
+                        car.status === 'Awaiting Return Confirmation' ? 'status-pending' :
+                        'status-active'
+                      }`}>
+                        {car.status}
+                      </div>
+                    </div>
+                    <Car className="w-6 h-6 text-primary" />
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Daily Rate:</span>
+                      <span>{ethers.formatEther(car.rentalFeePerDay)} ETH</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration:</span>
+                      <span>{car.durationDays} days</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 text-center">
+                    <span className="text-xs text-muted-foreground">Click for actions</span>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
+        )}
 
-          {/* Rental Actions */}
-          <div className="space-y-6">
-            {/* Pricing Breakdown */}
-            <div className="luxury-card p-6">
-              <h3 className="luxury-title mb-4">Pricing Breakdown</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Base rental fee:</span>
-                  <span>
-                    {rentalContractService.formatEther(
-                      contractState.rentalFeePerMinute * contractState.durationMinutes
-                    )} ETH
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Insurance fee:</span>
-                  <span>
-                    {rentalContractService.formatEther(contractState.insuranceFee)} ETH
-                  </span>
-                </div>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between font-semibold">
-                    <span>Required deposit (50%):</span>
-                    <span className="text-primary">
-                      {rentalContractService.formatEther(feeCalculation.deposit)} ETH
-                    </span>
-                  </div>
-                </div>
-                {contractState.isRented && feeCalculation.remainingPayment > 0 && (
-                  <div className="flex justify-between text-red-600 dark:text-red-400">
-                    <span>Remaining payment:</span>
-                    <span className="font-semibold">
-                      {rentalContractService.formatEther(feeCalculation.remainingPayment)} ETH
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Current Rental Status */}
-            {contractState.isRented && (
-              <div className="luxury-card p-6">
-                <h3 className="luxury-title mb-4">Rental Status</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Current renter:</span>
-                    <span className="font-mono text-sm">
-                      {contractState.lessee.slice(0, 6)}...{contractState.lessee.slice(-4)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Return requested:</span>
-                    <span className={`status-indicator ${
-                      contractState.renterRequestedReturn ? 'status-active' : 'status-pending'
-                    }`}>
-                      {contractState.renterRequestedReturn ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Return confirmed:</span>
-                    <span className={`status-indicator ${
-                      contractState.ownerConfirmedReturn ? 'status-active' : 'status-pending'
-                    }`}>
-                      {contractState.ownerConfirmedReturn ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  {contractState.isDamaged && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Damage reported:</span>
-                      <span className="status-indicator status-error">Yes</span>
+        {/* Available Cars */}
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground mb-6 flex items-center">
+            <Car className="w-6 h-6 mr-2" />
+            Available Cars ({availableCars.length})
+          </h2>
+          
+          {availableCars.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {availableCars.map((car) => (
+                <div 
+                  key={car.id} 
+                  className="luxury-card p-6 cursor-pointer hover:shadow-lg transition-all duration-300"
+                  onClick={() => setSelectedCar(car)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">{car.assetName}</h3>
+                      <div className="status-indicator status-active">
+                        Available
+                      </div>
                     </div>
-                  )}
-                  {contractState.actualMinutes > 0 && (
+                    <Car className="w-6 h-6 text-green-500" />
+                  </div>
+
+                  <div className="space-y-2 mb-4 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Actual usage:</span>
-                      <span>{contractState.actualMinutes.toString()} minutes</span>
+                      <span className="text-muted-foreground">Daily Rate:</span>
+                      <span className="font-semibold">{ethers.formatEther(car.rentalFeePerDay)} ETH</span>
                     </div>
-                  )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration:</span>
+                      <span className="font-semibold">{car.durationDays} days</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Insurance:</span>
+                      <span className="font-semibold">{ethers.formatEther(car.insuranceFee)} ETH</span>
+                    </div>
+                  </div>
+
+                  {/* Quick Pricing Preview */}
+                  <div className="bg-muted/30 rounded-lg p-3 mb-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Deposit Required:</span>
+                      <span className="font-bold text-foreground">
+                        {(parseFloat(ethers.formatEther(car.rentalFeePerDay)) * car.durationDays + parseFloat(ethers.formatEther(car.insuranceFee))).toFixed(2)} ETH
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <span className="text-xs text-muted-foreground">Click for details & rental</span>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="space-y-4">
-              {availableActions.canRent && (
-                <button
-                  onClick={rent}
-                  disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
-                >
-                  <Car className="w-5 h-5 mr-2" />
-                  {isTransacting ? 'Processing...' : `Rent Now - ${rentalContractService.formatEther(feeCalculation.deposit)} ETH`}
-                </button>
-              )}
-
-              {availableActions.canCancel && (
-                <button
-                  onClick={cancelRental}
-                  disabled={isTransacting}
-                  className="luxury-button-outline w-full text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
-                >
-                  {isTransacting ? 'Processing...' : 'Cancel Rental'}
-                </button>
-              )}
-
-              {availableActions.canRequestReturn && (
-                <button
-                  onClick={requestReturn}
-                  disabled={isTransacting}
-                  className="luxury-button w-full disabled:opacity-50"
-                >
-                  {isTransacting ? 'Processing...' : 'Request Return'}
-                </button>
-              )}
-
-              {availableActions.canCompleteRental && (
-                <button
-                  onClick={completeRental}
-                  disabled={isTransacting}
-                  className="ferrari-button w-full disabled:opacity-50"
-                >
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  {isTransacting ? 'Processing...' : `Complete Rental - ${rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH`}
-                </button>
-              )}
+              ))}
             </div>
-
-            {/* Info Box */}
-            <div className="luxury-card p-4 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-700 dark:text-blue-300">
-                  <p className="font-medium mb-1">How it works:</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• Pay 50% deposit to secure your rental</li>
-                    <li>• Use the vehicle for the agreed duration</li>
-                    <li>• Request return when finished</li>
-                    <li>• Complete final payment after owner confirms return</li>
-                  </ul>
-                </div>
-              </div>
+          ) : (
+            <div className="luxury-card p-12 text-center">
+              <Car className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">No Cars Available</h3>
+              <p className="text-muted-foreground">
+                Check back later for new car listings or contact car owners directly.
+              </p>
             </div>
-          </div>
+          )}
         </div>
+
+        {/* Car Detail Modal */}
+        <CarDetailModal
+          car={selectedCar!}
+          isOpen={!!selectedCar}
+          onClose={() => setSelectedCar(null)}
+          onRent={handleRent}
+          onCancel={handleCancel}
+          onRequestReturn={handleRequestReturn}
+          onCompleteRental={handleCompleteRental}
+          isPreview={isPreviewMode}
+          userRole={effectiveRole}
+        />
       </div>
     </div>
   );
