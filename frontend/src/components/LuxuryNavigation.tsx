@@ -23,13 +23,17 @@ import { AuroraPreviewPanel } from './AuroraPreviewPanel';
 
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
-  const { isPreviewMode, simulatedRole, setSimulatedRole, togglePreviewMode } = usePreviewMode();
+  const { theme, toggleTheme, isLightMode, isDarkMode } = useTheme();
+  const {
+    isPreviewMode,
+    simulatedRole,
+    setShowPreviewPanel,
+    exitPreviewMode
+  } = usePreviewMode();
   const { isConnected, address, connectWallet } = useWalletConnection();
   const { isLoading, error } = useConnectionState();
   const globalUserRole = useGlobalUserRole();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
 
   // Determine effective role (preview role when in preview mode, otherwise actual role)
   const effectiveRole = isPreviewMode ? simulatedRole :
@@ -42,6 +46,14 @@ export const LuxuryNavigation: React.FC = () => {
     } catch (error) {
       console.error('Failed to connect wallet:', error);
       // Error is already handled in the store, just log it here
+    }
+  };
+
+  const handlePreviewClick = () => {
+    if (isPreviewMode) {
+      exitPreviewMode();
+    } else {
+      setShowPreviewPanel(true);
     }
   };
 
