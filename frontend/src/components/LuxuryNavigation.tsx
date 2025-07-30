@@ -73,16 +73,17 @@ export const LuxuryNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 luxury-glass border-b border-border/50">
+    <nav className="sticky top-0 z-50 aurora-glass border-b border-border/50">
       <div className="luxury-container">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* Aurora Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 ferrari-gradient rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-              <Car className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 aurora-gradient rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105 relative overflow-hidden">
+              <Car className="w-6 h-6 text-white relative z-10" />
+              <Snowflake className="w-4 h-4 text-white/30 absolute top-1 right-1" />
             </div>
             <span className="text-2xl font-bold text-foreground">
-              Luxe<span className="text-primary">Rent</span>
+              Aurora<span className="text-primary">Rent</span>
             </span>
           </Link>
 
