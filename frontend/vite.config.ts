@@ -16,9 +16,9 @@ export default defineConfig({
     port: 3000,
     host: true,
     strictPort: true,
-    hmr: {
-      clientPort: 3000, // Use same port for client connection
-      host: 'localhost', // Ensure HMR connects to localhost
+    hmr: false, // Completely disable HMR to prevent fetch errors
+    watch: {
+      usePolling: true, // Use polling for file changes instead of HMR
     },
   },
   clearScreen: false,
