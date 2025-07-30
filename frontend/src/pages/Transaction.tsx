@@ -45,7 +45,7 @@ export default function Transaction() {
     return mockDataService.getAllCars();
   }, []);
 
-  // Filter transactions
+  // Filter transactions - MOVED BEFORE CONDITIONAL LOGIC
   const filteredTransactions = useMemo(() => {
     let filtered = [...allTransactions];
 
@@ -59,8 +59,8 @@ export default function Transaction() {
 
     if (filters.walletAddress) {
       const address = filters.walletAddress.toLowerCase();
-      filtered = filtered.filter(tx => 
-        tx.from.toLowerCase().includes(address) || 
+      filtered = filtered.filter(tx =>
+        tx.from.toLowerCase().includes(address) ||
         tx.to?.toLowerCase().includes(address)
       );
     }
@@ -78,6 +78,30 @@ export default function Transaction() {
 
     return filtered;
   }, [allTransactions, filters]);
+
+  // Determine effective role and access
+  const effectiveRole = isPreviewMode ? simulatedRole :
+    (globalUserRole === 'admin' ? 'admin' : globalUserRole);
+
+  const hasAccess = isConnected || isPreviewMode;
+
+  // Show connection prompt if not connected and not in preview mode
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="luxury-card p-8 max-w-md mx-auto text-center">
+          <History className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Connect Your Wallet</h2>
+          <p className="text-muted-foreground mb-6">
+            Connect your wallet to view transaction history and platform activity.
+          </p>
+          <button onClick={connectWallet} className="luxury-button w-full">
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
