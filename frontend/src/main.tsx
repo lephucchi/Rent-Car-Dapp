@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { PreviewModeProvider } from "./contexts/PreviewModeContext";
 import { LuxuryNavigation } from "./components/LuxuryNavigation";
+import { GlobalErrorDisplay } from "./components/GlobalErrorDisplay";
 import "./global.css";
 
 import Landing from "./pages/Landing";
