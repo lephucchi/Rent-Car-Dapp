@@ -1,25 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet, Plus } from 'lucide-react';
-import { usePreviewMode } from '../contexts/PreviewModeContext';
-import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
-import { mockDataService, type MockCar } from '../services/mockDataService';
-import { CarCard } from '../components/CarCard';
+import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet, ArrowRight, CheckCircle, Zap, Globe, Users } from 'lucide-react';
+import { useRentalContractStore, useContractState, useFeeCalculation, useAvailableActions, useUserRole, useIsConnected, useTransactionState } from '../stores/rentalContractStore';
+import { rentalContractService } from '../services/rentalContractService';
+import { ContractStatus } from '../components/ContractStatus';
+import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import { TransactionStatus } from '../components/TransactionStatus';
 import { debugMetaMaskConnection } from '../lib/debugMetaMask';
 import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
 
 export default function Landing() {
-  const { isPreviewMode, simulatedRole } = usePreviewMode();
-  const { isConnected, address, connectWallet } = useWalletConnection();
-  const { isLoading, error } = useConnectionState();
-  const globalUserRole = useGlobalUserRole();
-  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const {
+    connectWallet,
+    refreshContractData,
+    rent,
+    cancelRental,
+    requestReturn,
+    confirmReturn,
+    setActualUsage,
+    reportDamage,
+    completeRental
+  } = useRentalContractStore();
 
-  // Determine effective role and connection state
-  const effectiveRole = isPreviewMode ? simulatedRole : 
-    (globalUserRole === 'admin' ? 'admin' : 
-     globalUserRole === 'inspector' ? 'inspector' : 'user');
-  
-  const shouldShowContent = isConnected || isPreviewMode;
+  const contractState = useContractState();
+  const feeCalculation = useFeeCalculation();
+  const availableActions = useAvailableActions();
+  const userRole = useUserRole();
+  const isConnected = useIsConnected();
+  const { isTransacting, lastTransactionHash, error: transactionError } = useTransactionState();
+
+  const [actualMinutesInput, setActualMinutesInput] = useState('');
+  const [connecting, setConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [showTransactionStatus, setShowTransactionStatus] = useState(false);
+
+  useEffect(() => {
+    if (isConnected) {
+      refreshContractData();
+    }
+  }, [isConnected, refreshContractData]);
+
+  useEffect(() => {
+    if (lastTransactionHash || transactionError) {
+      setShowTransactionStatus(true);
+    }
+  }, [lastTransactionHash, transactionError]);
 
   const handleConnectWallet = async () => {
     try {
@@ -84,265 +108,260 @@ export default function Landing() {
     return (
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="luxury-section">
-          <div className="luxury-container">
-            <div className="text-center">
-              <h1 className="luxury-heading mb-6">
-                Luxury Car Rental
-                <br />
-                <span className="font-bold">Reimagined</span>
-              </h1>
-              <p className="luxury-subheading max-w-3xl mx-auto mb-12">
-                Experience premium car rental with blockchain security.
-                Connect your wallet to rent luxury vehicles with transparent pricing and instant confirmations.
-              </p>
-              
-              <div className="luxury-card p-8 max-w-4xl mx-auto mb-12">
-                <div className="luxury-grid-3">
+        <section className="relative overflow-hidden section-padding">
+          {/* Background Effects */}
+          <div className="absolute inset-0 aurora-gradient-subtle opacity-30"></div>
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full aurora-gradient opacity-15 blur-3xl float-animation"></div>
+          <div className="absolute bottom-1/4 left-1/4 w-72 h-72 rounded-full cyan-gradient opacity-12 blur-3xl float-animation" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full ice-gradient opacity-8 blur-3xl float-animation" style={{ animationDelay: '4s' }}></div>
+          
+          <div className="luxury-container relative">
+            <div className="text-center max-w-5xl mx-auto">
+              <div className="fade-in">
+                <h1 className="luxury-heading mb-8">
+                  The Future of
+                  <br />
+                  <span className="gradient-text-aurora">Arctic Luxury Rental</span>
+                </h1>
+                <p className="luxury-subheading max-w-3xl mx-auto mb-12">
+                  Experience premium vehicles with blockchain security, transparent pricing, 
+                  and instant confirmations. No paperwork, no hidden fees, just pure luxury.
+                </p>
+              </div>
+
+              {/* Key Stats */}
+              <div className="fade-in-delayed">
+                <div className="luxury-grid-3 max-w-4xl mx-auto mb-16">
                   <div className="text-center">
-                    <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Blockchain Security</h3>
-                    <p className="text-muted-foreground">Smart contracts ensure transparent and secure transactions</p>
+                    <div className="w-16 h-16 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Shield className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="text-3xl font-bold gradient-text-aurora mb-2">100%</div>
+                    <div className="text-muted-foreground">Secure Transactions</div>
                   </div>
                   <div className="text-center">
-                    <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Instant Rental</h3>
-                    <p className="text-muted-foreground">Rent immediately with cryptocurrency payments</p>
+                    <div className="w-16 h-16 cyan-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Zap className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="text-3xl font-bold gradient-text-ice mb-2">&lt;30s</div>
+                    <div className="text-muted-foreground">Average Booking Time</div>
                   </div>
                   <div className="text-center">
-                    <CreditCard className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Transparent Pricing</h3>
-                    <p className="text-muted-foreground">All fees calculated on-chain with no hidden costs</p>
+                    <div className="w-16 h-16 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Globe className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="text-3xl font-bold gradient-text-aurora mb-2">24/7</div>
+                    <div className="text-muted-foreground">Global Availability</div>
                   </div>
                 </div>
               </div>
 
-              {/* Connection Error Display */}
-              {(connectionError || error) && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
-                  <p className="text-red-600 text-sm">{connectionError || error}</p>
-                </div>
+              {/* Connect Wallet Card */}
+              <div className="max-w-2xl mx-auto slide-up">
+                <MetaMaskConnect
+                  onConnect={handleConnectWallet}
+                  connecting={connecting}
+                  error={connectionError}
+                />
+              </div>
+
+              {/* Debug button for development */}
+              {import.meta.env.DEV && (
+                <button
+                  onClick={debugMetaMaskConnection}
+                  className="mt-6 text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Debug MetaMask Connection
+                </button>
               )}
+            </div>
+          </div>
+        </section>
 
-              {/* Simple Connection Guide */}
-              <div className="max-w-4xl mx-auto">
-                {!isMetaMaskInstalled ? (
-                  <div className="space-y-8">
-                    {/* Header Section */}
-                    <div className="text-center mb-8">
-                      <h2 className="text-2xl font-semibold text-foreground mb-4">
-                        Hướng dẫn cài đặt và kết nối ví
-                      </h2>
-                      <p className="text-muted-foreground">
-                        Thực hiện các bước sau để bắt đầu sử dụng dịch vụ thuê xe blockchain
-                      </p>
-                    </div>
+        {/* Features Section */}
+        <section className="section-padding bg-muted/30">
+          <div className="luxury-container">
+            <div className="text-center mb-16 fade-in">
+              <h2 className="text-4xl font-light text-foreground mb-4">
+                Why Choose <span className="gradient-text-aurora">ArcticRent</span>?
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Experience the perfect blend of luxury, technology, and trust
+              </p>
+            </div>
+            
+            <div className="luxury-grid-3 gap-8">
+              <div className="luxury-card-elevated p-8 text-center fade-in">
+                <div className="w-16 h-16 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Blockchain Security</h3>
+                <p className="text-muted-foreground mb-6">
+                  Smart contracts ensure transparent, secure, and immutable transactions with automatic escrow protection.
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    Automated deposit protection
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    Transparent fee calculation
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    Immutable rental history
+                  </li>
+                </ul>
+              </div>
 
-                    {/* 4 Steps Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                      {/* Step 1 */}
-                      <div className="aurora-glass border border-primary/30 rounded-lg p-4 text-center">
-                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">1</div>
-                        <h3 className="font-semibold text-foreground mb-2">Tải MetaMask</h3>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Tải extension MetaMask cho trình duyệt
-                        </p>
-                        <a
-                          href="https://metamask.io/download/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline"
-                        >
-                          metamask.io
-                        </a>
-                      </div>
+              <div className="luxury-card-elevated p-8 text-center fade-in" style={{ animationDelay: '0.1s' }}>
+                <div className="w-16 h-16 cyan-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Clock className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Instant Rental</h3>
+                <p className="text-muted-foreground mb-6">
+                  Skip the paperwork. Book and drive luxury vehicles instantly with cryptocurrency payments.
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    No credit checks required
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    Instant payment processing
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    Global accessibility
+                  </li>
+                </ul>
+              </div>
 
-                      {/* Step 2 */}
-                      <div className="aurora-glass border border-secondary/30 rounded-lg p-4 text-center">
-                        <div className="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">2</div>
-                        <h3 className="font-semibold text-foreground mb-2">Cài đặt</h3>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Thêm extension vào trình duyệt của bạn
-                        </p>
-                        <div className="flex items-center justify-center text-xs text-gray-500">
-                          <Clock className="w-3 h-3 mr-1" />
-                          1-2 phút
-                        </div>
-                      </div>
-
-                      {/* Step 3 */}
-                      <div className="aurora-glass border border-aurora-green/30 rounded-lg p-4 text-center">
-                        <div className="w-8 h-8 bg-aurora-green text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">3</div>
-                        <h3 className="font-semibold text-foreground mb-2">Thiết lập ví</h3>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Tạo ví mới hoặc import ví hiện có
-                        </p>
-                        <div className="flex items-center justify-center text-xs text-gray-500">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Bảo mật
-                        </div>
-                      </div>
-
-                      {/* Step 4 */}
-                      <div className="aurora-glass border border-aurora-teal/30 rounded-lg p-4 text-center">
-                        <div className="w-8 h-8 bg-aurora-teal text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">4</div>
-                        <h3 className="font-semibold text-foreground mb-2">Hoàn tất</h3>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Sẵn sàng kết nối với AuroraRent
-                        </p>
-                        <div className="flex items-center justify-center text-xs text-gray-500">
-                          <Car className="w-3 h-3 mr-1" />
-                          Sẵn sàng
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Install MetaMask Notice */}
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                      <p className="text-red-600 text-sm font-medium text-center">
-                        ⚠️ Bạn cần cài đặt MetaMask trước khi kết nối ví
-                      </p>
-                    </div>
-
-                    {/* Connect Button - Disabled */}
-                    <div className="text-center">
-                      <button
-                        disabled={true}
-                        className="aurora-button w-full max-w-md mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Wallet className="w-4 h-4 mr-2" />
-                        Kết nối ví (Cần cài đặt MetaMask trước)
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    {/* Header Section */}
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">✅</span>
-                      </div>
-                      <h2 className="text-2xl font-semibold text-foreground mb-4">
-                        MetaMask đã sẵn sàng!
-                      </h2>
-                      <p className="text-muted-foreground">
-                        Tuyệt vời! MetaMask đã được cài đặt. Bây giờ hãy kết nối ví của bạn để bắt đầu thuê xe
-                      </p>
-                    </div>
-
-                    {/* 4 Steps Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                      {/* Step 1 - Completed */}
-                      <div className="aurora-glass border border-green-300 rounded-lg p-4 text-center bg-green-50">
-                        <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">✓</div>
-                        <h3 className="font-semibold text-foreground mb-2">Tải MetaMask</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Extension đã được cài đặt
-                        </p>
-                      </div>
-
-                      {/* Step 2 - Completed */}
-                      <div className="aurora-glass border border-green-300 rounded-lg p-4 text-center bg-green-50">
-                        <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">✓</div>
-                        <h3 className="font-semibold text-foreground mb-2">Cài đặt</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Đã thêm vào trình duyệt
-                        </p>
-                      </div>
-
-                      {/* Step 3 - Completed */}
-                      <div className="aurora-glass border border-green-300 rounded-lg p-4 text-center bg-green-50">
-                        <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">✓</div>
-                        <h3 className="font-semibold text-foreground mb-2">Thiết lập ví</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Ví đã được tạo/import
-                        </p>
-                      </div>
-
-                      {/* Step 4 - Current */}
-                      <div className="aurora-glass border border-primary rounded-lg p-4 text-center bg-primary/5">
-                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm mx-auto mb-3">4</div>
-                        <h3 className="font-semibold text-foreground mb-2">Kết nối</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Kết nối với AuroraRent
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Connect Button - Active */}
-                    <div className="text-center">
-                      <button
-                        onClick={handleConnectWallet}
-                        disabled={isLoading}
-                        className="aurora-button w-full max-w-md mx-auto disabled:opacity-50"
-                      >
-                        <Wallet className="w-4 h-4 mr-2" />
-                        {isLoading ? 'Đang kết nối...' : 'Kết nối ví MetaMask'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Connection Error Display */}
-                {(connectionError || error) && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm">!</div>
-                      <div>
-                        <h4 className="text-red-800 font-medium mb-1">Lỗi kết nối</h4>
-                        <p className="text-red-600 text-sm">{connectionError || error}</p>
-                        <p className="text-red-600 text-xs mt-2">
-                          Vui lòng thử lại hoặc kiểm tra cài đặt MetaMask của bạn.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Debug button for development */}
-                {import.meta.env.DEV && (
-                  <div className="text-center mt-6">
-                    <button
-                      onClick={debugMetaMaskConnection}
-                      className="text-xs text-muted-foreground hover:text-foreground underline"
-                    >
-                      Debug MetaMask Connection (Dev Only)
-                    </button>
-                  </div>
-                )}
+              <div className="luxury-card-elevated p-8 text-center fade-in" style={{ animationDelay: '0.2s' }}>
+                <div className="w-16 h-16 ice-gradient rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <CreditCard className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Transparent Pricing</h3>
+                <p className="text-muted-foreground mb-6">
+                  All fees calculated on-chain with no hidden costs. Pay exactly what you see.
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    No hidden fees
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    Real-time fee calculation
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    Automatic refunds
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="bg-muted/30 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
+        {/* How It Works Section */}
+        <section className="section-padding">
+          <div className="luxury-container">
+            <div className="text-center mb-16 fade-in">
               <h2 className="text-4xl font-light text-foreground mb-4">How It Works</h2>
-              <p className="text-xl text-muted-foreground">Simple, secure, and transparent car rental process</p>
+              <p className="text-xl text-muted-foreground">
+                Simple, secure, and transparent rental process
+              </p>
             </div>
             
-            <div className="grid md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Connect Wallet</h3>
-                <p className="text-muted-foreground">Connect your MetaMask wallet to access the platform</p>
+            <div className="max-w-6xl mx-auto">
+              <div className="grid md:grid-cols-4 gap-8">
+                {[
+                  {
+                    step: '01',
+                    icon: <Wallet className="w-8 h-8" />,
+                    title: 'Connect Wallet',
+                    description: 'Connect your MetaMask wallet to access the platform securely'
+                  },
+                  {
+                    step: '02',
+                    icon: <Car className="w-8 h-8" />,
+                    title: 'Choose Vehicle',
+                    description: 'Browse our luxury fleet and select your perfect ride'
+                  },
+                  {
+                    step: '03',
+                    icon: <CreditCard className="w-8 h-8" />,
+                    title: 'Pay Deposit',
+                    description: 'Pay 50% deposit to secure your rental booking instantly'
+                  },
+                  {
+                    step: '04',
+                    icon: <CheckCircle className="w-8 h-8" />,
+                    title: 'Enjoy & Return',
+                    description: 'Use the vehicle and complete payment upon return'
+                  }
+                ].map((item, index) => (
+                  <div key={index} className="text-center fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <div className="relative mb-8">
+                      <div className="w-20 h-20 aurora-gradient rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
+                        <div className="text-white">{item.icon}</div>
+                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center text-sm font-bold">
+                          {item.step}
+                        </div>
+                      </div>
+                      {index < 3 && (
+                        <div className="hidden md:block absolute top-10 left-full w-full">
+                          <ArrowRight className="w-6 h-6 text-muted-foreground mx-auto" />
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-semibold mb-3">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm">{item.description}</p>
+                  </div>
+                ))}
               </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Pay Deposit</h3>
-                <p className="text-muted-foreground">Pay deposit to secure your rental booking</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Enjoy Your Ride</h3>
-                <p className="text-muted-foreground">Use the vehicle for the agreed rental period</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">4</div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Return & Pay</h3>
-                <p className="text-muted-foreground">Return the car and complete final payment</p>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="section-padding bg-muted/30">
+          <div className="luxury-container">
+            <div className="luxury-card-elevated p-12 text-center aurora-gradient-subtle">
+              <div className="max-w-3xl mx-auto fade-in">
+                <h2 className="text-4xl font-light text-foreground mb-6">
+                  Ready to Experience the Future?
+                </h2>
+                <p className="text-xl text-muted-foreground mb-8">
+                  Join thousands of users who trust our blockchain-powered platform for their luxury car rentals.
+                </p>
+                <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground mb-8">
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 mr-2" />
+                    <span>5,000+ Happy Customers</span>
+                  </div>
+                  <div className="hidden sm:block w-1 h-1 bg-muted-foreground rounded-full"></div>
+                  <div className="flex items-center">
+                    <Car className="w-4 h-4 mr-2" />
+                    <span>Premium Fleet</span>
+                  </div>
+                  <div className="hidden sm:block w-1 h-1 bg-muted-foreground rounded-full"></div>
+                  <div className="flex items-center">
+                    <Shield className="w-4 h-4 mr-2" />
+                    <span>100% Secure</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => document.querySelector('.luxury-glass-intense')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="aurora-button"
+                >
+                  <Wallet className="w-5 h-5 mr-2" />
+                  Connect Wallet to Start
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </button>
               </div>
             </div>
           </div>
@@ -351,143 +370,278 @@ export default function Landing() {
     );
   }
 
-  // Main Homepage with Car List Section
-  const cars = getCars();
+  // Connected state - show rental interface
+  if (!contractState || !feeCalculation || !availableActions) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center fade-in">
+          <div className="luxury-spinner w-16 h-16 mx-auto mb-6"></div>
+          <h2 className="text-2xl font-light text-foreground mb-2">Loading Contract Data...</h2>
+          <p className="text-muted-foreground">Connecting to blockchain...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="luxury-container py-8">
-        {/* Role Detection Notice */}
-        <div className="luxury-card p-4 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-              <div>
-                <span className="font-medium text-foreground">
-                  {isPreviewMode ? 'Preview Mode' : 'Connected'} as: {effectiveRole === 'admin' ? 'Admin/Owner' : effectiveRole === 'inspector' ? 'Inspector' : 'User'}
-                </span>
-                {effectiveRole === 'admin' && (
-                  <p className="text-sm text-muted-foreground">
-                    You have admin access. <a href="/admin" className="text-primary hover:underline">Go to Admin Panel</a>
-                  </p>
-                )}
-                {effectiveRole === 'inspector' && (
-                  <p className="text-sm text-muted-foreground">
-                    You have inspector access. <a href="/inspector" className="text-primary hover:underline">Go to Inspector Panel</a>
-                  </p>
-                )}
-              </div>
-            </div>
-            {isPreviewMode && (
-              <span className="text-sm text-primary bg-primary/20 px-2 py-1 rounded border border-primary/30">
-                Demo Data
-              </span>
-            )}
+      <div className="luxury-container py-12">
+        {/* Transaction Status */}
+        {showTransactionStatus && (lastTransactionHash || transactionError) && (
+          <div className="mb-8 fade-in">
+            <TransactionStatus
+              transactionHash={lastTransactionHash || undefined}
+              status={transactionError ? 'error' : isTransacting ? 'pending' : 'success'}
+              error={transactionError || undefined}
+              onClose={() => setShowTransactionStatus(false)}
+              networkName={rentalContractService.getNetworkInfo().network}
+            />
           </div>
-        </div>
+        )}
 
-        {/* Platform Overview */}
-        <div className="text-center mb-12">
+        {/* Welcome Header */}
+        <div className="text-center mb-12 fade-in">
           <h1 className="text-4xl font-light text-foreground mb-4">
-            Welcome to LuxeRent
+            Welcome to <span className="gradient-text-aurora">ArcticRent</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Discover premium car rentals powered by blockchain technology. 
-            Transparent pricing, secure deposits, and instant confirmations.
+          <p className="text-xl text-muted-foreground">
+            Your premium vehicle is ready. Manage your rental below.
           </p>
         </div>
 
-        {/* Car List Section */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground mb-2">
-                {effectiveRole === 'admin' ? 'Your Cars' : 
-                 effectiveRole === 'inspector' ? 'Cars for Inspection' : 
-                 'Available Cars'}
-              </h2>
-              <p className="text-muted-foreground">
-                {isPreviewMode ? 'Preview: Sample car listings' : 'Real-time car availability from smart contracts'}
-              </p>
+        {/* Vehicle Card */}
+        <div className="luxury-card-elevated overflow-hidden mb-8 slide-up">
+          <div className="relative">
+            <img
+              src="https://images.pexels.com/photos/28772164/pexels-photo-28772164.jpeg"
+              alt={contractState.assetName}
+              className="w-full h-80 object-cover"
+            />
+            <div className="absolute top-6 left-6">
+              <span className={`status-indicator ${
+                contractState.isRented ? 'status-active' : 'status-inactive'
+              }`}>
+                {contractState.isRented ? 'Currently Rented' : 'Available'}
+              </span>
             </div>
-            {effectiveRole === 'admin' && (
-              <a href="/lend" className="luxury-button">
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Car
-              </a>
-            )}
+            <div className="absolute top-6 right-6">
+              <div className="luxury-glass-intense rounded-lg px-4 py-2">
+                <div className="text-white font-bold text-lg">
+                  {rentalContractService.formatEther(contractState.rentalFeePerMinute)} ETH
+                </div>
+                <div className="text-white/80 text-sm">per minute</div>
+              </div>
+            </div>
           </div>
-
-          {cars.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cars.map((car) => (
-                <CarCard
-                  key={car.id}
-                  car={car}
-                  userRole={effectiveRole === 'admin' ? 'lessor' : effectiveRole}
-                  onRentCar={handleRentCar}
-                  onManageCar={handleManageCar}
-                  onInspectCar={handleInspectCar}
-                  isPreview={isPreviewMode}
-                />
-              ))}
+          
+          <div className="p-8">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h1 className="text-3xl font-light text-foreground mb-2">{contractState.assetName}</h1>
+                <p className="text-muted-foreground">Premium luxury vehicle rental</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-muted-foreground mb-1">Total Cost</div>
+                <div className="text-2xl font-bold gradient-text-aurora">
+                  {rentalContractService.formatEther(feeCalculation.totalRentalFee)} ETH
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="luxury-card p-12 text-center">
-              <Car className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                {effectiveRole === 'admin' ? 'No Cars Added' :
-                 effectiveRole === 'inspector' ? 'No Cars Awaiting Inspection' :
-                 'No Cars Available'}
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                {effectiveRole === 'admin' 
-                  ? 'Start by adding your first car to the platform.'
-                  : effectiveRole === 'inspector'
-                  ? 'Check back when cars need inspection.'
-                  : 'Check back later for new car listings.'
-                }
-              </p>
-              {effectiveRole === 'admin' && (
-                <a href="/lend" className="ferrari-button">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Your First Car
-                </a>
+
+            {/* Rental Details Grid */}
+            <div className="luxury-grid-4 gap-6 mb-8">
+              <div className="luxury-glass rounded-xl p-4">
+                <div className="text-sm text-muted-foreground mb-1">Duration</div>
+                <div className="text-lg font-semibold text-foreground">
+                  {contractState.durationMinutes.toString()} min
+                </div>
+              </div>
+              <div className="luxury-glass rounded-xl p-4">
+                <div className="text-sm text-muted-foreground mb-1">Insurance</div>
+                <div className="text-lg font-semibold text-foreground">
+                  {rentalContractService.formatEther(contractState.insuranceFee)} ETH
+                </div>
+              </div>
+              <div className="luxury-glass rounded-xl p-4">
+                <div className="text-sm text-muted-foreground mb-1">Deposit Required</div>
+                <div className="text-lg font-semibold text-foreground">
+                  {rentalContractService.formatEther(feeCalculation.deposit)} ETH
+                </div>
+              </div>
+              <div className="luxury-glass rounded-xl p-4">
+                <div className="text-sm text-muted-foreground mb-1">Your Role</div>
+                <div className="text-lg font-semibold text-foreground capitalize">
+                  {userRole === 'lessor' ? 'Owner' : userRole === 'lessee' ? 'Renter' : userRole}
+                </div>
+              </div>
+            </div>
+
+            {/* Rental Status */}
+            {contractState.isRented && (
+              <div className="luxury-glass rounded-xl p-6 mb-8">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Current Rental Status</h3>
+                <div className="luxury-grid-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Renter:</span>
+                      <span className="font-mono text-sm text-foreground">
+                        {contractState.lessee.slice(0, 8)}...{contractState.lessee.slice(-6)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Owner:</span>
+                      <span className="font-mono text-sm text-foreground">
+                        {contractState.lessor.slice(0, 8)}...{contractState.lessor.slice(-6)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Return Requested:</span>
+                      <span className={`status-indicator ${
+                        contractState.renterRequestedReturn ? 'status-active' : 'status-pending'
+                      }`}>
+                        {contractState.renterRequestedReturn ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Return Confirmed:</span>
+                      <span className={`status-indicator ${
+                        contractState.ownerConfirmedReturn ? 'status-active' : 'status-pending'
+                      }`}>
+                        {contractState.ownerConfirmedReturn ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {contractState.isDamaged && (
+                  <div className="mt-4 p-4 notification-error rounded-lg">
+                    <div className="flex items-center">
+                      <Shield className="w-5 h-5 text-red-500 mr-2" />
+                      <span className="font-medium text-red-700 dark:text-red-400">Damage Reported</span>
+                    </div>
+                  </div>
+                )}
+                
+                {contractState.actualMinutes > 0 && (
+                  <div className="mt-4 p-4 notification-info rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Clock className="w-5 h-5 text-blue-500 mr-2" />
+                        <span className="font-medium">Actual Usage: {contractState.actualMinutes.toString()} minutes</span>
+                      </div>
+                      {contractState.isRented && (
+                        <span className="text-sm text-muted-foreground">
+                          Remaining: {rentalContractService.formatEther(feeCalculation.remainingPayment)} ETH
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-4">
+              {availableActions.canRent && (
+                <button
+                  onClick={rent}
+                  disabled={isTransacting}
+                  className="aurora-button w-full disabled:opacity-50"
+                >
+                  <Car className="w-5 h-5 mr-2" />
+                  {isTransacting ? 'Processing...' : `Rent Now - ${rentalContractService.formatEther(feeCalculation.deposit)} ETH`}
+                </button>
+              )}
+
+              {availableActions.canCancel && (
+                <button
+                  onClick={cancelRental}
+                  disabled={isTransacting}
+                  className="luxury-button-outline w-full text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                >
+                  {isTransacting ? 'Processing...' : 'Cancel Rental'}
+                </button>
+              )}
+
+              {availableActions.canRequestReturn && (
+                <button
+                  onClick={requestReturn}
+                  disabled={isTransacting}
+                  className="luxury-button w-full disabled:opacity-50"
+                >
+                  {isTransacting ? 'Processing...' : 'Request Return'}
+                </button>
+              )}
+
+              {availableActions.canConfirmReturn && (
+                <button
+                  onClick={confirmReturn}
+                  disabled={isTransacting}
+                  className="luxury-button w-full disabled:opacity-50"
+                >
+                  {isTransacting ? 'Processing...' : 'Confirm Return (Owner)'}
+                </button>
+              )}
+
+              {availableActions.canReportDamage && (
+                <button
+                  onClick={reportDamage}
+                  disabled={isTransacting}
+                  className="luxury-button-outline w-full text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                >
+                  {isTransacting ? 'Processing...' : 'Report Damage (Owner)'}
+                </button>
+              )}
+
+              {availableActions.canCompleteRental && (
+                <button
+                  onClick={completeRental}
+                  disabled={isTransacting}
+                  className="aurora-button w-full disabled:opacity-50"
+                >
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  {isTransacting ? 'Processing...' : `Complete Rental - ${rentalContractService.formatEther(feeCalculation.finalPaymentAmount)} ETH`}
+                </button>
+              )}
+
+              {/* Set Actual Usage (Owner Only) */}
+              {availableActions.canSetActualUsage && (
+                <div className="luxury-glass rounded-xl p-6">
+                  <h4 className="text-lg font-medium text-foreground mb-4">Set Actual Usage (Owner Only)</h4>
+                  <div className="flex space-x-3">
+                    <input
+                      type="number"
+                      placeholder="Actual minutes used"
+                      value={actualMinutesInput}
+                      onChange={(e) => setActualMinutesInput(e.target.value)}
+                      className="luxury-input flex-1"
+                      min="1"
+                    />
+                    <button
+                      onClick={handleSetActualUsage}
+                      disabled={isTransacting || !actualMinutesInput}
+                      className="luxury-button disabled:opacity-50"
+                    >
+                      {isTransacting ? 'Setting...' : 'Set Usage'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Agreed duration: {contractState.durationMinutes.toString()} minutes
+                  </p>
+                </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Platform Information */}
-        <div className="luxury-card p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Platform Information</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Contract Address:</span>
-              <span className="text-foreground font-mono text-xs">
-                {isPreviewMode ? '0x1234...5678 (Demo)' : '0x5FbDB2...80aa3'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Network:</span>
-              <span className="text-foreground">
-                {isPreviewMode ? 'Demo Network' : 'Localhost'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Mode:</span>
-              <span className="text-foreground">
-                {isPreviewMode ? 'Preview' : isConnected ? 'Connected' : 'Disconnected'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Your Role:</span>
-              <span className="text-foreground capitalize">
-                {effectiveRole === 'admin' ? 'Admin/Owner' : effectiveRole}
-              </span>
-            </div>
-          </div>
-        </div>
+        {/* Contract Status */}
+        <ContractStatus
+          isConnected={isConnected}
+          userRole={userRole}
+          contractAddress={rentalContractService.getContractAddress()}
+        />
       </div>
     </div>
   );

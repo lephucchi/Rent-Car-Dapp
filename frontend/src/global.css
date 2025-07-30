@@ -206,12 +206,25 @@
   }
 
   .luxury-card {
-    @apply bg-card border border-border rounded-xl shadow-sm transition-all duration-300;
+    @apply bg-card border border-border rounded-2xl shadow-sm transition-all duration-300;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
   }
 
   .luxury-card:hover {
-    @apply shadow-lg border-muted-foreground/20;
-    transform: translateY(-1px);
+    @apply shadow-xl border-muted-foreground/30;
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.04);
+  }
+
+  .luxury-card-elevated {
+    @apply luxury-card;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .luxury-card-elevated:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.12), 0 12px 24px rgba(0, 0, 0, 0.06);
   }
 
   .aurora-button {
@@ -316,7 +329,8 @@
 
   /* Aurora Status indicators */
   .status-indicator {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200;
+    backdrop-filter: blur(8px);
   }
 
   /* Available - Aurora Green */
@@ -406,34 +420,109 @@
     background: hsl(var(--foreground));
   }
 
-  /* Smooth animations */
+  /* Advanced animations */
   .fade-in {
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fade-in-delayed {
+    animation: fadeIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+  }
+
+  .slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-in-left {
+    animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .scale-in {
+    animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .pulse-gentle {
+    animation: pulseGentle 3s ease-in-out infinite;
   }
 
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(24px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
     }
-  }
-
-  .slide-up {
-    animation: slideUp 0.4s ease-out;
   }
 
   @keyframes slideUp {
     from {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(40px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes pulseGentle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
     }
   }
 
@@ -522,7 +611,7 @@
 
   /* Responsive breakpoints helper */
   .responsive-padding {
-    @apply px-4 sm:px-6 lg:px-8;
+    @apply px-4 sm:px-6 lg:px-8 xl:px-12;
   }
 
   .responsive-margin {

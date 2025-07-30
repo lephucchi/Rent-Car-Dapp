@@ -37,16 +37,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Ferrari-inspired luxury colors
-        ferrari: {
-          red: "hsl(var(--ferrari-red))",
-          yellow: "hsl(var(--ferrari-yellow))",
+        // Arctic Aurora luxury colors
+        aurora: {
+          teal: "hsl(var(--aurora-teal))",
+          cyan: "hsl(var(--aurora-cyan))",
+          blue: "hsl(var(--arctic-blue))",
         },
-        luxury: {
-          gold: "hsl(var(--luxury-gold))",
-          platinum: "hsl(var(--platinum))",
-          carbon: "hsl(var(--carbon))",
-          steel: "hsl(var(--steel))",
+        arctic: {
+          ice: "hsl(var(--ice-blue))",
+          ocean: "hsl(var(--deep-ocean))",
+          glacier: "hsl(var(--glacier-blue))",
         },
         // Legacy neon colors for backward compatibility
         neon: {
