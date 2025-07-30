@@ -15,9 +15,6 @@ export const AuroraPreviewPanel: React.FC = () => {
   } = usePreviewMode();
   const { setTheme } = useTheme();
 
-  // Debug logging
-  console.log('AuroraPreviewPanel render:', { showPreviewPanel, simulatedRole, simulatedTheme });
-
   if (!showPreviewPanel) return null;
 
   const handleEnterPreview = () => {
