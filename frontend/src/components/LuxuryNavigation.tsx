@@ -209,24 +209,43 @@ export const LuxuryNavigation: React.FC = () => {
 
             {/* Mobile Preview Mode Toggle */}
             <button
-              onClick={() => setPreviewMode(!previewMode)}
+              onClick={togglePreviewMode}
               className={`nav-link flex items-center space-x-3 w-full ${
-                previewMode ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : ''
+                isPreviewMode ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : ''
               }`}
             >
-              {previewMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              <span>{previewMode ? 'Exit Preview' : 'Preview Mode'}</span>
+              {isPreviewMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              <span>{isPreviewMode ? 'Exit Preview' : 'Preview Mode'}</span>
             </button>
+
+            {/* Mobile Role Selection for Preview Mode */}
+            {isPreviewMode && (
+              <div className="pl-8 space-y-1">
+                <div className="text-xs text-muted-foreground mb-2">Simulate Role:</div>
+                {['user', 'admin', 'inspector'].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => setSimulatedRole(role as any)}
+                    className={`nav-link w-full text-left ${
+                      simulatedRole === role ? 'bg-accent text-accent-foreground' : ''
+                    }`}
+                  >
+                    {role === 'admin' ? 'Admin/Owner' : role === 'inspector' ? 'Inspector' : 'User'}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Mobile connection status */}
             {isConnected ? (
               <div className="flex items-center justify-between pt-4 border-t border-border/50">
                 <div className="text-sm">
-                  <div className="text-foreground font-medium capitalize">
-                    {userRole === 'lessor' ? 'Admin' : userRole === 'inspector' ? 'Inspector' : 'User'}
+                  <div className="text-foreground font-medium">
+                    {effectiveRole === 'admin' ? 'Admin' : effectiveRole === 'inspector' ? 'Inspector' : 'User'}
+                    {isPreviewMode && <span className="text-blue-600 ml-1">(Preview)</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Connected
+                  <div className="text-xs text-muted-foreground font-mono">
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
                   </div>
                 </div>
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -234,11 +253,11 @@ export const LuxuryNavigation: React.FC = () => {
             ) : (
               <button
                 onClick={handleConnectWallet}
-                disabled={connecting}
+                disabled={isLoading}
                 className="luxury-button w-full mt-4 disabled:opacity-50"
               >
                 <Wallet className="w-4 h-4 mr-2" />
-                {connecting ? 'Connecting...' : 'Connect Wallet'}
+                {isLoading ? 'Connecting...' : 'Connect Wallet'}
               </button>
             )}
           </div>
