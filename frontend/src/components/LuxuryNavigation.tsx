@@ -221,32 +221,24 @@ export const LuxuryNavigation: React.FC = () => {
 
             {/* Mobile Preview Mode Toggle */}
             <button
-              onClick={togglePreviewMode}
+              onClick={handlePreviewClick}
               className={`nav-link flex items-center space-x-3 w-full ${
-                isPreviewMode ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : ''
+                isPreviewMode ? 'bg-primary/20 text-primary' : ''
               }`}
             >
               {isPreviewMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               <span>{isPreviewMode ? 'Exit Preview' : 'Preview Mode'}</span>
             </button>
 
-            {/* Mobile Role Selection for Preview Mode */}
-            {isPreviewMode && (
-              <div className="pl-8 space-y-1">
-                <div className="text-xs text-muted-foreground mb-2">Simulate Role:</div>
-                {['user', 'admin', 'inspector'].map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => setSimulatedRole(role as any)}
-                    className={`nav-link w-full text-left ${
-                      simulatedRole === role ? 'bg-accent text-accent-foreground' : ''
-                    }`}
-                  >
-                    {role === 'admin' ? 'Admin/Owner' : role === 'inspector' ? 'Inspector' : 'User'}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Mobile Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="nav-link flex items-center space-x-3 w-full"
+            >
+              {isLightMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              <span>{isLightMode ? 'Dark Aurora' : 'Light Aurora'}</span>
+              <Palette className="w-4 h-4 text-primary ml-auto" />
+            </button>
 
             {/* Mobile connection status */}
             {isConnected ? (
