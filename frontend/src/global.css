@@ -447,13 +447,86 @@
     @apply animate-spin rounded-full border-2 border-muted border-t-foreground;
   }
 
+  /* Aurora Color Utilities */
+  .text-aurora-teal {
+    color: hsl(var(--aurora-teal));
+  }
+
+  .text-aurora-blue {
+    color: hsl(var(--aurora-blue));
+  }
+
+  .text-aurora-green {
+    color: hsl(var(--aurora-green));
+  }
+
+  .text-aurora-purple {
+    color: hsl(var(--aurora-purple));
+  }
+
+  .bg-aurora-teal {
+    background-color: hsl(var(--aurora-teal));
+  }
+
+  .bg-aurora-blue {
+    background-color: hsl(var(--aurora-blue));
+  }
+
+  .bg-aurora-green {
+    background-color: hsl(var(--aurora-green));
+  }
+
+  .bg-aurora-purple {
+    background-color: hsl(var(--aurora-purple));
+  }
+
+  .bg-aurora-teal\/10 {
+    background-color: hsl(var(--aurora-teal) / 0.1);
+  }
+
+  .bg-aurora-blue\/10 {
+    background-color: hsl(var(--aurora-blue) / 0.1);
+  }
+
+  .bg-aurora-green\/10 {
+    background-color: hsl(var(--aurora-green) / 0.1);
+  }
+
+  .bg-aurora-purple\/10 {
+    background-color: hsl(var(--aurora-purple) / 0.1);
+  }
+
+  .border-aurora-teal\/20 {
+    border-color: hsl(var(--aurora-teal) / 0.2);
+  }
+
+  .border-aurora-blue\/20 {
+    border-color: hsl(var(--aurora-blue) / 0.2);
+  }
+
+  .border-aurora-green\/20 {
+    border-color: hsl(var(--aurora-green) / 0.2);
+  }
+
+  .border-aurora-purple\/20 {
+    border-color: hsl(var(--aurora-purple) / 0.2);
+  }
+
+  .border-aurora-teal\/30 {
+    border-color: hsl(var(--aurora-teal) / 0.3);
+  }
+
+  .border-aurora-purple\/30 {
+    border-color: hsl(var(--aurora-purple) / 0.3);
+  }
+
   /* Responsive breakpoints helper */
   .responsive-padding {
     @apply px-4 sm:px-6 lg:px-8;
   }
 
   .responsive-margin {
-    @apply mx-4 sm:mx-6 lg:mx-8;
+    @apply mx-4 sm:mx-6 lg:px-8;
   }
 }
 
