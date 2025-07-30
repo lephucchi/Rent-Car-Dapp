@@ -27,6 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
               <LuxuryNavigation />
               <GlobalErrorDisplay />
+              <AuroraPreviewPanel />
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/rent" element={<RentCar />} />
