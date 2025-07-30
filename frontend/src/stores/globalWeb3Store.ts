@@ -52,64 +52,41 @@ export const useGlobalWeb3Store = create<Web3State>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // Check if we're in a browser environment
-      if (typeof window === "undefined") {
-        throw new Error("Browser environment required for wallet connection.");
-      }
-
-      // Check if MetaMask is available
-      if (!window.ethereum) {
+      // Check for MetaMask availability first
+      const metamaskError = getMetaMaskError();
+      if (metamaskError) {
         set({
-          error: "MetaMask is not installed. Please install MetaMask and refresh the page.",
-          isLoading: false
+          error: metamaskError,
+          isLoading: false,
+          isMetaMaskInstalled: isMetaMaskInstalled()
         });
         return; // Don't throw, just return gracefully
       }
 
-      // Check if MetaMask is the provider
-      if (!window.ethereum.isMetaMask) {
-        console.warn("MetaMask not detected, but ethereum provider found");
-      }
+      // Connect to MetaMask
+      await connectToMetaMask();
 
-      try {
-        // Request account access
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      // Setup provider and get account info
+      const provider = new ethers.BrowserProvider(window.ethereum!);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      const balance = await provider.getBalance(address);
+      const network = await provider.getNetwork();
 
-        if (!accounts || accounts.length === 0) {
-          throw new Error("No accounts found. Please connect your wallet.");
-        }
+      // Load contract info to detect role
+      await loadContractInfo();
 
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-        const balance = await provider.getBalance(address);
-        const network = await provider.getNetwork();
+      const userRole = get().detectUserRole(address);
 
-        // Load contract info to detect role
-        await loadContractInfo();
-
-        const userRole = get().detectUserRole(address);
-
-        set({
-          isConnected: true,
-          address,
-          balance: ethers.formatEther(balance),
-          network: getNetworkName(Number(network.chainId)),
-          userRole,
-          isLoading: false,
-          isMetaMaskInstalled: true
-        });
-
-      } catch (providerError: any) {
-        // Handle specific MetaMask errors
-        if (providerError.code === 4001) {
-          throw new Error("Connection rejected. Please approve the connection request.");
-        } else if (providerError.code === -32002) {
-          throw new Error("Connection request already pending. Please check MetaMask.");
-        } else {
-          throw providerError;
-        }
-      }
+      set({
+        isConnected: true,
+        address,
+        balance: ethers.formatEther(balance),
+        network: getNetworkName(Number(network.chainId)),
+        userRole,
+        isLoading: false,
+        isMetaMaskInstalled: true
+      });
 
     } catch (error) {
       console.error("Error connecting wallet:", error);
@@ -121,10 +98,11 @@ export const useGlobalWeb3Store = create<Web3State>((set, get) => ({
         address: null,
         balance: "0",
         network: "Unknown",
-        userRole: 'user'
+        userRole: 'user',
+        isMetaMaskInstalled: isMetaMaskInstalled()
       });
-      // Only throw if it's not a MetaMask not installed error
-      if (!errorMessage.includes("MetaMask is not installed")) {
+      // Only throw if it's not a MetaMask related error
+      if (!errorMessage.toLowerCase().includes("metamask")) {
         throw error;
       }
     }
