@@ -293,9 +293,6 @@ export const LuxuryNavigation: React.FC = () => {
         </button>
       )}
 
-      {/* Aurora Preview Panel */}
-      <AuroraPreviewPanel />
-
       {/* Temporary Debug Component */}
       <PreviewDebug />
     </nav>
