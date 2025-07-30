@@ -38,8 +38,14 @@ export const LuxuryNavigation: React.FC = () => {
       await connectWallet();
     } catch (error) {
       console.error('Failed to connect wallet:', error);
+      // Error is already handled in the store, just log it here
     }
   };
+
+  // Check if MetaMask is installed
+  const isMetaMaskInstalled = typeof window !== "undefined" &&
+    !!window.ethereum &&
+    !!window.ethereum.isMetaMask;
 
   // Navigation items - NO Admin/Inspector links as per specification
   const navItems = [
