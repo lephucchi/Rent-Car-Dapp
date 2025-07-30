@@ -50,9 +50,11 @@ export const LuxuryNavigation: React.FC = () => {
   };
 
   const handlePreviewClick = () => {
+    console.log('Preview button clicked:', { isPreviewMode });
     if (isPreviewMode) {
       exitPreviewMode();
     } else {
+      console.log('Setting show preview panel to true');
       setShowPreviewPanel(true);
     }
   };
