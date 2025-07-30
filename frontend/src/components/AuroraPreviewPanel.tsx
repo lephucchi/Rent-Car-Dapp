@@ -4,16 +4,19 @@ import { usePreviewMode } from '../contexts/PreviewModeContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 export const AuroraPreviewPanel: React.FC = () => {
-  const { 
-    showPreviewPanel, 
-    simulatedRole, 
+  const {
+    showPreviewPanel,
+    simulatedRole,
     simulatedTheme,
-    setSimulatedRole, 
+    setSimulatedRole,
     setSimulatedTheme,
     enterPreviewMode,
-    setShowPreviewPanel 
+    setShowPreviewPanel
   } = usePreviewMode();
   const { setTheme } = useTheme();
+
+  // Debug logging
+  console.log('AuroraPreviewPanel render:', { showPreviewPanel, simulatedRole, simulatedTheme });
 
   if (!showPreviewPanel) return null;
 
