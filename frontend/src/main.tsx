@@ -6,6 +6,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { PreviewModeProvider } from "./contexts/PreviewModeContext";
 import { LuxuryNavigation } from "./components/LuxuryNavigation";
 import { GlobalErrorDisplay } from "./components/GlobalErrorDisplay";
+import { AuroraPreviewPanel } from "./components/AuroraPreviewPanel";
 import "./global.css";
 
 import Landing from "./pages/Landing";
