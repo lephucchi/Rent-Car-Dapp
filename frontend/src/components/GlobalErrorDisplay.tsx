@@ -10,23 +10,26 @@ export const GlobalErrorDisplay: React.FC = () => {
   const isMetaMaskError = error.includes('MetaMask is not installed');
 
   return (
-    <div className={`fixed top-4 right-4 max-w-md z-50 ${
-      isMetaMaskError ? 'bg-orange-50 border-orange-200 text-orange-800 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400' 
-                      : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400'
-    } border rounded-lg p-4 shadow-lg`}>
+    <div className={`fixed top-20 right-4 max-w-md z-50 border rounded-xl p-4 shadow-xl aurora-glass ${
+      isMetaMaskError
+        ? 'border-secondary/30 bg-secondary/10'
+        : 'border-destructive/30 bg-destructive/10'
+    }`}>
       <div className="flex items-start space-x-3">
-        <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+          isMetaMaskError ? 'text-secondary' : 'text-destructive'
+        }`} />
         <div className="flex-1">
-          <p className="text-sm font-medium mb-1">
+          <p className="text-sm font-medium mb-1 text-foreground">
             {isMetaMaskError ? 'MetaMask Required' : 'Connection Error'}
           </p>
-          <p className="text-sm">{error}</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
           {isMetaMaskError && (
             <a
               href="https://metamask.io/download/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-2 text-sm underline hover:no-underline"
+              className="inline-block mt-2 text-sm text-secondary hover:text-secondary/80 underline hover:no-underline transition-colors"
             >
               Download MetaMask
             </a>
@@ -34,7 +37,7 @@ export const GlobalErrorDisplay: React.FC = () => {
         </div>
         <button
           onClick={() => setError(null)}
-          className="flex-shrink-0 p-1 hover:bg-black/10 rounded transition-colors"
+          className="flex-shrink-0 p-1 hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
         >
           <X className="w-4 h-4" />
         </button>
