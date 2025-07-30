@@ -169,7 +169,7 @@ export default function Landing() {
                           {/* Requirements */}
                           <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
                             <h4 className="font-semibold text-red-800 mb-3 flex items-center">
-                              <span className="w-5 h-5 text-red-600 mr-2">⚠️</span>
+                              <span className="w-5 h-5 text-red-600 mr-2">���️</span>
                               Yêu cầu hệ thống
                             </h4>
                             <ul className="text-red-700 text-sm space-y-2">
@@ -306,110 +306,203 @@ export default function Landing() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    <div className="text-center mb-8">
-                      <h2 className="text-2xl font-semibold text-foreground mb-4">
-                        Hướng dẫn kết nối ví MetaMask
+                  <div className="space-y-8">
+                    {/* Header Section */}
+                    <div className="text-center mb-12">
+                      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl">✅</span>
+                      </div>
+                      <h2 className="text-3xl font-bold text-foreground mb-4">
+                        MetaMask đã sẵn sàng!
                       </h2>
-                      <p className="text-muted-foreground">
-                        Thực hiện các bước sau để kết nối ví và bắt đầu sử dụng dịch vụ
+                      <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                        Tuyệt vời! MetaMask đã được cài đặt. Bây giờ hãy kết nối ví của bạn để bắt đầu thuê xe
                       </p>
                     </div>
 
-                    {/* Step 1: Connect Wallet */}
-                    <div className="aurora-glass border border-primary/30 rounded-lg p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">1</div>
+                    {/* Progress Indicator */}
+                    <div className="aurora-glass border border-aurora-teal/30 rounded-lg p-6 mb-8">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-foreground">Tiến trình kết nối</h3>
+                        <span className="text-sm text-muted-foreground">Bước 1/3</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-2 bg-primary rounded-full"></div>
+                        <div className="w-8 h-2 bg-gray-300 rounded-full"></div>
+                        <div className="w-8 h-2 bg-gray-300 rounded-full"></div>
+                      </div>
+                    </div>
+
+                    {/* Step 1: Connect Wallet - Active */}
+                    <div className="aurora-glass border-2 border-primary rounded-xl p-8 shadow-lg">
+                      <div className="flex items-start space-x-6">
+                        <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-lg shadow-lg">1</div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
-                            Kết nối ví MetaMask
-                          </h3>
-                          <p className="text-muted-foreground mb-4">
-                            Nhấn nút bên dưới để kết nối ví MetaMask với nền tảng.
-                            Một popup sẽ xuất hiện yêu cầu bạn xác nhận kết nối.
+                          <div className="flex items-center space-x-3 mb-4">
+                            <h3 className="text-2xl font-bold text-foreground">Kết nối ví MetaMask</h3>
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">Sẵn sàng</span>
+                          </div>
+
+                          <p className="text-muted-foreground mb-6 text-lg leading-relaxed">
+                            Nhấn nút bên dưới để kết nối ví MetaMask với AuroraRent. Quá trình này hoàn toàn miễn phí và an toàn.
                           </p>
+
+                          {/* What happens next */}
+                          <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 mb-6">
+                            <h4 className="font-semibold text-primary mb-3 flex items-center">
+                              <span className="w-5 h-5 text-primary mr-2">🔗</span>
+                              Điều gì sẽ xảy ra tiếp theo?
+                            </h4>
+                            <ul className="text-primary text-sm space-y-2">
+                              <li>• Một popup MetaMask sẽ xuất hiện</li>
+                              <li>• Chọn tài khoản bạn muốn kết nối</li>
+                              <li>• Xác nhận kết nối - hoàn toàn miễn phí</li>
+                              <li>• Bắt đầu khám phá và thuê xe ngay lập tức</li>
+                            </ul>
+                          </div>
+
+                          {/* Main CTA */}
                           <button
                             onClick={handleConnectWallet}
                             disabled={isLoading}
-                            className="aurora-button w-full disabled:opacity-50"
+                            className="aurora-button w-full disabled:opacity-50 text-lg py-4 mb-4"
                           >
-                            <Wallet className="w-4 h-4 mr-2" />
-                            {isLoading ? 'Đang kết nối...' : 'Kết nối ví MetaMask'}
+                            <Wallet className="w-5 h-5 mr-3" />
+                            {isLoading ? 'Đang kết nối...' : 'Kết nối ví MetaMask ngay'}
                           </button>
+
+                          {/* Security note */}
+                          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                            <Shield className="w-4 h-4" />
+                            <span>Kết nối an toàn - Chúng tôi không bao giờ truy cập vào tiền của bạn</span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Step 2: After Connection */}
+                    {/* Step 2: Confirmation Process */}
                     <div className="aurora-glass border border-secondary/30 rounded-lg p-6">
                       <div className="flex items-start space-x-4">
-                        <div className="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center font-bold text-sm">2</div>
+                        <div className="w-10 h-10 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center font-bold">2</div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                          <h3 className="text-xl font-semibold text-foreground mb-3">
                             Xác nhận trong MetaMask
                           </h3>
                           <p className="text-muted-foreground mb-4">
-                            Sau khi nhấn "Kết nối ví", một cửa sổ MetaMask sẽ xuất hiện.
-                            Chọn tài khoản bạn muốn sử dụng và nhấn "Connect".
+                            Sau khi nhấn "Kết nối ví", hãy làm theo các bước sau trong popup MetaMask:
                           </p>
+
+                          <div className="grid md:grid-cols-2 gap-4 mb-4">
+                            <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
+                              <h4 className="font-medium text-foreground mb-2">1️⃣ Mở khóa MetaMask</h4>
+                              <p className="text-sm text-muted-foreground">Nhập mật khẩu nếu MetaMask bị khóa</p>
+                            </div>
+                            <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
+                              <h4 className="font-medium text-foreground mb-2">2️⃣ Chọn tài khoản</h4>
+                              <p className="text-sm text-muted-foreground">Chọn tài khoản bạn muốn sử dụng</p>
+                            </div>
+                            <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
+                              <h4 className="font-medium text-foreground mb-2">3️⃣ Nhấn "Connect"</h4>
+                              <p className="text-sm text-muted-foreground">Xác nhận kết nối với AuroraRent</p>
+                            </div>
+                            <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
+                              <h4 className="font-medium text-foreground mb-2">4️⃣ Hoàn tất!</h4>
+                              <p className="text-sm text-muted-foreground">Trang sẽ tự động cập nhật</p>
+                            </div>
+                          </div>
+
                           <div className="bg-secondary/20 border border-secondary/30 rounded-lg p-4">
-                            <p className="text-secondary text-sm">
-                              💡 <strong>Mẹo:</strong> Đảm bảo bạn đã unlock MetaMask và chọn đúng network (nếu cần)
+                            <p className="text-secondary text-sm flex items-start">
+                              <span className="mr-2 mt-0.5">💡</span>
+                              <span><strong>Mẹo:</strong> Nếu popup không xuất hiện, kiểm tra xem MetaMask có bị chặn popup không. Nhấn vào icon MetaMask ở thanh công cụ trình duyệt.</span>
                             </p>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Step 3: Access Platform */}
-                    <div className="aurora-glass border border-aurora-teal/30 rounded-lg p-6">
+                    {/* Step 3: What's Next */}
+                    <div className="aurora-glass border border-aurora-green/30 rounded-lg p-6">
                       <div className="flex items-start space-x-4">
-                        <div className="w-8 h-8 bg-aurora-teal text-white rounded-full flex items-center justify-center font-bold text-sm">3</div>
+                        <div className="w-10 h-10 bg-aurora-green text-white rounded-full flex items-center justify-center font-bold">3</div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
-                            Truy cập nền tảng
+                          <h3 className="text-xl font-semibold text-foreground mb-3">
+                            🎉 Sau khi kết nối thành công
                           </h3>
-                          <p className="text-muted-foreground mb-4">
-                            Sau khi kết nối thành công, bạn sẽ có quyền truy cập vào:
+                          <p className="text-muted-foreground mb-6">
+                            Sau khi kết nối thành công, bạn sẽ có quyền truy cập đầy đủ vào nền tảng thuê xe blockchain:
                           </p>
+
                           <div className="grid md:grid-cols-3 gap-4">
-                            <div className="bg-aurora-teal/10 border border-aurora-teal/20 rounded-lg p-3">
-                              <Car className="w-6 h-6 text-aurora-teal mb-2" />
-                              <p className="text-sm font-medium text-foreground">Danh sách xe</p>
-                              <p className="text-xs text-muted-foreground">Xem và thuê xe có sẵn</p>
+                            <div className="bg-aurora-teal/10 border border-aurora-teal/20 rounded-lg p-4">
+                              <Car className="w-8 h-8 text-aurora-teal mb-3" />
+                              <h4 className="font-medium text-foreground mb-2">Thuê xe ngay lập tức</h4>
+                              <p className="text-sm text-muted-foreground">Xem danh sách xe có sẵn và thuê với vài click</p>
                             </div>
-                            <div className="bg-aurora-blue/10 border border-aurora-blue/20 rounded-lg p-3">
-                              <Shield className="w-6 h-6 text-aurora-blue mb-2" />
-                              <p className="text-sm font-medium text-foreground">Giao dịch an toàn</p>
-                              <p className="text-xs text-muted-foreground">Thanh toán qua smart contract</p>
+                            <div className="bg-aurora-blue/10 border border-aurora-blue/20 rounded-lg p-4">
+                              <Shield className="w-8 h-8 text-aurora-blue mb-3" />
+                              <h4 className="font-medium text-foreground mb-2">Giao dịch an toàn</h4>
+                              <p className="text-sm text-muted-foreground">Mọi giao dịch được bảo vệ bởi smart contract</p>
                             </div>
-                            <div className="bg-aurora-green/10 border border-aurora-green/20 rounded-lg p-3">
-                              <Clock className="w-6 h-6 text-aurora-green mb-2" />
-                              <p className="text-sm font-medium text-foreground">Theo dõi thuê xe</p>
-                              <p className="text-xs text-muted-foreground">Quản lý booking realtime</p>
+                            <div className="bg-aurora-green/10 border border-aurora-green/20 rounded-lg p-4">
+                              <Clock className="w-8 h-8 text-aurora-green mb-3" />
+                              <h4 className="font-medium text-foreground mb-2">Theo dõi real-time</h4>
+                              <p className="text-sm text-muted-foreground">Theo dõi trạng thái thuê xe và giao dịch</p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Alternative: Preview Mode */}
+                    {/* Alternative Option */}
                     <div className="aurora-glass border border-aurora-purple/30 rounded-lg p-6">
                       <div className="flex items-start space-x-4">
-                        <div className="w-8 h-8 bg-aurora-purple text-white rounded-full flex items-center justify-center font-bold text-sm">💡</div>
+                        <div className="w-10 h-10 bg-aurora-purple text-white rounded-full flex items-center justify-center">💡</div>
                         <div className="flex-1">
                           <h3 className="text-lg font-semibold text-foreground mb-2">
-                            Hoặc sử dụng chế độ Preview
+                            Chưa sẵn sàng kết nối?
                           </h3>
                           <p className="text-muted-foreground mb-4">
-                            Nếu bạn chưa sẵn sàng kết nối ví, có thể sử dụng chế độ xem trước để khám phá nền tảng.
+                            Không sao! Bạn có thể khám phá nền tảng bằng chế độ Preview trước khi quyết định kết nối ví.
                           </p>
                           <div className="bg-aurora-purple/10 border border-aurora-purple/20 rounded-lg p-4">
-                            <p className="text-aurora-purple text-sm">
-                              🔍 <strong>Chế độ Preview:</strong> Xem giao diện và tính năng mà không cần kết nối ví thật.
-                              Toggle "Preview Mode" ở thanh navigation phía trên.
-                            </p>
+                            <div className="flex items-start space-x-3">
+                              <span className="text-aurora-purple text-lg">🔍</span>
+                              <div>
+                                <p className="text-aurora-purple font-medium mb-1">Chế độ Preview</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Xem tất cả tính năng, giao diện và cách thức hoạt động mà không cần kết nối ví thật.
+                                  Toggle "Preview Mode" ở thanh navigation phía trên để bắt đầu.
+                                </p>
+                              </div>
+                            </div>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Troubleshooting */}
+                    <div className="aurora-glass border border-orange-200 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                        <span className="text-orange-500 mr-2">🛠️</span>
+                        Gặp sự cố khi kết nối?
+                      </h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium text-foreground mb-2">Các lỗi thường gặp:</h4>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            <li>• MetaMask không mở popup</li>
+                            <li>• Không thể chọn tài khoản</li>
+                            <li>• Kết nối bị gián đoạn</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground mb-2">Giải pháp:</h4>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            <li>• Tải lại trang và thử lại</li>
+                            <li>• Kiểm tra cài đặt popup của trình duyệt</li>
+                            <li>• Đảm bảo MetaMask đã được mở khóa</li>
+                          </ul>
                         </div>
                       </div>
                     </div>
