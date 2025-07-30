@@ -271,14 +271,27 @@ export const LuxuryNavigation: React.FC = () => {
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               </div>
             ) : (
-              <button
-                onClick={handleConnectWallet}
-                disabled={isLoading}
-                className="luxury-button w-full mt-4 disabled:opacity-50"
-              >
-                <Wallet className="w-4 h-4 mr-2" />
-                {isLoading ? 'Connecting...' : 'Connect Wallet'}
-              </button>
+              <>
+                {!isMetaMaskInstalled ? (
+                  <a
+                    href="https://metamask.io/download/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="luxury-button w-full mt-4"
+                  >
+                    Install MetaMask
+                  </a>
+                ) : (
+                  <button
+                    onClick={handleConnectWallet}
+                    disabled={isLoading}
+                    className="luxury-button w-full mt-4 disabled:opacity-50"
+                  >
+                    <Wallet className="w-4 h-4 mr-2" />
+                    {isLoading ? 'Connecting...' : 'Connect Wallet'}
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
