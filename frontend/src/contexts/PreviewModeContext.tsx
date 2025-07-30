@@ -1,13 +1,19 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type SimulatedRole = 'admin' | 'inspector' | 'user';
+export type SimulatedTheme = 'light-aurora' | 'dark-aurora';
 
 interface PreviewModeContextType {
   isPreviewMode: boolean;
   simulatedRole: SimulatedRole;
+  simulatedTheme: SimulatedTheme;
+  showPreviewPanel: boolean;
   setIsPreviewMode: (enabled: boolean) => void;
   setSimulatedRole: (role: SimulatedRole) => void;
-  togglePreviewMode: () => void;
+  setSimulatedTheme: (theme: SimulatedTheme) => void;
+  setShowPreviewPanel: (show: boolean) => void;
+  enterPreviewMode: () => void;
+  exitPreviewMode: () => void;
 }
 
 const PreviewModeContext = createContext<PreviewModeContextType | undefined>(undefined);
