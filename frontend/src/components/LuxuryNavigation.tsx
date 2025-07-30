@@ -106,67 +106,45 @@ export const LuxuryNavigation: React.FC = () => {
             })}
           </div>
 
-          {/* Right side controls - Connect Wallet + Preview Mode Toggle */}
+          {/* Aurora Controls - Theme Toggle + Preview Mode */}
           <div className="flex items-center space-x-4">
-            {/* Theme Toggle */}
+            {/* Aurora Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-accent transition-colors duration-200"
-              aria-label="Toggle theme"
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-accent transition-colors duration-200"
+              aria-label="Toggle Aurora theme"
+              title={isLightMode ? 'Switch to Dark Aurora' : 'Switch to Light Aurora'}
             >
-              {theme === 'light' ? (
+              {isLightMode ? (
                 <Moon className="w-5 h-5 text-foreground" />
               ) : (
                 <Sun className="w-5 h-5 text-foreground" />
               )}
+              <Palette className="w-4 h-4 text-primary" />
             </button>
 
-            {/* Preview Mode Toggle */}
-            <div className="relative">
-              <button
-                onClick={togglePreviewMode}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
-                  isPreviewMode
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                    : 'hover:bg-accent'
-                }`}
-                title={isPreviewMode ? 'Exit Preview Mode' : 'Enter Preview Mode'}
-              >
-                {isPreviewMode ? (
-                  <>
-                    <EyeOff className="w-4 h-4" />
-                    <span className="hidden sm:inline">Preview</span>
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-4 h-4" />
-                    <span className="hidden sm:inline">Preview</span>
-                  </>
-                )}
-              </button>
-
-              {/* Role Selection Dropdown for Preview Mode */}
-              {isPreviewMode && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg z-50">
-                  <div className="p-2">
-                    <div className="text-xs text-muted-foreground mb-2 font-medium">Simulate Role:</div>
-                    {['user', 'admin', 'inspector'].map((role) => (
-                      <button
-                        key={role}
-                        onClick={() => setSimulatedRole(role as any)}
-                        className={`w-full text-left px-2 py-1 rounded text-sm transition-colors ${
-                          simulatedRole === role
-                            ? 'bg-accent text-accent-foreground'
-                            : 'hover:bg-accent/50'
-                        }`}
-                      >
-                        {role === 'admin' ? 'Admin/Owner' : role === 'inspector' ? 'Inspector' : 'User'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            {/* Enhanced Preview Mode */}
+            <button
+              onClick={handlePreviewClick}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                isPreviewMode
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : 'hover:bg-accent border border-transparent'
+              }`}
+              title={isPreviewMode ? 'Exit Preview Mode' : 'Enter Preview Mode'}
+            >
+              {isPreviewMode ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  <span className="hidden sm:inline">Exit Preview</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  <span className="hidden sm:inline">Preview</span>
+                </>
               )}
-            </div>
+            </button>
 
             {/* Connection Status & Wallet */}
             {isConnected ? (
