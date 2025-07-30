@@ -35,36 +35,12 @@ export default function Transaction() {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  // Determine effective role and access
-  const effectiveRole = isPreviewMode ? simulatedRole : 
-    (globalUserRole === 'admin' ? 'admin' : globalUserRole);
-  
-  const hasAccess = isConnected || isPreviewMode;
-
-  // Show connection prompt if not connected and not in preview mode
-  if (!hasAccess) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="luxury-card p-8 max-w-md mx-auto text-center">
-          <History className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-foreground mb-4">Connect Your Wallet</h2>
-          <p className="text-muted-foreground mb-6">
-            Connect your wallet to view transaction history and platform activity.
-          </p>
-          <button onClick={connectWallet} className="luxury-button w-full">
-            Connect Wallet
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Get all transaction events
+  // Get all transaction events - MOVED BEFORE CONDITIONAL LOGIC
   const allTransactions = useMemo(() => {
     return mockDataService.getTransactionEvents();
   }, []);
 
-  // Get available cars for filtering
+  // Get available cars for filtering - MOVED BEFORE CONDITIONAL LOGIC
   const availableCars = useMemo(() => {
     return mockDataService.getAllCars();
   }, []);
