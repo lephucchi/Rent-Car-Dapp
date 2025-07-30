@@ -1,378 +1,416 @@
-import React, { useState, useEffect } from 'react';
-import { History, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
-import { useRentalContractStore, useContractState, useUserRole, useIsConnected } from '../stores/rentalContractStore';
-import { rentalContractService } from '../services/rentalContractService';
-import { MetaMaskConnect } from '../components/MetaMaskConnect';
+import React, { useState, useMemo } from 'react';
+import { History, Filter, Download, Calendar, Car, User, Search, ChevronDown, X } from 'lucide-react';
+import { usePreviewMode } from '../contexts/PreviewModeContext';
+import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole } from '../stores/globalWeb3Store';
+import { mockDataService, type MockTransactionEvent } from '../services/mockDataService';
+import { ethers } from 'ethers';
 
-interface Transaction {
-  id: string;
-  type: 'deposit' | 'payment' | 'refund' | 'damage_compensation';
-  amount: string;
-  timestamp: number;
-  status: 'pending' | 'confirmed' | 'failed';
-  hash: string;
-  from: string;
-  to: string;
-  gasUsed?: string;
-  gasPrice?: string;
+interface FilterState {
+  carId: string;
+  eventType: string;
+  walletAddress: string;
+  dateFrom: string;
+  dateTo: string;
 }
 
-// Mock transaction data - in a real app, this would come from blockchain events or backend
-const generateMockTransactions = (contractState: any, userRole: string): Transaction[] => {
-  const transactions: Transaction[] = [];
-  
-  if (contractState?.isRented) {
-    // Rental started transaction
-    transactions.push({
-      id: '1',
-      type: 'deposit',
-      amount: rentalContractService.formatEther(contractState.insuranceFee + (contractState.rentalFeePerMinute * contractState.durationMinutes / BigInt(2))),
-      timestamp: Date.now() - 86400000, // 1 day ago
-      status: 'confirmed',
-      hash: '0x1234567890abcdef1234567890abcdef12345678',
-      from: contractState.lessee,
-      to: contractState.lessor,
-      gasUsed: '21000',
-      gasPrice: '20'
-    });
-  }
-
-  if (contractState?.isDamaged) {
-    // Damage compensation transaction
-    transactions.push({
-      id: '2',
-      type: 'damage_compensation',
-      amount: rentalContractService.formatEther(contractState.insuranceCompensation),
-      timestamp: Date.now() - 3600000, // 1 hour ago
-      status: 'confirmed',
-      hash: '0xabcdef1234567890abcdef1234567890abcdef12',
-      from: contractState.lessee,
-      to: contractState.lessor,
-      gasUsed: '25000',
-      gasPrice: '22'
-    });
-  }
-
-  // Add some historical transactions
-  transactions.push(
-    {
-      id: '3',
-      type: 'payment',
-      amount: '2.5',
-      timestamp: Date.now() - 172800000, // 2 days ago
-      status: 'confirmed',
-      hash: '0x9876543210fedcba9876543210fedcba98765432',
-      from: '0x742d35Cc6644C3532C8FD2FE0c3e1234567890ab',
-      to: '0x8ba1f109551bD432803012645Hac189451c35',
-      gasUsed: '21000',
-      gasPrice: '18'
-    },
-    {
-      id: '4',
-      type: 'refund',
-      amount: '1.2',
-      timestamp: Date.now() - 259200000, // 3 days ago
-      status: 'confirmed',
-      hash: '0xfedcba9876543210fedcba9876543210fedcba98',
-      from: '0x8ba1f109551bD432803012645Hac189451c35',
-      to: '0x742d35Cc6644C3532C8FD2FE0c3e1234567890ab',
-      gasUsed: '21000',
-      gasPrice: '15'
-    }
-  );
-
-  return transactions.sort((a, b) => b.timestamp - a.timestamp);
+const eventTypeColors = {
+  'RentalStarted': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  'RenterRequestedReturn': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  'OwnerConfirmedReturn': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+  'DamageReported': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  'DamageAssessed': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+  'FundsTransferred': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
 };
 
 export default function Transaction() {
-  const { connectWallet } = useRentalContractStore();
-  const contractState = useContractState();
-  const userRole = useUserRole();
-  const isConnected = useIsConnected();
+  const { isPreviewMode, simulatedRole } = usePreviewMode();
+  const { isConnected, address, connectWallet } = useWalletConnection();
+  const globalUserRole = useGlobalUserRole();
+  const [filters, setFilters] = useState<FilterState>({
+    carId: '',
+    eventType: '',
+    walletAddress: '',
+    dateFrom: '',
+    dateTo: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Determine effective role and access
+  const effectiveRole = isPreviewMode ? simulatedRole : 
+    (globalUserRole === 'admin' ? 'admin' : globalUserRole);
   
-  const [connecting, setConnecting] = useState(false);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [filter, setFilter] = useState<string>('all');
+  const hasAccess = isConnected || isPreviewMode;
 
-  useEffect(() => {
-    if (isConnected && contractState) {
-      const mockTransactions = generateMockTransactions(contractState, userRole);
-      setTransactions(mockTransactions);
-    }
-  }, [isConnected, contractState, userRole]);
-
-  const handleConnectWallet = async () => {
-    try {
-      setConnecting(true);
-      setConnectionError(null);
-      await connectWallet();
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
-      setConnectionError(errorMessage);
-    } finally {
-      setConnecting(false);
-    }
-  };
-
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'deposit':
-      case 'payment':
-        return <ArrowUpRight className="w-5 h-5 text-red-500" />;
-      case 'refund':
-        return <ArrowDownLeft className="w-5 h-5 text-green-500" />;
-      case 'damage_compensation':
-        return <XCircle className="w-5 h-5 text-orange-500" />;
-      default:
-        return <History className="w-5 h-5 text-muted-foreground" />;
-    }
-  };
-
-  const getTransactionTypeLabel = (type: string) => {
-    switch (type) {
-      case 'deposit':
-        return 'Rental Deposit';
-      case 'payment':
-        return 'Rental Payment';
-      case 'refund':
-        return 'Refund';
-      case 'damage_compensation':
-        return 'Damage Compensation';
-      default:
-        return 'Transaction';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'failed':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return <Clock className="w-4 h-4 text-muted-foreground" />;
-    }
-  };
-
-  const filteredTransactions = filter === 'all' 
-    ? transactions 
-    : transactions.filter(tx => tx.type === filter);
-
-  if (!isConnected) {
+  // Show connection prompt if not connected and not in preview mode
+  if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="luxury-container py-16">
-          <div className="max-w-md mx-auto">
-            <div className="text-center mb-8">
-              <History className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h1 className="luxury-title mb-4">Transaction History</h1>
-              <p className="text-muted-foreground">
-                Connect your wallet to view your rental transaction history and ensure complete transparency.
-              </p>
-            </div>
-            
-            <MetaMaskConnect
-              onConnect={handleConnectWallet}
-              connecting={connecting}
-              error={connectionError}
-            />
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="luxury-card p-8 max-w-md mx-auto text-center">
+          <History className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Connect Your Wallet</h2>
+          <p className="text-muted-foreground mb-6">
+            Connect your wallet to view transaction history and platform activity.
+          </p>
+          <button onClick={connectWallet} className="luxury-button w-full">
+            Connect Wallet
+          </button>
         </div>
       </div>
     );
   }
 
+  // Get all transaction events
+  const allTransactions = useMemo(() => {
+    return mockDataService.getTransactionEvents();
+  }, []);
+
+  // Get available cars for filtering
+  const availableCars = useMemo(() => {
+    return mockDataService.getAllCars();
+  }, []);
+
+  // Filter transactions
+  const filteredTransactions = useMemo(() => {
+    let filtered = [...allTransactions];
+
+    if (filters.carId) {
+      filtered = filtered.filter(tx => tx.carId === filters.carId);
+    }
+
+    if (filters.eventType) {
+      filtered = filtered.filter(tx => tx.eventName === filters.eventType);
+    }
+
+    if (filters.walletAddress) {
+      const address = filters.walletAddress.toLowerCase();
+      filtered = filtered.filter(tx => 
+        tx.from.toLowerCase().includes(address) || 
+        tx.to?.toLowerCase().includes(address)
+      );
+    }
+
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom);
+      filtered = filtered.filter(tx => tx.timestamp >= fromDate);
+    }
+
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      filtered = filtered.filter(tx => tx.timestamp <= toDate);
+    }
+
+    return filtered;
+  }, [allTransactions, filters]);
+
+  const handleFilterChange = (key: keyof FilterState, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      carId: '',
+      eventType: '',
+      walletAddress: '',
+      dateFrom: '',
+      dateTo: ''
+    });
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Event', 'Car', 'Date', 'From', 'To', 'Amount (ETH)', 'Transaction Hash'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredTransactions.map(tx => [
+        tx.eventName,
+        tx.carName,
+        tx.timestamp.toISOString(),
+        tx.from,
+        tx.to || '',
+        tx.amount ? ethers.formatEther(tx.amount) : '',
+        tx.transactionHash
+      ].map(field => `"${field}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getEventIcon = (eventName: string) => {
+    switch (eventName) {
+      case 'RentalStarted':
+        return <Car className="w-4 h-4" />;
+      case 'RenterRequestedReturn':
+      case 'OwnerConfirmedReturn':
+        return <History className="w-4 h-4" />;
+      case 'DamageReported':
+      case 'DamageAssessed':
+        return <X className="w-4 h-4" />;
+      case 'FundsTransferred':
+        return <Download className="w-4 h-4" />;
+      default:
+        return <History className="w-4 h-4" />;
+    }
+  };
+
+  const hasActiveFilters = Object.values(filters).some(value => value !== '');
+
   return (
     <div className="min-h-screen bg-background">
       <div className="luxury-container py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <History className="w-8 h-8 text-primary" />
-            <h1 className="luxury-heading">Transaction History</h1>
-          </div>
-          <p className="luxury-subheading">
-            Complete transparency of all your rental transactions on the blockchain
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="luxury-grid-4 mb-8">
-          <div className="luxury-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Total Transactions</p>
-                <p className="text-2xl font-bold text-foreground">{transactions.length}</p>
-              </div>
-              <History className="w-8 h-8 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="luxury-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Total Spent</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {transactions
-                    .filter(tx => ['deposit', 'payment', 'damage_compensation'].includes(tx.type))
-                    .reduce((sum, tx) => sum + parseFloat(tx.amount), 0)
-                    .toFixed(2)} ETH
-                </p>
-              </div>
-              <ArrowUpRight className="w-8 h-8 text-red-500" />
-            </div>
-          </div>
-
-          <div className="luxury-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Total Received</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {transactions
-                    .filter(tx => tx.type === 'refund')
-                    .reduce((sum, tx) => sum + parseFloat(tx.amount), 0)
-                    .toFixed(2)} ETH
-                </p>
-              </div>
-              <ArrowDownLeft className="w-8 h-8 text-green-500" />
-            </div>
-          </div>
-
-          <div className="luxury-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Success Rate</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {transactions.length > 0 
-                    ? Math.round((transactions.filter(tx => tx.status === 'confirmed').length / transactions.length) * 100)
-                    : 0}%
-                </p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="luxury-card p-6 mb-8">
-          <h3 className="luxury-title mb-4">Filter Transactions</h3>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { value: 'all', label: 'All Transactions' },
-              { value: 'deposit', label: 'Deposits' },
-              { value: 'payment', label: 'Payments' },
-              { value: 'refund', label: 'Refunds' },
-              { value: 'damage_compensation', label: 'Damage Compensation' }
-            ].map((filterOption) => (
-              <button
-                key={filterOption.value}
-                onClick={() => setFilter(filterOption.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === filterOption.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                {filterOption.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Transactions List */}
-        <div className="luxury-card">
-          <div className="p-6 border-b border-border">
-            <h3 className="luxury-title">Recent Transactions</h3>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-light text-foreground mb-2">Transaction History</h1>
+            <p className="text-muted-foreground">
+              {isPreviewMode ? 'Preview: Platform transaction activity' : 'Real-time platform transaction activity'}
+            </p>
           </div>
           
-          {filteredTransactions.length === 0 ? (
-            <div className="p-12 text-center">
-              <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No Transactions Found</h3>
-              <p className="text-muted-foreground">
-                {filter === 'all' 
-                  ? 'You haven\'t made any transactions yet.' 
-                  : `No ${filter} transactions found.`}
-              </p>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`luxury-button-outline ${hasActiveFilters ? 'bg-accent' : ''}`}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filters {hasActiveFilters && `(${Object.values(filters).filter(v => v).length})`}
+            </button>
+            
+            <button
+              onClick={exportToCSV}
+              className="luxury-button"
+              disabled={filteredTransactions.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Preview Mode Notice */}
+        {isPreviewMode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 dark:bg-blue-900/30 dark:border-blue-800">
+            <p className="text-blue-700 dark:text-blue-400 text-sm">
+              🔍 Preview Mode: Showing sample transaction data. Real implementation would listen to blockchain events.
+            </p>
+          </div>
+        )}
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="luxury-card p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Filter Transactions</h3>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Clear All
+                </button>
+              )}
             </div>
-          ) : (
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Car Filter */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Car
+                </label>
+                <select
+                  value={filters.carId}
+                  onChange={(e) => handleFilterChange('carId', e.target.value)}
+                  className="luxury-input w-full"
+                >
+                  <option value="">All Cars</option>
+                  {availableCars.map(car => (
+                    <option key={car.id} value={car.id}>
+                      {car.assetName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Event Type Filter */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Event Type
+                </label>
+                <select
+                  value={filters.eventType}
+                  onChange={(e) => handleFilterChange('eventType', e.target.value)}
+                  className="luxury-input w-full"
+                >
+                  <option value="">All Events</option>
+                  <option value="RentalStarted">Rental Started</option>
+                  <option value="RenterRequestedReturn">Return Requested</option>
+                  <option value="OwnerConfirmedReturn">Return Confirmed</option>
+                  <option value="DamageReported">Damage Reported</option>
+                  <option value="DamageAssessed">Damage Assessed</option>
+                  <option value="FundsTransferred">Funds Transferred</option>
+                </select>
+              </div>
+
+              {/* Wallet Address Filter */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Wallet Address
+                </label>
+                <input
+                  type="text"
+                  value={filters.walletAddress}
+                  onChange={(e) => handleFilterChange('walletAddress', e.target.value)}
+                  placeholder="Search by address..."
+                  className="luxury-input w-full"
+                />
+              </div>
+
+              {/* Date From Filter */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateFrom}
+                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                  className="luxury-input w-full"
+                />
+              </div>
+
+              {/* Date To Filter */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateTo}
+                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                  className="luxury-input w-full"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Transaction List */}
+        <div className="luxury-card">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-xl font-semibold text-foreground">
+              Transactions ({filteredTransactions.length})
+            </h2>
+          </div>
+
+          {filteredTransactions.length > 0 ? (
             <div className="divide-y divide-border">
               {filteredTransactions.map((transaction) => (
-                <div key={transaction.id} className="p-6 hover:bg-accent/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                <div key={transaction.id} className="p-6 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-4">
                       <div className="flex-shrink-0">
-                        {getTransactionIcon(transaction.type)}
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          eventTypeColors[transaction.eventName as keyof typeof eventTypeColors] || 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {getEventIcon(transaction.eventName)}
+                        </div>
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-sm font-medium text-foreground">
-                            {getTransactionTypeLabel(transaction.type)}
-                          </h4>
-                          {getStatusIcon(transaction.status)}
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-foreground">
+                            {transaction.eventName.replace(/([A-Z])/g, ' $1').trim()}
+                          </h3>
+                          <span className={`status-indicator text-xs ${
+                            eventTypeColors[transaction.eventName as keyof typeof eventTypeColors] || 'status-inactive'
+                          }`}>
+                            {transaction.eventName}
+                          </span>
                         </div>
                         
-                        <div className="mt-1 flex items-center space-x-4 text-xs text-muted-foreground">
-                          <span>{new Date(transaction.timestamp).toLocaleString()}</span>
-                          <span className="font-mono">
-                            {transaction.hash.slice(0, 10)}...{transaction.hash.slice(-8)}
-                          </span>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-4">
+                            <span className="flex items-center">
+                              <Car className="w-4 h-4 mr-1" />
+                              {transaction.carName}
+                            </span>
+                            <span className="flex items-center">
+                              <Calendar className="w-4 h-4 mr-1" />
+                              {formatDate(transaction.timestamp)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-4">
+                            <span className="flex items-center">
+                              <User className="w-4 h-4 mr-1" />
+                              From: {transaction.from.slice(0, 8)}...{transaction.from.slice(-6)}
+                            </span>
+                            {transaction.to && (
+                              <span className="flex items-center">
+                                <User className="w-4 h-4 mr-1" />
+                                To: {transaction.to.slice(0, 8)}...{transaction.to.slice(-6)}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="font-mono text-xs">
+                            Tx: {transaction.transactionHash.slice(0, 16)}...{transaction.transactionHash.slice(-8)}
+                          </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className={`text-sm font-semibold ${
-                          ['deposit', 'payment', 'damage_compensation'].includes(transaction.type)
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-green-600 dark:text-green-400'
-                        }`}>
-                          {['deposit', 'payment', 'damage_compensation'].includes(transaction.type) ? '-' : '+'}
-                          {transaction.amount} ETH
+                    <div className="text-right">
+                      {transaction.amount && (
+                        <div className="text-lg font-semibold text-foreground">
+                          {ethers.formatEther(transaction.amount)} ETH
                         </div>
-                        
-                        {transaction.gasUsed && (
-                          <div className="text-xs text-muted-foreground">
-                            Gas: {transaction.gasUsed} @ {transaction.gasPrice} gwei
-                          </div>
-                        )}
+                      )}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Block: {transaction.blockHash.slice(0, 8)}...
                       </div>
-                      
-                      <button
-                        onClick={() => window.open(`https://etherscan.io/tx/${transaction.hash}`, '_blank')}
-                        className="p-2 rounded-lg hover:bg-accent transition-colors"
-                        title="View on Etherscan"
-                      >
-                        <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* Transparency Note */}
-        <div className="luxury-card p-6 mt-8 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-          <div className="flex items-start space-x-3">
-            <CheckCircle className="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-1">
-                Blockchain Transparency
+          ) : (
+            <div className="p-12 text-center">
+              <History className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                {hasActiveFilters ? 'No Matching Transactions' : 'No Transactions Yet'}
               </h3>
-              <p className="text-sm text-blue-600 dark:text-blue-400">
-                All transactions are recorded on the blockchain and can be independently verified. 
-                This ensures complete transparency and immutable records of all rental activities.
+              <p className="text-muted-foreground">
+                {hasActiveFilters 
+                  ? 'Try adjusting your filters to see more results.'
+                  : 'Transaction activity will appear here as users interact with the platform.'
+                }
               </p>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="luxury-button mt-4"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
