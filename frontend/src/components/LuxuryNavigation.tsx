@@ -102,37 +102,62 @@ export const LuxuryNavigation: React.FC = () => {
             </button>
 
             {/* Preview Mode Toggle */}
-            <button
-              onClick={() => setPreviewMode(!previewMode)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
-                previewMode 
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
-                  : 'hover:bg-accent'
-              }`}
-              title={previewMode ? 'Exit Preview Mode' : 'Enter Preview Mode'}
-            >
-              {previewMode ? (
-                <>
-                  <EyeOff className="w-4 h-4" />
-                  <span className="hidden sm:inline">Preview</span>
-                </>
-              ) : (
-                <>
-                  <Eye className="w-4 h-4" />
-                  <span className="hidden sm:inline">Preview</span>
-                </>
+            <div className="relative">
+              <button
+                onClick={togglePreviewMode}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                  isPreviewMode
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'hover:bg-accent'
+                }`}
+                title={isPreviewMode ? 'Exit Preview Mode' : 'Enter Preview Mode'}
+              >
+                {isPreviewMode ? (
+                  <>
+                    <EyeOff className="w-4 h-4" />
+                    <span className="hidden sm:inline">Preview</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    <span className="hidden sm:inline">Preview</span>
+                  </>
+                )}
+              </button>
+
+              {/* Role Selection Dropdown for Preview Mode */}
+              {isPreviewMode && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-popover border border-border rounded-lg shadow-lg z-50">
+                  <div className="p-2">
+                    <div className="text-xs text-muted-foreground mb-2 font-medium">Simulate Role:</div>
+                    {['user', 'admin', 'inspector'].map((role) => (
+                      <button
+                        key={role}
+                        onClick={() => setSimulatedRole(role as any)}
+                        className={`w-full text-left px-2 py-1 rounded text-sm transition-colors ${
+                          simulatedRole === role
+                            ? 'bg-accent text-accent-foreground'
+                            : 'hover:bg-accent/50'
+                        }`}
+                      >
+                        {role === 'admin' ? 'Admin/Owner' : role === 'inspector' ? 'Inspector' : 'User'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Connection Status & Wallet */}
             {isConnected ? (
               <div className="hidden sm:flex items-center space-x-3">
                 <div className="text-sm">
-                  <div className="text-foreground font-medium capitalize">
-                    {userRole === 'lessor' ? 'Admin' : userRole === 'inspector' ? 'Inspector' : 'User'}
+                  <div className="text-foreground font-medium">
+                    {effectiveRole === 'admin' ? 'Admin' : effectiveRole === 'inspector' ? 'Inspector' : 'User'}
+                    {isPreviewMode && <span className="text-blue-600 ml-1">(Preview)</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Connected
+                  <div className="text-xs text-muted-foreground font-mono">
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
                   </div>
                 </div>
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -140,11 +165,11 @@ export const LuxuryNavigation: React.FC = () => {
             ) : (
               <button
                 onClick={handleConnectWallet}
-                disabled={connecting}
+                disabled={isLoading}
                 className="luxury-button disabled:opacity-50"
               >
                 <Wallet className="w-4 h-4 mr-2" />
-                {connecting ? 'Connecting...' : 'Connect'}
+                {isLoading ? 'Connecting...' : 'Connect'}
               </button>
             )}
 
