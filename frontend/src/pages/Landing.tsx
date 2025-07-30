@@ -31,6 +31,11 @@ export default function Landing() {
     }
   };
 
+  // Check if MetaMask is installed
+  const isMetaMaskInstalled = typeof window !== "undefined" &&
+    !!window.ethereum &&
+    !!window.ethereum.isMetaMask;
+
   // Get cars based on mode and role
   const getCars = (): MockCar[] => {
     if (isPreviewMode) {
