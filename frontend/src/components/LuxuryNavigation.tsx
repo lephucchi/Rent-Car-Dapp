@@ -19,8 +19,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { usePreviewMode } from '../contexts/PreviewModeContext';
 import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
 import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
-import { AuroraPreviewPanel } from './AuroraPreviewPanel';
-import { PreviewDebug } from './PreviewDebug';
 
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
