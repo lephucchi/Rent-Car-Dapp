@@ -5,6 +5,7 @@ import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRo
 import { mockDataService, type MockCar } from '../services/mockDataService';
 import { CarCard } from '../components/CarCard';
 import { debugMetaMaskConnection } from '../lib/debugMetaMask';
+import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
 
 export default function Landing() {
   const { isPreviewMode, simulatedRole } = usePreviewMode();
