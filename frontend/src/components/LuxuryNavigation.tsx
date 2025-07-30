@@ -265,9 +265,9 @@ export const LuxuryNavigation: React.FC = () => {
       </div>
 
       {/* Global Preview Mode Indicator */}
-      {previewMode && (
-        <div className="bg-blue-100 border-b border-blue-300 text-blue-800 px-4 py-2 text-center text-sm">
-          🔍 <strong>Preview Mode Active</strong> - Viewing demo UI without blockchain interaction
+      {isPreviewMode && (
+        <div className="bg-blue-100 border-b border-blue-300 text-blue-800 px-4 py-2 text-center text-sm dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">
+          🔍 <strong>Preview Mode Active</strong> - Viewing demo UI as {effectiveRole === 'admin' ? 'Admin/Owner' : effectiveRole === 'inspector' ? 'Inspector' : 'User'} without blockchain interaction
         </div>
       )}
     </nav>
