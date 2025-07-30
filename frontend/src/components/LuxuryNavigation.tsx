@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Car, 
-  Home, 
-  Wallet, 
-  Sun, 
-  Moon, 
-  Menu, 
-  X, 
+import {
+  Car,
+  Home,
+  Wallet,
+  Sun,
+  Moon,
+  Menu,
+  X,
   PlusCircle,
   History,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronDown
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useRentalContractStore, useUserRole, useIsConnected } from '../stores/rentalContractStore';
+import { usePreviewMode } from '../contexts/PreviewModeContext';
+import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
 
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
