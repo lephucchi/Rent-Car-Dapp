@@ -268,6 +268,18 @@ export default function Landing() {
                         </p>
                       </div>
                     </div>
+
+                    {/* Connect Button - Active */}
+                    <div className="text-center">
+                      <button
+                        onClick={handleConnectWallet}
+                        disabled={isLoading}
+                        className="aurora-button w-full max-w-md mx-auto disabled:opacity-50"
+                      >
+                        <Wallet className="w-4 h-4 mr-2" />
+                        {isLoading ? 'Đang kết nối...' : 'Kết nối ví MetaMask'}
+                      </button>
+                    </div>
                   </div>
                 )}
 
