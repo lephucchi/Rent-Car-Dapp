@@ -82,7 +82,7 @@ export const LuxuryNavigation: React.FC = () => {
               <Snowflake className="w-4 h-4 text-white/30 absolute top-1 right-1" />
             </div>
             <span className="text-2xl font-bold text-foreground">
-              Aurora<span className="text-primary">Rent</span>
+              Car<span className="text-primary">Dapp</span>
             </span>
           </Link>
 
