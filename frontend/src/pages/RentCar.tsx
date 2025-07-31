@@ -397,7 +397,7 @@ export default function RentCar() {
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-muted-foreground">Deposit Required:</span>
                       <span className="font-bold text-foreground">
-                        {(parseFloat(ethers.formatEther(car.rentalFeePerDay)) * car.durationDays + parseFloat(ethers.formatEther(car.insuranceFee))).toFixed(2)} ETH
+                        {((parseFloat(ethers.formatEther(car.rentalFeePerDay)) * car.durationDays + parseFloat(ethers.formatEther(car.insuranceFee))) * 0.3).toFixed(3)} ETH
                       </span>
                     </div>
                   </div>
