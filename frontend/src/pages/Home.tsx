@@ -3,7 +3,6 @@ import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet, Plus, Eye, User, 
 import { usePreviewMode } from '../contexts/PreviewModeContext';
 import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
 import { mockDataService, type MockCar } from '../services/mockDataService';
-import { CarCard } from '../components/CarCard';
 import { debugMetaMaskConnection } from '../lib/debugMetaMask';
 import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
 
