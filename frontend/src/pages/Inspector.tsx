@@ -149,9 +149,9 @@ export default function Inspector() {
       <div className="luxury-container py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-light text-foreground mb-2">Damage Inspector</h1>
+          <h1 className="text-3xl font-light text-foreground mb-2">CarDapp Inspector</h1>
           <p className="text-muted-foreground">
-            {isPreviewMode ? 'Preview: Damage assessment interface for returned vehicles' : 'Assess damage for returned vehicles and set compensation fees'}
+            {isPreviewMode ? 'Preview: CarDapp damage assessment interface' : 'Assess damage for returned vehicles and submit compensation fees to CarDapp smart contracts'}
           </p>
         </div>
 
