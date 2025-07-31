@@ -154,9 +154,9 @@ export default function LendCar() {
       <div className="luxury-container py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-light text-foreground mb-2">Car Management</h1>
+          <h1 className="text-3xl font-light text-foreground mb-2">Lend Your Car</h1>
           <p className="text-muted-foreground">
-            {isPreviewMode ? 'Preview: Admin car management interface' : 'Add and manage your car rentals'}
+            {isPreviewMode ? 'Preview: Register and manage cars for rental on CarDapp' : 'Register your car on CarDapp blockchain platform and manage rentals'}
           </p>
         </div>
 
