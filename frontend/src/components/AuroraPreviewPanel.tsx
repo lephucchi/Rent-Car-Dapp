@@ -166,7 +166,7 @@ export const AuroraPreviewPanel: React.FC = () => {
           </div>
 
           <div className="text-center text-xs text-muted-foreground">
-            Preview mode disables all blockchain transactions
+            Preview mode shows CarDapp functionality without blockchain transactions
           </div>
         </div>
       </div>
