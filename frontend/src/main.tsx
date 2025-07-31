@@ -9,7 +9,7 @@ import { GlobalErrorDisplay } from "./components/GlobalErrorDisplay";
 import { AuroraPreviewPanel } from "./components/AuroraPreviewPanel";
 import "./global.css";
 
-import Landing from "./pages/Landing";
+import Home from "./pages/Home";
 import RentCar from "./pages/RentCar";
 import LendCar from "./pages/LendCar";
 import Transactions from "./pages/Transaction";
