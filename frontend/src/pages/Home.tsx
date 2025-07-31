@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet, Plus, Eye, User, Settings, Bell } from 'lucide-react';
+import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet, Plus, Eye, User, Settings, Bell, X } from 'lucide-react';
 import { usePreviewMode } from '../contexts/PreviewModeContext';
 import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
 import { mockDataService, type MockCar } from '../services/mockDataService';
