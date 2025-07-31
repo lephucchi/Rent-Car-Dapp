@@ -29,8 +29,8 @@ export const AuroraPreviewPanel: React.FC = () => {
   ];
 
   const themes = [
-    { id: 'light-aurora' as const, label: 'Light Aurora', description: 'Bright, showroom-like interface' },
-    { id: 'dark-aurora' as const, label: 'Dark Aurora', description: 'Deep, sleek variant for low-light' }
+    { id: 'light-aurora' as const, label: 'Light Mode', description: 'Bright, professional CarDapp interface' },
+    { id: 'dark-aurora' as const, label: 'Dark Mode', description: 'Sleek dark theme for comfortable viewing' }
   ];
 
   return (
