@@ -23,9 +23,9 @@ export const AuroraPreviewPanel: React.FC = () => {
   };
 
   const roles = [
-    { id: 'user' as const, label: 'User', icon: User, description: 'Browse and rent cars' },
-    { id: 'admin' as const, label: 'Admin/Owner', icon: Crown, description: 'Manage cars and rentals' },
-    { id: 'inspector' as const, label: 'Inspector', icon: Shield, description: 'Assess damage reports' }
+    { id: 'user' as const, label: 'User/Renter', icon: User, description: 'Browse and rent cars on CarDapp' },
+    { id: 'admin' as const, label: 'Car Owner/Lessor', icon: Crown, description: 'Register cars and manage rentals' },
+    { id: 'inspector' as const, label: 'Damage Inspector', icon: Shield, description: 'Assess damage on returned cars' }
   ];
 
   const themes = [
