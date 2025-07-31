@@ -161,7 +161,7 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
                 className="ferrari-button w-full"
               >
                 <CreditCard className="w-5 h-5 mr-2" />
-                Complete Rental - {remainingPayment.toFixed(2)} ETH {isPreview && '(Preview)'}
+                Complete Rental - {remainingPayment.toFixed(3)} ETH {isPreview && '(Preview)'}
               </button>
             )}
 
