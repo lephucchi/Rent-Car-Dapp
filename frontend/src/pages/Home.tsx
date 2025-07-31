@@ -138,7 +138,7 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
               onClick={onClose}
               className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
-              <Car className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
