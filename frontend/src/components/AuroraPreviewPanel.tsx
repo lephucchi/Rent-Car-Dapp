@@ -44,9 +44,9 @@ export const AuroraPreviewPanel: React.FC = () => {
                 <Eye className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-foreground">Preview Mode</h2>
+                <h2 className="text-xl font-semibold text-foreground">CarDapp Preview Mode</h2>
                 <p className="text-sm text-muted-foreground">
-                  Explore the platform without connecting MetaMask
+                  Explore CarDapp functionality without connecting MetaMask
                 </p>
               </div>
             </div>
