@@ -281,7 +281,7 @@ export default function RentCar() {
         <div className="mb-8">
           <h1 className="text-3xl font-light text-foreground mb-2">Rent a Car</h1>
           <p className="text-muted-foreground">
-            {isPreviewMode ? 'Preview: Browse and rent luxury vehicles' : 'Browse and rent luxury vehicles with blockchain security'}
+            {isPreviewMode ? 'Preview: Browse CarDapp vehicle listings and rental process' : 'Browse available cars and rent with 30% deposit through CarDapp smart contracts'}
           </p>
         </div>
 
