@@ -83,12 +83,20 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Rental:</span>
-                <span className="font-semibold">{totalRental} ETH</span>
+                <span className="font-semibold">{totalRental.toFixed(3)} ETH</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Cost (incl. insurance):</span>
+                <span className="font-semibold">{totalCost.toFixed(3)} ETH</span>
               </div>
               <hr className="border-border" />
               <div className="flex justify-between text-lg">
-                <span className="text-muted-foreground">Deposit Required:</span>
-                <span className="font-bold text-foreground">{deposit} ETH</span>
+                <span className="text-muted-foreground">Deposit Required (30%):</span>
+                <span className="font-bold text-primary">{deposit.toFixed(3)} ETH</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Remaining Payment:</span>
+                <span className="font-semibold">{remainingPayment.toFixed(3)} ETH</span>
               </div>
             </div>
           </div>
