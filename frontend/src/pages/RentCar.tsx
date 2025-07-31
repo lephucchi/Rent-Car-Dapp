@@ -33,8 +33,9 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
   const dailyRate = parseFloat(ethers.formatEther(car.rentalFeePerDay));
   const insurance = parseFloat(ethers.formatEther(car.insuranceFee));
   const totalRental = dailyRate * car.durationDays;
-  const deposit = totalRental + insurance;
-  const remainingPayment = totalRental * 0.7; // Simulate remaining payment
+  const totalCost = totalRental + insurance;
+  const deposit = totalCost * 0.3; // 30% deposit as per CarDapp user flow
+  const remainingPayment = totalCost - deposit;
 
   const isUserRenter = car.lessee === '0x0987654321098765432109876543210987654321'; // Mock user address
 
@@ -82,12 +83,20 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Rental:</span>
-                <span className="font-semibold">{totalRental} ETH</span>
+                <span className="font-semibold">{totalRental.toFixed(3)} ETH</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Cost (incl. insurance):</span>
+                <span className="font-semibold">{totalCost.toFixed(3)} ETH</span>
               </div>
               <hr className="border-border" />
               <div className="flex justify-between text-lg">
-                <span className="text-muted-foreground">Deposit Required:</span>
-                <span className="font-bold text-foreground">{deposit} ETH</span>
+                <span className="text-muted-foreground">Deposit Required (30%):</span>
+                <span className="font-bold text-primary">{deposit.toFixed(3)} ETH</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Remaining Payment:</span>
+                <span className="font-semibold">{remainingPayment.toFixed(3)} ETH</span>
               </div>
             </div>
           </div>
@@ -124,7 +133,7 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
                 className="ferrari-button w-full"
               >
                 <Car className="w-5 h-5 mr-2" />
-                Rent Car - {deposit} ETH {isPreview && '(Preview)'}
+                Rent Car - {deposit.toFixed(3)} ETH Deposit {isPreview && '(Preview)'}
               </button>
             )}
 
@@ -152,7 +161,7 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
                 className="ferrari-button w-full"
               >
                 <CreditCard className="w-5 h-5 mr-2" />
-                Complete Rental - {remainingPayment.toFixed(2)} ETH {isPreview && '(Preview)'}
+                Complete Rental - {remainingPayment.toFixed(3)} ETH {isPreview && '(Preview)'}
               </button>
             )}
 
@@ -281,7 +290,7 @@ export default function RentCar() {
         <div className="mb-8">
           <h1 className="text-3xl font-light text-foreground mb-2">Rent a Car</h1>
           <p className="text-muted-foreground">
-            {isPreviewMode ? 'Preview: Browse and rent luxury vehicles' : 'Browse and rent luxury vehicles with blockchain security'}
+            {isPreviewMode ? 'Preview: Browse CarDapp vehicle listings and rental process' : 'Browse available cars and rent with 30% deposit through CarDapp smart contracts'}
           </p>
         </div>
 
@@ -388,7 +397,7 @@ export default function RentCar() {
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-muted-foreground">Deposit Required:</span>
                       <span className="font-bold text-foreground">
-                        {(parseFloat(ethers.formatEther(car.rentalFeePerDay)) * car.durationDays + parseFloat(ethers.formatEther(car.insuranceFee))).toFixed(2)} ETH
+                        {((parseFloat(ethers.formatEther(car.rentalFeePerDay)) * car.durationDays + parseFloat(ethers.formatEther(car.insuranceFee))) * 0.3).toFixed(3)} ETH
                       </span>
                     </div>
                   </div>

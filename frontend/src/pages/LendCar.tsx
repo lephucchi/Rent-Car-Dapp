@@ -154,9 +154,9 @@ export default function LendCar() {
       <div className="luxury-container py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-light text-foreground mb-2">Car Management</h1>
+          <h1 className="text-3xl font-light text-foreground mb-2">Lend Your Car</h1>
           <p className="text-muted-foreground">
-            {isPreviewMode ? 'Preview: Admin car management interface' : 'Add and manage your car rentals'}
+            {isPreviewMode ? 'Preview: Register and manage cars for rental on CarDapp' : 'Register your car on CarDapp blockchain platform and manage rentals'}
           </p>
         </div>
 
@@ -174,7 +174,7 @@ export default function LendCar() {
           <div className="luxury-card p-6">
             <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center">
               <Plus className="w-5 h-5 mr-2" />
-              Add New Car
+              Register Car for Rental
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -252,7 +252,7 @@ export default function LendCar() {
                 disabled={isSubmitting}
                 className="ferrari-button w-full disabled:opacity-50"
               >
-                {isSubmitting ? 'Deploying...' : 'Deploy Car Contract'}
+                {isSubmitting ? 'Registering...' : 'Register Car on CarDapp'}
               </button>
             </form>
           </div>

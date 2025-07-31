@@ -178,7 +178,7 @@ export default function Transaction() {
           <div>
             <h1 className="text-3xl font-light text-foreground mb-2">Transaction History</h1>
             <p className="text-muted-foreground">
-              {isPreviewMode ? 'Preview: Platform transaction activity' : 'Real-time platform transaction activity'}
+              {isPreviewMode ? 'Preview: CarDapp blockchain transaction activity' : 'Real-time CarDapp smart contract transaction activity'}
             </p>
           </div>
           

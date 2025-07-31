@@ -23,14 +23,14 @@ export const AuroraPreviewPanel: React.FC = () => {
   };
 
   const roles = [
-    { id: 'user' as const, label: 'User', icon: User, description: 'Browse and rent cars' },
-    { id: 'admin' as const, label: 'Admin/Owner', icon: Crown, description: 'Manage cars and rentals' },
-    { id: 'inspector' as const, label: 'Inspector', icon: Shield, description: 'Assess damage reports' }
+    { id: 'user' as const, label: 'User/Renter', icon: User, description: 'Browse and rent cars on CarDapp' },
+    { id: 'admin' as const, label: 'Car Owner/Lessor', icon: Crown, description: 'Register cars and manage rentals' },
+    { id: 'inspector' as const, label: 'Damage Inspector', icon: Shield, description: 'Assess damage on returned cars' }
   ];
 
   const themes = [
-    { id: 'light-aurora' as const, label: 'Light Aurora', description: 'Bright, showroom-like interface' },
-    { id: 'dark-aurora' as const, label: 'Dark Aurora', description: 'Deep, sleek variant for low-light' }
+    { id: 'light-aurora' as const, label: 'Light Mode', description: 'Bright, professional CarDapp interface' },
+    { id: 'dark-aurora' as const, label: 'Dark Mode', description: 'Sleek dark theme for comfortable viewing' }
   ];
 
   return (
@@ -44,9 +44,9 @@ export const AuroraPreviewPanel: React.FC = () => {
                 <Eye className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-foreground">Preview Mode</h2>
+                <h2 className="text-xl font-semibold text-foreground">CarDapp Preview Mode</h2>
                 <p className="text-sm text-muted-foreground">
-                  Explore the platform without connecting MetaMask
+                  Explore CarDapp functionality without connecting MetaMask
                 </p>
               </div>
             </div>
@@ -166,7 +166,7 @@ export const AuroraPreviewPanel: React.FC = () => {
           </div>
 
           <div className="text-center text-xs text-muted-foreground">
-            Preview mode disables all blockchain transactions
+            Preview mode shows CarDapp functionality without blockchain transactions
           </div>
         </div>
       </div>

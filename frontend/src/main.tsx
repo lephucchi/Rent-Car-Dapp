@@ -9,7 +9,7 @@ import { GlobalErrorDisplay } from "./components/GlobalErrorDisplay";
 import { AuroraPreviewPanel } from "./components/AuroraPreviewPanel";
 import "./global.css";
 
-import Landing from "./pages/Landing";
+import Home from "./pages/Home";
 import RentCar from "./pages/RentCar";
 import LendCar from "./pages/LendCar";
 import Transactions from "./pages/Transaction";
@@ -29,7 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <GlobalErrorDisplay />
               <AuroraPreviewPanel />
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/rent" element={<RentCar />} />
                 <Route path="/lend" element={<LendCar />} />
                 <Route path="/transactions" element={<Transactions />} />
