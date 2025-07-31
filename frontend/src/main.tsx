@@ -29,7 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <GlobalErrorDisplay />
               <AuroraPreviewPanel />
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/rent" element={<RentCar />} />
                 <Route path="/lend" element={<LendCar />} />
                 <Route path="/transactions" element={<Transactions />} />
