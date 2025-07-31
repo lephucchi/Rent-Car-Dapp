@@ -174,7 +174,7 @@ export default function LendCar() {
           <div className="luxury-card p-6">
             <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center">
               <Plus className="w-5 h-5 mr-2" />
-              Add New Car
+              Register Car for Rental
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
