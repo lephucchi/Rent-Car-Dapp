@@ -33,8 +33,9 @@ const CarDetailModal: React.FC<CarDetailModalProps> = ({
   const dailyRate = parseFloat(ethers.formatEther(car.rentalFeePerDay));
   const insurance = parseFloat(ethers.formatEther(car.insuranceFee));
   const totalRental = dailyRate * car.durationDays;
-  const deposit = totalRental + insurance;
-  const remainingPayment = totalRental * 0.7; // Simulate remaining payment
+  const totalCost = totalRental + insurance;
+  const deposit = totalCost * 0.3; // 30% deposit as per CarDapp user flow
+  const remainingPayment = totalCost - deposit;
 
   const isUserRenter = car.lessee === '0x0987654321098765432109876543210987654321'; // Mock user address
 
