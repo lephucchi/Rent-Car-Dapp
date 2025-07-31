@@ -254,6 +254,11 @@ class MockDataService {
     this.mockTransactions.unshift(newEvent); // Add to beginning for newest first
     return newEvent;
   }
+
+  // Utility function to format wei to ether
+  formatEther(weiValue: string): string {
+    return ethers.formatEther(weiValue);
+  }
 }
 
 export const mockDataService = new MockDataService();
