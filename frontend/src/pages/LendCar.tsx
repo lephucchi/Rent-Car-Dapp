@@ -252,7 +252,7 @@ export default function LendCar() {
                 disabled={isSubmitting}
                 className="ferrari-button w-full disabled:opacity-50"
               >
-                {isSubmitting ? 'Deploying...' : 'Deploy Car Contract'}
+                {isSubmitting ? 'Registering...' : 'Register Car on CarDapp'}
               </button>
             </form>
           </div>
