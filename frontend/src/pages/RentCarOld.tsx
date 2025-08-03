@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Car, Shield, Clock, DollarSign, AlertTriangle, CheckCircle, Loader2, MapPin, Fuel, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Car, Shield, Clock, DollarSign, AlertTriangle, CheckCircle, Loader2, MapPin, Fuel, Calendar, Plus, Grid, List } from 'lucide-react';
 import { ethers } from 'ethers';
 import { useWalletConnection, useContractState, useContractActions, useUserRole } from '../stores/unifiedWeb3Store';
 import { usePreviewMode } from '../contexts/PreviewModeContext';
+import { factoryService, type VehicleListing, type CreateVehicleParams } from '../services/factoryService';
 
 interface RentalInfoCardProps {
   title: string;

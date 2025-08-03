@@ -64,6 +64,7 @@ export const LuxuryNavigation: React.FC = () => {
     { href: '/', label: 'Home', icon: Home },
     { href: '/rent', label: 'Rent Car', icon: Car },
     { href: '/lend', label: 'Lend Car', icon: PlusCircle },
+    { href: '/contract', label: 'Contract', icon: Wallet },
     { href: '/transactions', label: 'Transactions', icon: History },
   ];
 
