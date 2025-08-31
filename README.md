@@ -1,272 +1,453 @@
-# Car Rental DApp
+# 🚗 **Blockchain Car Rental DApp**
 
-A decentralized car rental platform built with blockchain technology, enabling peer-to-peer vehicle rentals with smart contract automation.
+A comprehensive decentralized application for car rental built on Ethereum blockchain. This full-stack Web3 project includes a smart contract, RESTful API backend, React frontend, and PostgreSQL database.
 
-## 🚀 Features
-
-- **Blockchain Integration**: Smart contracts for transparent and secure rental agreements
-- **User Management**: Role-based access control (User, Admin, Inspector)
-- **MetaMask Integration**: Seamless wallet connectivity for blockchain transactions
-- **Real-time Updates**: Live contract status monitoring and updates
-- **Admin Dashboard**: Comprehensive user and system management
-- **Responsive Design**: Modern UI with glassmorphism and neon aesthetics
-
-## 🏗️ Architecture
-
-### Technology Stack
-
-**Frontend:**
-- React 18 + TypeScript
-- Tailwind CSS + Framer Motion
-- Zustand (State Management)
-- ethers.js (Web3 Integration)
-- React Query (Data Fetching)
-
-**Backend:**
-- FastAPI + Python 3.11+
-- PostgreSQL + SQLAlchemy
-- JWT Authentication
-- Web3.py (Blockchain Integration)
-- Docker Containerization
-
-**Blockchain:**
-- Solidity Smart Contracts
-- Hardhat Development Framework
-- Local Hardhat Network (Chain ID: 1337)
-
-## 📋 Prerequisites
-
-- **Node.js** (v18 or higher)
-- **Python** (3.11 or higher)
-- **Docker & Docker Compose**
-- **MetaMask** browser extension
-
-## 🛠️ Quick Start
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd car-rental-dapp
-```
-
-### 2. Start with Docker Compose (Recommended)
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-```
-
-This will start:
-- PostgreSQL database on port 5432
-- FastAPI backend on port 8000
-- React frontend on port 3000
-
-### 3. Deploy Smart Contract
-```bash
-cd smartcontract
-npm install
-npm run node  # Start Hardhat network (new terminal)
-npm run deploy:local  # Deploy contract (another terminal)
-```
-
-### 4. Access the Application
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-
-## 🔧 Manual Setup (Development)
-
-### Backend Setup
-```bash
-cd backend-fastapi
-pip install -r requirements.txt
-cp .env.example .env  # Configure environment variables
-uvicorn app.main:app --reload --port 8000
-```
-
-### Frontend Setup
-```bash
-cd frontend
-npm install
-cp .env.example .env  # Configure environment variables
-npm run dev
-```
-
-### Smart Contract Setup
-```bash
-cd smartcontract
-npm install
-npm run node     # Terminal 1: Start Hardhat network
-npm run deploy:local  # Terminal 2: Deploy contracts
-```
-
-## 👥 Default Accounts
-
-### Test Users (Database)
-- **Admin**: `admin` / `admin123`
-- **User**: `testuser` / `user123`
-
-### Hardhat Accounts (Blockchain)
-- **Owner**: `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
-- **Renter**: `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`
-- **Inspector**: `0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC`
-
-## 🎯 Usage Guide
-
-### For Users
-1. **Register/Login**: Create account with username, email, password
-2. **Connect Wallet**: Link your MetaMask wallet
-3. **Browse Contracts**: View available rental contracts
-4. **Start Rental**: Initiate rental with automatic payment
-5. **Manage Rentals**: Monitor active rentals and complete returns
-
-### For Admins
-1. **Access Admin Panel**: Navigate to `/admin` (admin role required)
-2. **User Management**: View, activate/deactivate users
-3. **Role Management**: Assign roles (user, admin, inspector)
-4. **System Statistics**: Monitor platform usage and metrics
-
-### For Inspectors
-1. **Access Inspector Panel**: Navigate to `/inspector`
-2. **Vehicle Inspection**: Assess returned vehicles
-3. **Damage Reporting**: Report vehicle condition and compensation
-
-## 🔐 Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Role-Based Access Control**: Granular permission management
-- **Smart Contract Security**: Access modifiers and validation
-- **Input Validation**: Comprehensive request validation
-- **HTTPS Ready**: SSL/TLS encryption support
-
-## 📊 API Endpoints
-
-### Authentication
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `GET /api/v1/auth/me` - Get current user
-- `POST /api/v1/auth/connect-metamask` - Connect wallet
-
-### Admin Management
-- `GET /api/v1/admin/users` - List all users
-- `POST /api/v1/admin/users/{id}/activate` - Activate user
-- `POST /api/v1/admin/users/{id}/deactivate` - Deactivate user
-- `GET /api/v1/admin/stats` - System statistics
-
-### Smart Contract
-- `GET /api/contract/status` - Contract status
-- `GET /api/contract/accounts` - Hardhat accounts
-- `POST /api/contract/start-rental` - Start rental
-- `POST /api/contract/end-rental` - End rental
-
-## 🧪 Testing
-
-### Backend Testing
-```bash
-cd backend-fastapi
-python test_auth.py  # Test authentication system
-```
-
-### Smart Contract Testing
-```bash
-cd smartcontract
-npm test  # Run Hardhat tests
-```
-
-### Frontend Testing
-```bash
-cd frontend
-npm test  # Run React tests
-```
-
-## 🚀 Deployment
-
-### Production Deployment
-1. **Configure Environment**: Update `.env` files with production values
-2. **Build Images**: `docker-compose -f docker-compose.prod.yml build`
-3. **Deploy**: Use your preferred cloud provider (AWS, Azure, GCP)
-4. **SSL Setup**: Configure HTTPS with Let's Encrypt or cloud SSL
-
-### Environment Variables
-Key environment variables to configure:
-- `DATABASE_URL`: PostgreSQL connection string
-- `JWT_SECRET_KEY`: JWT signing secret
-- `WEB3_PROVIDER_URL`: Blockchain RPC endpoint
-- `ALLOWED_ORIGINS`: Frontend URLs for CORS
-
-## 📚 Documentation
-
-- **API Documentation**: Available at `/docs` when backend is running
-- **Business Analysis**: See `BA.md` for detailed business requirements
-- **Technical Documentation**: See `tech_document.tex` for comprehensive technical details
-- **Setup Guide**: See `SETUP.md` for detailed setup instructions
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -am 'Add new feature'`
-4. Push to branch: `git push origin feature/new-feature`
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-**Backend not starting:**
-- Check PostgreSQL is running
-- Verify environment variables in `.env`
-- Ensure port 8000 is available
-
-**Frontend not connecting:**
-- Verify backend is running on port 8000
-- Check CORS configuration
-- Ensure MetaMask is installed and connected
-
-**Smart contract issues:**
-- Ensure Hardhat network is running
-- Check contract deployment was successful
-- Verify MetaMask is connected to localhost:8545
-
-**Database connection issues:**
-- Check PostgreSQL service status
-- Verify database credentials
-- Ensure database exists and is accessible
-
-### Support
-
-For technical support or questions:
-- Check the documentation in `/docs`
-- Review the troubleshooting guide
-- Open an issue on the repository
-
-## 🎉 Status
-
-**✅ Completed:**
-- Backend API with authentication
-- Smart contract deployment
-- Database integration
-- Docker containerization
-- Admin dashboard
-- User management system
-
-**🔄 In Progress:**
-- Frontend integration testing
-- Production deployment setup
-- Mobile responsiveness optimization
-
-**⏳ Planned:**
-- Mobile applications
-- Advanced analytics
-- Multi-chain support
-- IPFS integration
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-22.14.0-green.svg)](https://nodejs.org/)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.28-blue.svg)](https://soliditylang.org/)
+[![React](https://img.shields.io/badge/React-18.0-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 
 ---
 
-**Built with ❤️ by the Car Rental DApp Team**
+## 🌟 **Features**
+
+### 🔐 **Authentication & Authorization**
+- ✅ JWT-based user authentication
+- ✅ Role-based access control (User, Owner, Admin)
+- ✅ MetaMask wallet integration
+- ✅ Secure password hashing with bcrypt
+
+### 🚙 **Car Management**
+- ✅ Add/Edit/Delete cars (Owner only)
+- ✅ Car search and filtering
+- ✅ Availability management
+- ✅ Image upload and gallery
+- ✅ Detailed car specifications
+
+### 🤝 **Rental System**
+- ✅ Smart contract-based rental agreements
+- ✅ Automatic deposit calculation (30% of total fee)
+- ✅ Damage assessment system
+- ✅ Overdue fee calculation (150% daily rate)
+- ✅ Multi-party return confirmation
+
+### 💰 **Payment & Security**
+- ✅ Blockchain-based payments
+- ✅ Transparent fee calculation
+- ✅ Refund mechanism for cancellations
+- ✅ Damage compensation handling
+
+### 📊 **Admin Dashboard**
+- ✅ User management
+- ✅ Contract monitoring
+- ✅ Analytics and reporting
+- ✅ Event logging system
+
+---
+
+## 🏗️ **Architecture**
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Frontend  │◄──►│   Backend   │◄──►│  Database   │    │   Smart     │
+│  (React.js) │    │ (Node.js)   │    │ (Supabase)  │    │  Contract   │
+│             │    │             │    │             │    │ (Solidity)  │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                               │
+       └───────────────────┼───────────────────────────────┘
+                          Web3.js / ethers.js
+```
+
+---
+
+## 🛠️ **Tech Stack**
+
+### **Frontend**
+- **React.js 18** - UI framework
+- **Vite** - Build tool
+- **TypeScript** - Type safety
+- **ethers.js** - Ethereum interaction
+- **CSS3** - Responsive styling
+
+### **Backend**
+- **Node.js 22.14.0** - Runtime environment
+- **Express.js** - Web framework
+- **TypeScript** - Type safety
+- **JWT** - Authentication
+- **express-validator** - Input validation
+
+### **Database**
+- **PostgreSQL** - Primary database
+- **Supabase** - Backend as a Service
+- **Row Level Security** - Data protection
+
+### **Blockchain**
+- **Solidity 0.8.28** - Smart contract language
+- **Hardhat** - Development framework
+- **ethers.js v5** - Ethereum library
+- **OpenZeppelin** - Security standards
+
+---
+
+## 📋 **Prerequisites**
+
+Before running this project, make sure you have the following installed:
+
+- � [Node.js](https://nodejs.org/) (v22.14.0 or higher)
+- 🟢 [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- 🟢 [Git](https://git-scm.com/)
+- � [MetaMask](https://metamask.io/) browser extension
+- 🟢 [Supabase](https://supabase.com/) account
+
+---
+
+## 🚀 **Getting Started**
+
+### **1️⃣ Clone the Repository**
+```bash
+git clone https://github.com/lephucchi/Blockchain-Dapp.git
+cd Blockchain-Dapp
+```
+
+### **2️⃣ Database Setup (Supabase)**
+1. Create a new project on [Supabase](https://supabase.com/)
+2. Run the migration files in order:
+   ```sql
+   -- Execute these files in Supabase SQL Editor
+   migrations/01_create_users_table.sql
+   migrations/02_create_cars_table.sql
+   migrations/03_create_contracts_table.sql
+   migrations/04_create_contract_events_table.sql
+   migrations/05_sample_data.sql
+   ```
+
+### **3️⃣ Backend Setup**
+```bash
+cd backend
+npm install
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your Supabase credentials
+
+# Start development server
+npm run dev
+```
+
+**Backend Environment Variables:**
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+JWT_SECRET=your_jwt_secret_key
+JWT_REFRESH_SECRET=your_jwt_refresh_secret
+PORT=5000
+```
+
+### **4️⃣ Smart Contract Setup**
+```bash
+cd smartcontract
+npm install --legacy-peer-deps
+
+# Compile contracts
+npx hardhat compile
+
+# Run tests
+npx hardhat test
+
+# Start local blockchain
+npx hardhat node
+
+# Deploy to local network (in another terminal)
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+### **5️⃣ Frontend Setup**
+```bash
+cd frontend
+npm install
+
+# Start development server
+npm run dev
+```
+
+### **6️⃣ Access the Application**
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:5000
+- **Hardhat Network:** http://localhost:8545
+
+---
+
+## 📁 **Project Structure**
+
+```
+Blockchain-Dapp/
+├── 📁 backend/                 # Node.js API Server
+│   ├── 📁 src/
+│   │   ├── 📁 controllers/     # Request handlers
+│   │   ├── 📁 services/        # Business logic
+│   │   ├── 📁 models/          # Database models
+│   │   ├── 📁 routes/          # API routes
+│   │   ├── 📁 middleware/      # Auth & validation
+│   │   ├── 📁 utils/           # Helper functions
+│   │   └── 📁 types/           # TypeScript types
+│   ├── 📁 migrations/          # Database migrations
+│   └── 📄 package.json
+├── 📁 frontend/               # React.js Client
+│   ├── 📁 src/
+│   │   ├── 📁 components/     # React components
+│   │   ├── 📁 pages/          # Page components
+│   │   ├── 📁 hooks/          # Custom hooks
+│   │   ├── 📁 utils/          # Utilities
+│   │   └── 📁 styles/         # CSS files
+│   ├── 📁 public/             # Static assets
+│   └── 📄 package.json
+├── 📁 smartcontract/          # Solidity Contracts
+│   ├── 📁 contracts/         # Smart contracts
+│   ├── 📁 scripts/           # Deployment scripts
+│   ├── 📁 test/              # Contract tests
+│   └── 📄 hardhat.config.js
+├── 📁 documents/             # Documentation
+│   ├── 📄 database-report.tex
+│   ├── 📄 backend-report.tex
+│   ├── 📄 frontend-report.tex
+│   └── 📄 smartcontract-report.tex
+├── 📄 PROJECT_SUMMARY.md     # Detailed project summary
+└── 📄 README.md              # This file
+```
+
+---
+
+## 📡 **API Endpoints**
+
+### **Authentication**
+```http
+POST   /api/auth/register      # User registration
+POST   /api/auth/login         # User login
+POST   /api/auth/refresh       # Refresh JWT token
+POST   /api/auth/logout        # User logout
+GET    /api/auth/profile       # Get user profile
+```
+
+### **Car Management**
+```http
+GET    /api/cars               # List all cars (with filters)
+GET    /api/cars/:id           # Get car details
+POST   /api/cars               # Add new car (Owner only)
+PUT    /api/cars/:id           # Update car
+DELETE /api/cars/:id           # Delete car
+GET    /api/cars/owner/:id     # Get cars by owner
+PUT    /api/cars/:id/availability # Update availability
+```
+
+### **User Management**
+```http
+GET    /api/users              # List users (Admin only)
+GET    /api/users/:id          # Get user details
+PUT    /api/users/:id          # Update user profile
+PUT    /api/users/:id/role     # Update user role (Admin only)
+```
+
+---
+
+## 🔗 **Smart Contract Functions**
+
+### **Rental Management**
+```solidity
+rent()                    // Start rental with deposit
+cancelRental()           // Cancel rental and refund
+requestReturn()          // Renter requests return
+confirmReturn()          // Owner confirms return
+completeRental()         // Final payment and completion
+```
+
+### **Damage Assessment**
+```solidity
+reportDamage()           // Owner reports damage
+assessDamage(amount)     // Assessor evaluates damage
+setActualUsage(days)     // Set actual usage days
+```
+
+### **Utility Functions**
+```solidity
+getTotalRentalFee()      // Calculate total rental fee
+getDeposit()            // Calculate required deposit
+getRemainingPayment()    // Calculate remaining payment
+```
+
+---
+
+## 🧪 **Testing**
+
+### **Backend Tests**
+```bash
+cd backend
+npm test
+```
+
+### **Smart Contract Tests**
+```bash
+cd smartcontract
+npx hardhat test
+```
+
+### **Test Coverage**
+- ✅ **Unit Tests** for all services and models
+- ✅ **Integration Tests** for API endpoints  
+- ✅ **Contract Tests** for all smart contract functions
+- ✅ **End-to-End Tests** for user workflows
+
+---
+
+## 🔐 **Security Features**
+
+### **Backend Security**
+- 🔒 **JWT Authentication** with refresh tokens
+- 🔒 **bcryptjs** password hashing
+- 🔒 **CORS** configuration
+- 🔒 **Helmet.js** security headers
+- 🔒 **Rate limiting** for API protection
+- 🔒 **Input validation** and sanitization
+- 🔒 **SQL injection** prevention
+
+### **Smart Contract Security**
+- 🔒 **Access control** modifiers
+- 🔒 **Reentrancy** protection
+- 🔒 **Integer overflow** protection
+- 🔒 **Gas optimization** techniques
+- 🔒 **Event logging** for transparency
+
+### **Database Security**
+- 🔒 **Row Level Security** (RLS)
+- 🔒 **Foreign key** constraints
+- 🔒 **Data validation** triggers
+- 🔒 **Backup** and recovery
+
+---
+
+## 🚀 **Deployment**
+
+### **Production Environment Variables**
+```env
+NODE_ENV=production
+SUPABASE_URL=your_production_supabase_url
+SUPABASE_ANON_KEY=your_production_anon_key
+JWT_SECRET=your_strong_jwt_secret
+ETHEREUM_NETWORK=mainnet
+CONTRACT_ADDRESS=deployed_contract_address
+```
+
+### **Deployment Steps**
+1. **Deploy Smart Contract** to mainnet/testnet
+2. **Deploy Backend** to Vercel/Heroku/AWS
+3. **Deploy Frontend** to Netlify/Vercel
+4. **Configure Domain** and SSL certificates
+5. **Set up Monitoring** and analytics
+
+---
+
+## 📖 **Documentation**
+
+Detailed technical documentation is available in LaTeX format:
+
+- 📄 **Database Report** - `documents/database-report.tex`
+- 📄 **Backend Report** - `documents/backend-report.tex`
+- 📄 **Frontend Report** - `documents/frontend-report.tex`
+- 📄 **Smart Contract Report** - `documents/smartcontract-report.tex`
+
+To compile LaTeX documents:
+```bash
+cd documents
+pdflatex database-report.tex
+pdflatex backend-report.tex
+pdflatex frontend-report.tex
+pdflatex smartcontract-report.tex
+```
+
+---
+
+## 🤝 **Contributing**
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
+3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** to the branch (`git push origin feature/AmazingFeature`)
+5. **Open** a Pull Request
+
+### **Development Guidelines**
+- Follow **TypeScript** coding standards
+- Write **comprehensive tests** for new features
+- Update **documentation** when needed
+- Use **conventional commits** for clear history
+
+---
+
+## 🐛 **Known Issues**
+
+- **MetaMask Integration**: Requires manual network switching for local development
+- **Gas Fees**: High gas fees on Ethereum mainnet (consider Layer 2 solutions)
+- **File Upload**: Currently using base64 encoding (consider IPFS for production)
+
+---
+
+## 🔮 **Future Enhancements**
+
+### **Planned Features**
+- 🚀 **Layer 2 Integration** (Polygon, Arbitrum)
+- 🚀 **IPFS** for decentralized file storage
+- � **NFT Integration** for rental certificates
+- 🚀 **Mobile App** (React Native)
+- � **Oracle Integration** for real-time pricing
+- 🚀 **Multi-signature** wallet support
+- � **DAO Governance** for platform decisions
+
+### **Performance Improvements**
+- ⚡ **Caching** strategies
+- ⚡ **Database** optimization
+- ⚡ **CDN** integration
+- ⚡ **Image** compression
+
+---
+
+## � **License**
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 **Acknowledgments**
+
+### **Built With**
+- 🔧 [Ethereum](https://ethereum.org/) - Blockchain platform
+- 🔧 [Solidity](https://soliditylang.org/) - Smart contract language
+- 🔧 [Hardhat](https://hardhat.org/) - Ethereum development environment
+- 🔧 [React](https://reactjs.org/) - Frontend framework
+- 🔧 [Node.js](https://nodejs.org/) - Backend runtime
+- 🔧 [TypeScript](https://www.typescriptlang.org/) - Type safety
+- 🔧 [Supabase](https://supabase.com/) - Backend as a Service
+- 🔧 [ethers.js](https://docs.ethers.org/) - Ethereum library
+
+### **Special Thanks**
+- 🎯 **OpenZeppelin** for security standards
+- 🎯 **Hardhat Team** for development tools
+- 🎯 **Ethereum Foundation** for the blockchain platform
+- 🎯 **Supabase Team** for the database solution
+
+---
+
+## 📞 **Support**
+
+If you have any questions or need help with setup, please:
+
+- 📧 **Email**: lephucchi@example.com
+- 🐛 **Issues**: [GitHub Issues](https://github.com/lephucchi/Blockchain-Dapp/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/lephucchi/Blockchain-Dapp/discussions)
+
+---
+
+**⭐ If you find this project helpful, please give it a star on GitHub! ⭐**
+
+---
+
+*Last Updated: August 31, 2025*

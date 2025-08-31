@@ -1,0 +1,1659 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\geometry{left=2.5cm,right=2.5cm,top=3cm,bottom=3cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Blockchain DApp - Frontend Report}
+\fancyhead[R]{\thepage}
+
+% Code highlighting setup
+\lstset{
+    language=JavaScript,
+    basicstyle=\footnotesize\ttfamily,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+\title{\textbf{BÁO CÁO CHI TIẾT FRONTEND} \\ 
+       \textbf{HỆ THỐNG THUÊ XE BLOCKCHAIN DAPP}}
+\author{Phát triển bởi: GitHub Copilot}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Tổng quan Frontend System}
+
+\subsection{Giới thiệu}
+Frontend được phát triển sử dụng React.js với Vite build tool, tích hợp Web3 để tương tác với blockchain. Giao diện được thiết kế responsive, user-friendly và có khả năng tương tác với smart contract Ethereum.
+
+\subsection{Tech Stack}
+\begin{itemize}
+    \item \textbf{Framework}: React 18+ với hooks
+    \item \textbf{Build Tool}: Vite 4+
+    \item \textbf{Language}: JavaScript/TypeScript
+    \item \textbf{Styling}: CSS3, CSS Modules hoặc Styled Components
+    \item \textbf{Web3}: ethers.js v6 cho blockchain interaction
+    \item \textbf{State Management}: React Context API hoặc Redux Toolkit
+    \item \textbf{Routing}: React Router v6
+    \item \textbf{HTTP Client}: Axios
+\end{itemize}
+
+\section{Kiến trúc Frontend}
+
+\subsection{Cấu trúc thư mục}
+\begin{lstlisting}[language=bash, caption=Cấu trúc project frontend]
+frontend/
+├── public/
+│   ├── vite.svg
+│   └── index.html
+├── src/
+│   ├── components/           # Reusable components
+│   │   ├── common/
+│   │   │   ├── Header.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── Loading.jsx
+│   │   │   └── Modal.jsx
+│   │   ├── auth/
+│   │   │   ├── LoginForm.jsx
+│   │   │   └── RegisterForm.jsx
+│   │   ├── car/
+│   │   │   ├── CarCard.jsx
+│   │   │   ├── CarList.jsx
+│   │   │   ├── CarForm.jsx
+│   │   │   └── CarDetail.jsx
+│   │   └── contract/
+│   │       ├── ContractForm.jsx
+│   │       ├── ContractCard.jsx
+│   │       └── ContractStatus.jsx
+│   ├── pages/               # Page components
+│   │   ├── Home.jsx
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── CarListing.jsx
+│   │   ├── CarDetail.jsx
+│   │   └── Profile.jsx
+│   ├── hooks/               # Custom hooks
+│   │   ├── useAuth.js
+│   │   ├── useWeb3.js
+│   │   ├── useContract.js
+│   │   └── useAPI.js
+│   ├── services/            # API services
+│   │   ├── api.js
+│   │   ├── auth.service.js
+│   │   ├── car.service.js
+│   │   └── contract.service.js
+│   ├── utils/              # Utilities
+│   │   ├── contract.js     # Smart contract interaction
+│   │   ├── web3.js         # Web3 utilities
+│   │   ├── helpers.js      # Helper functions
+│   │   └── constants.js    # Constants
+│   ├── context/            # React contexts
+│   │   ├── AuthContext.jsx
+│   │   ├── Web3Context.jsx
+│   │   └── AppContext.jsx
+│   ├── styles/             # Global styles
+│   │   ├── global.css
+│   │   └── variables.css
+│   ├── assets/             # Static assets
+│   │   └── react.svg
+│   ├── App.jsx
+│   └── main.jsx
+├── package.json
+├── vite.config.js
+└── eslint.config.js
+\end{lstlisting}
+
+\subsection{Component Architecture}
+\begin{enumerate}
+    \item \textbf{Pages}: Top-level route components
+    \item \textbf{Components}: Reusable UI components
+    \item \textbf{Hooks}: Custom logic và state management
+    \item \textbf{Services}: API communication layer
+    \item \textbf{Context}: Global state management
+    \item \textbf{Utils}: Blockchain và helper utilities
+\end{enumerate}
+
+\section{Web3 Integration}
+
+\subsection{Web3 Context Provider}
+\begin{lstlisting}[caption=Web3 Context Implementation]
+// src/context/Web3Context.jsx
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import contractInfo from '../contract-info.json';
+
+const Web3Context = createContext();
+
+export const useWeb3 = () => {
+  const context = useContext(Web3Context);
+  if (!context) {
+    throw new Error('useWeb3 must be used within Web3Provider');
+  }
+  return context;
+};
+
+export const Web3Provider = ({ children }) => {
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [account, setAccount] = useState(null);
+  const [contract, setContract] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [chainId, setChainId] = useState(null);
+
+  const connectWallet = async () => {
+    try {
+      if (!window.ethereum) {
+        throw new Error('MetaMask not installed');
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send('eth_requestAccounts', []);
+      const signer = await provider.getSigner();
+      const network = await provider.getNetwork();
+
+      setProvider(provider);
+      setSigner(signer);
+      setAccount(accounts[0]);
+      setChainId(network.chainId);
+      setIsConnected(true);
+
+      // Initialize contract
+      const contractInstance = new ethers.Contract(
+        contractInfo.address,
+        contractInfo.abi,
+        signer
+      );
+      setContract(contractInstance);
+
+      // Store connection
+      localStorage.setItem('walletConnected', 'true');
+
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      throw error;
+    }
+  };
+
+  const disconnectWallet = () => {
+    setProvider(null);
+    setSigner(null);
+    setAccount(null);
+    setContract(null);
+    setIsConnected(false);
+    setChainId(null);
+    localStorage.removeItem('walletConnected');
+  };
+
+  const switchNetwork = async (targetChainId) => {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${targetChainId.toString(16)}` }],
+      });
+    } catch (error) {
+      console.error('Failed to switch network:', error);
+      throw error;
+    }
+  };
+
+  // Auto-connect on page load
+  useEffect(() => {
+    const autoConnect = async () => {
+      if (localStorage.getItem('walletConnected') && window.ethereum) {
+        try {
+          await connectWallet();
+        } catch (error) {
+          console.error('Auto-connect failed:', error);
+        }
+      }
+    };
+
+    autoConnect();
+  }, []);
+
+  // Listen for account changes
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          setAccount(accounts[0]);
+        }
+      });
+
+      window.ethereum.on('chainChanged', (chainId) => {
+        setChainId(parseInt(chainId, 16));
+      });
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeAllListeners('accountsChanged');
+        window.ethereum.removeAllListeners('chainChanged');
+      }
+    };
+  }, []);
+
+  const value = {
+    provider,
+    signer,
+    account,
+    contract,
+    isConnected,
+    chainId,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork
+  };
+
+  return (
+    <Web3Context.Provider value={value}>
+      {children}
+    </Web3Context.Provider>
+  );
+};
+\end{lstlisting}
+
+\subsection{Smart Contract Interaction Hook}
+\begin{lstlisting}[caption=useContract Custom Hook]
+// src/hooks/useContract.js
+import { useState } from 'react';
+import { useWeb3 } from '../context/Web3Context';
+import { ethers } from 'ethers';
+
+export const useContract = () => {
+  const { contract, account } = useWeb3();
+  const [loading, setLoading] = useState(false);
+
+  const rentCar = async (assetName, rentalFeePerDay, durationDays, 
+                        insuranceFee, damageAssessor) => {
+    if (!contract) throw new Error('Contract not connected');
+    
+    setLoading(true);
+    try {
+      // Deploy new rental contract
+      const ContractFactory = await ethers.getContractFactory('FixedRentalContract');
+      const rentalContract = await ContractFactory.deploy(
+        assetName,
+        ethers.parseEther(rentalFeePerDay.toString()),
+        durationDays,
+        ethers.parseEther(insuranceFee.toString()),
+        damageAssessor
+      );
+
+      await rentalContract.waitForDeployment();
+      
+      return {
+        address: await rentalContract.getAddress(),
+        transaction: rentalContract.deploymentTransaction()
+      };
+    } catch (error) {
+      console.error('Rent car failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startRental = async (contractAddress) => {
+    if (!contract) throw new Error('Contract not connected');
+    
+    setLoading(true);
+    try {
+      const rentalContract = new ethers.Contract(
+        contractAddress,
+        contract.interface,
+        contract.signer
+      );
+
+      const deposit = await rentalContract.getDeposit();
+      const tx = await rentalContract.rent({ value: deposit });
+      await tx.wait();
+
+      return tx;
+    } catch (error) {
+      console.error('Start rental failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelRental = async (contractAddress) => {
+    if (!contract) throw new Error('Contract not connected');
+    
+    setLoading(true);
+    try {
+      const rentalContract = new ethers.Contract(
+        contractAddress,
+        contract.interface,
+        contract.signer
+      );
+
+      const tx = await rentalContract.cancelRental();
+      await tx.wait();
+
+      return tx;
+    } catch (error) {
+      console.error('Cancel rental failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completeRental = async (contractAddress) => {
+    if (!contract) throw new Error('Contract not connected');
+    
+    setLoading(true);
+    try {
+      const rentalContract = new ethers.Contract(
+        contractAddress,
+        contract.interface,
+        contract.signer
+      );
+
+      const finalPayment = await rentalContract.getFinalPaymentAmount();
+      const tx = await rentalContract.completeRental({ value: finalPayment });
+      await tx.wait();
+
+      return tx;
+    } catch (error) {
+      console.error('Complete rental failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getContractInfo = async (contractAddress) => {
+    if (!contract) throw new Error('Contract not connected');
+    
+    try {
+      const rentalContract = new ethers.Contract(
+        contractAddress,
+        contract.interface,
+        contract.runner
+      );
+
+      const [
+        lessor,
+        lessee,
+        assetName,
+        rentalFeePerDay,
+        durationDays,
+        isRented,
+        isDamaged
+      ] = await Promise.all([
+        rentalContract.lessor(),
+        rentalContract.lessee(),
+        rentalContract.assetName(),
+        rentalContract.rentalFeePerDay(),
+        rentalContract.durationDays(),
+        rentalContract.isRented(),
+        rentalContract.isDamaged()
+      ]);
+
+      return {
+        lessor,
+        lessee,
+        assetName,
+        rentalFeePerDay: ethers.formatEther(rentalFeePerDay),
+        durationDays: durationDays.toString(),
+        isRented,
+        isDamaged
+      };
+    } catch (error) {
+      console.error('Get contract info failed:', error);
+      throw error;
+    }
+  };
+
+  return {
+    rentCar,
+    startRental,
+    cancelRental,
+    completeRental,
+    getContractInfo,
+    loading
+  };
+};
+\end{lstlisting}
+
+\section{Component System}
+
+\subsection{Car Listing Component}
+\begin{lstlisting}[caption=CarList Component]
+// src/components/car/CarList.jsx
+import React, { useState, useEffect } from 'react';
+import CarCard from './CarCard';
+import { carService } from '../../services/car.service';
+import './CarList.css';
+
+const CarList = ({ filters }) => {
+  const [cars, setCars] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    fetchCars();
+  }, [filters, currentPage]);
+
+  const fetchCars = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await carService.getAvailableCars({
+        ...filters,
+        page: currentPage,
+        limit: 12
+      });
+
+      setCars(response.data);
+      setTotalPages(Math.ceil(response.total / 12));
+    } catch (err) {
+      setError('Failed to load cars. Please try again.');
+      console.error('Fetch cars error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (loading) {
+    return (
+      <div className="car-list-loading">
+        <div className="spinner"></div>
+        <p>Loading cars...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="car-list-error">
+        <p>{error}</p>
+        <button onClick={fetchCars} className="retry-btn">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (cars.length === 0) {
+    return (
+      <div className="car-list-empty">
+        <h3>No cars found</h3>
+        <p>Try adjusting your search filters</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="car-list">
+      <div className="car-list-header">
+        <h2>Available Cars ({cars.length})</h2>
+        <div className="sort-options">
+          <select onChange={(e) => handleSortChange(e.target.value)}>
+            <option value="created_at">Newest First</option>
+            <option value="daily_rate_asc">Price: Low to High</option>
+            <option value="daily_rate_desc">Price: High to Low</option>
+            <option value="year_desc">Year: Newest</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="car-grid">
+        {cars.map(car => (
+          <CarCard 
+            key={car.id} 
+            car={car} 
+            onRentClick={() => handleRentClick(car)}
+          />
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="pagination-btn"
+          >
+            Previous
+          </button>
+          
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => handlePageChange(index + 1)}
+              className={`pagination-btn ${
+                currentPage === index + 1 ? 'active' : ''
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+          
+          <button 
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="pagination-btn"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CarList;
+\end{lstlisting}
+
+\subsection{Contract Form Component}
+\begin{lstlisting}[caption=ContractForm Component]
+// src/components/contract/ContractForm.jsx
+import React, { useState } from 'react';
+import { useContract } from '../../hooks/useContract';
+import { useWeb3 } from '../../context/Web3Context';
+import './ContractForm.css';
+
+const ContractForm = ({ car, onSuccess, onCancel }) => {
+  const { rentCar, loading } = useContract();
+  const { account, isConnected } = useWeb3();
+  
+  const [formData, setFormData] = useState({
+    durationDays: 7,
+    insuranceFee: 0.5,
+    damageAssessor: ''
+  });
+  const [errors, setErrors] = useState({});
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.durationDays || formData.durationDays < 1) {
+      newErrors.durationDays = 'Duration must be at least 1 day';
+    }
+
+    if (!formData.insuranceFee || formData.insuranceFee < 0) {
+      newErrors.insuranceFee = 'Insurance fee must be positive';
+    }
+
+    if (!formData.damageAssessor || !ethers.isAddress(formData.damageAssessor)) {
+      newErrors.damageAssessor = 'Valid Ethereum address required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!isConnected) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      const result = await rentCar(
+        `${car.make} ${car.model} ${car.year}`,
+        car.daily_rate,
+        formData.durationDays,
+        formData.insuranceFee,
+        formData.damageAssessor
+      );
+
+      onSuccess({
+        contractAddress: result.address,
+        transactionHash: result.transaction.hash,
+        car,
+        duration: formData.durationDays,
+        totalCost: (car.daily_rate * formData.durationDays) + formData.insuranceFee
+      });
+
+    } catch (error) {
+      console.error('Contract creation failed:', error);
+      alert('Failed to create rental contract. Please try again.');
+    }
+  };
+
+  const totalCost = (car.daily_rate * formData.durationDays) + Number(formData.insuranceFee);
+  const deposit = totalCost * 0.3; // 30% deposit
+
+  return (
+    <div className="contract-form-overlay">
+      <div className="contract-form">
+        <div className="form-header">
+          <h3>Create Rental Contract</h3>
+          <button className="close-btn" onClick={onCancel}>×</button>
+        </div>
+
+        <div className="car-summary">
+          <h4>{car.make} {car.model} {car.year}</h4>
+          <p>Daily Rate: {car.daily_rate} ETH</p>
+          <p>License Plate: {car.license_plate}</p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="durationDays">Rental Duration (days)</label>
+            <input
+              type="number"
+              id="durationDays"
+              name="durationDays"
+              value={formData.durationDays}
+              onChange={handleInputChange}
+              min="1"
+              max="365"
+              required
+            />
+            {errors.durationDays && (
+              <span className="error-message">{errors.durationDays}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="insuranceFee">Insurance Fee (ETH)</label>
+            <input
+              type="number"
+              id="insuranceFee"
+              name="insuranceFee"
+              value={formData.insuranceFee}
+              onChange={handleInputChange}
+              step="0.01"
+              min="0"
+              required
+            />
+            {errors.insuranceFee && (
+              <span className="error-message">{errors.insuranceFee}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="damageAssessor">Damage Assessor Address</label>
+            <input
+              type="text"
+              id="damageAssessor"
+              name="damageAssessor"
+              value={formData.damageAssessor}
+              onChange={handleInputChange}
+              placeholder="0x..."
+              required
+            />
+            {errors.damageAssessor && (
+              <span className="error-message">{errors.damageAssessor}</span>
+            )}
+          </div>
+
+          <div className="cost-breakdown">
+            <h4>Cost Breakdown</h4>
+            <div className="cost-item">
+              <span>Rental Fee ({formData.durationDays} days):</span>
+              <span>{(car.daily_rate * formData.durationDays).toFixed(2)} ETH</span>
+            </div>
+            <div className="cost-item">
+              <span>Insurance Fee:</span>
+              <span>{Number(formData.insuranceFee).toFixed(2)} ETH</span>
+            </div>
+            <div className="cost-item total">
+              <span>Total Cost:</span>
+              <span>{totalCost.toFixed(2)} ETH</span>
+            </div>
+            <div className="cost-item deposit">
+              <span>Required Deposit (30%):</span>
+              <span>{deposit.toFixed(2)} ETH</span>
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="button" onClick={onCancel} className="cancel-btn">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="submit-btn"
+              disabled={loading || !isConnected}
+            >
+              {loading ? 'Creating Contract...' : 'Create Contract'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ContractForm;
+\end{lstlisting}
+
+\section{API Integration}
+
+\subsection{API Service Layer}
+\begin{lstlisting}[caption=API Service Implementation]
+// src/services/api.js
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+class ApiService {
+  constructor() {
+    this.api = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // Request interceptor để thêm auth token
+    this.api.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor để handle errors
+    this.api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  // HTTP methods
+  async get(url, config = {}) {
+    const response = await this.api.get(url, config);
+    return response.data;
+  }
+
+  async post(url, data = {}, config = {}) {
+    const response = await this.api.post(url, data, config);
+    return response.data;
+  }
+
+  async put(url, data = {}, config = {}) {
+    const response = await this.api.put(url, data, config);
+    return response.data;
+  }
+
+  async delete(url, config = {}) {
+    const response = await this.api.delete(url, config);
+    return response.data;
+  }
+
+  // File upload
+  async uploadFile(url, file, onProgress = null) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    };
+
+    if (onProgress) {
+      config.onUploadProgress = (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        onProgress(percentCompleted);
+      };
+    }
+
+    const response = await this.api.post(url, formData, config);
+    return response.data;
+  }
+}
+
+export const apiService = new ApiService();
+\end{lstlisting}
+
+\subsection{Car Service}
+\begin{lstlisting}[caption=Car Service Functions]
+// src/services/car.service.js
+import { apiService } from './api';
+
+export const carService = {
+  // Get available cars with filters
+  async getAvailableCars(filters = {}) {
+    const params = new URLSearchParams();
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value);
+      }
+    });
+
+    return await apiService.get(`/cars?${params.toString()}`);
+  },
+
+  // Get car by ID
+  async getCarById(id) {
+    return await apiService.get(`/cars/${id}`);
+  },
+
+  // Create new car listing
+  async createCar(carData) {
+    return await apiService.post('/cars', carData);
+  },
+
+  // Update car information
+  async updateCar(id, carData) {
+    return await apiService.put(`/cars/${id}`, carData);
+  },
+
+  // Delete car listing
+  async deleteCar(id) {
+    return await apiService.delete(`/cars/${id}`);
+  },
+
+  // Get current user's cars
+  async getUserCars() {
+    return await apiService.get('/cars/owner/me');
+  },
+
+  // Upload car images
+  async uploadCarImages(carId, files, onProgress) {
+    const uploadPromises = files.map(file => 
+      apiService.uploadFile(`/cars/${carId}/images`, file, onProgress)
+    );
+    
+    return Promise.all(uploadPromises);
+  },
+
+  // Search cars by location
+  async searchCarsByLocation(location, radius = 50) {
+    return await apiService.get(`/cars/search/location`, {
+      params: { location, radius }
+    });
+  }
+};
+\end{lstlisting}
+
+\section{State Management}
+
+\subsection{Auth Context}
+\begin{lstlisting}[caption=Authentication Context]
+// src/context/AuthContext.jsx
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/auth.service';
+
+const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('user');
+
+      if (token && userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+        
+        // Verify token is still valid
+        await authService.verifyToken();
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (email, password) => {
+    try {
+      const response = await authService.login(email, password);
+      const { user, token } = response.data;
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      setUser(user);
+      setIsAuthenticated(true);
+
+      return response;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await authService.register(userData);
+      const { user, token } = response.data;
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      setUser(user);
+      setIsAuthenticated(true);
+
+      return response;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await authService.updateProfile(profileData);
+      const updatedUser = response.data.user;
+
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+
+      return response;
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    loading,
+    isAuthenticated,
+    login,
+    register,
+    logout,
+    updateProfile
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+\end{lstlisting}
+
+\section{Routing System}
+
+\subsection{App Router Configuration}
+\begin{lstlisting}[caption=React Router Setup]
+// src/App.jsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { Web3Provider } from './context/Web3Context';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import Layout from './components/layout/Layout';
+
+// Pages
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import CarListing from './pages/CarListing';
+import CarDetail from './pages/CarDetail';
+import Profile from './pages/Profile';
+import AddCar from './pages/AddCar';
+import MyContracts from './pages/MyContracts';
+import NotFound from './pages/NotFound';
+
+import './App.css';
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <Web3Provider>
+          <div className="App">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="cars" element={<CarListing />} />
+                <Route path="cars/:id" element={<CarDetail />} />
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+              </Route>
+
+              {/* Protected routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="add-car" element={<AddCar />} />
+                <Route path="my-contracts" element={<MyContracts />} />
+              </Route>
+
+              {/* 404 */}
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+          </div>
+        </Web3Provider>
+      </AuthProvider>
+    </Router>
+  );
+}
+
+export default App;
+\end{lstlisting}
+
+\section{Styling System}
+
+\subsection{CSS Variables và Global Styles}
+\begin{lstlisting}[language=CSS, caption=Global CSS Variables]
+/* src/styles/variables.css */
+:root {
+  /* Colors */
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --background-color: #ffffff;
+  --surface-color: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 1rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+}
+
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--background-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--background-color);
+}
+
+/* Card styles */
+.card {
+  background: var(--background-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-color);
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-primary);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+\end{lstlisting}
+
+\section{Performance Optimization}
+
+\subsection{Code Splitting và Lazy Loading}
+\begin{lstlisting}[caption=Code Splitting Implementation]
+// src/pages/LazyPages.jsx
+import { lazy } from 'react';
+
+// Lazy load heavy components
+export const Dashboard = lazy(() => import('./Dashboard'));
+export const CarDetail = lazy(() => import('./CarDetail'));
+export const Profile = lazy(() => import('./Profile'));
+export const AddCar = lazy(() => import('./AddCar'));
+export const MyContracts = lazy(() => import('./MyContracts'));
+
+// HOC for lazy loading with error boundary
+export const withLazyLoading = (Component) => {
+  return (props) => (
+    <Suspense 
+      fallback={
+        <div className="lazy-loading">
+          <div className="spinner"></div>
+          <p>Loading...</p>
+        </div>
+      }
+    >
+      <ErrorBoundary>
+        <Component {...props} />
+      </ErrorBoundary>
+    </Suspense>
+  );
+};
+\end{lstlisting}
+
+\subsection{Image Optimization}
+\begin{lstlisting}[caption=Optimized Image Component]
+// src/components/common/OptimizedImage.jsx
+import React, { useState, useRef, useEffect } from 'react';
+
+const OptimizedImage = ({ 
+  src, 
+  alt, 
+  className, 
+  lazy = true,
+  placeholder = '/placeholder.jpg'
+}) => {
+  const [imageSrc, setImageSrc] = useState(lazy ? placeholder : src);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = useRef();
+
+  useEffect(() => {
+    if (!lazy) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setImageSrc(src);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [src, lazy]);
+
+  const handleLoad = () => {
+    setIsLoaded(true);
+  };
+
+  const handleError = () => {
+    setImageSrc(placeholder);
+    setIsLoaded(true);
+  };
+
+  return (
+    <div className={`image-container ${className}`}>
+      <img
+        ref={imgRef}
+        src={imageSrc}
+        alt={alt}
+        onLoad={handleLoad}
+        onError={handleError}
+        className={`image ${isLoaded ? 'loaded' : 'loading'}`}
+        loading={lazy ? 'lazy' : 'eager'}
+      />
+      {!isLoaded && (
+        <div className="image-placeholder">
+          <div className="spinner"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default OptimizedImage;
+\end{lstlisting}
+
+\section{Error Handling}
+
+\subsection{Error Boundary Component}
+\begin{lstlisting}[caption=Error Boundary Implementation]
+// src/components/common/ErrorBoundary.jsx
+import React from 'react';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+    
+    // Log to error reporting service
+    if (window.gtag) {
+      window.gtag('event', 'exception', {
+        description: error.toString(),
+        fatal: false
+      });
+    }
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="error-boundary">
+          <div className="error-content">
+            <h2>Oops! Something went wrong</h2>
+            <p>We're sorry for the inconvenience. Please try again.</p>
+            <details className="error-details">
+              <summary>Error details</summary>
+              <pre>{this.state.error?.toString()}</pre>
+            </details>
+            <div className="error-actions">
+              <button onClick={this.handleRetry} className="btn btn-primary">
+                Try Again
+              </button>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="btn btn-secondary"
+              >
+                Reload Page
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export default ErrorBoundary;
+\end{lstlisting}
+
+\section{Build Configuration}
+
+\subsection{Vite Configuration}
+\begin{lstlisting}[caption=Vite Build Config]
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+      '@components': resolve(__dirname, 'src/components'),
+      '@pages': resolve(__dirname, 'src/pages'),
+      '@services': resolve(__dirname, 'src/services'),
+      '@utils': resolve(__dirname, 'src/utils'),
+      '@hooks': resolve(__dirname, 'src/hooks'),
+      '@context': resolve(__dirname, 'src/context'),
+      '@styles': resolve(__dirname, 'src/styles')
+    }
+  },
+
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          web3: ['ethers'],
+          router: ['react-router-dom'],
+          ui: ['react-icons']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  },
+
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      }
+    }
+  },
+
+  preview: {
+    port: 3000
+  },
+
+  define: {
+    global: 'globalThis'
+  }
+});
+\end{lstlisting}
+
+\section{Testing Strategy}
+
+\subsection{Component Testing}
+\begin{lstlisting}[caption=Example Component Test]
+// src/components/__tests__/CarCard.test.jsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import CarCard from '../car/CarCard';
+
+const mockCar = {
+  id: '1',
+  make: 'Toyota',
+  model: 'Camry',
+  year: 2023,
+  daily_rate: 0.1,
+  images: ['car1.jpg'],
+  owner: { username: 'testuser' }
+};
+
+const renderWithRouter = (component) => {
+  return render(
+    <BrowserRouter>
+      {component}
+    </BrowserRouter>
+  );
+};
+
+describe('CarCard Component', () => {
+  it('renders car information correctly', () => {
+    renderWithRouter(<CarCard car={mockCar} />);
+    
+    expect(screen.getByText('Toyota Camry 2023')).toBeInTheDocument();
+    expect(screen.getByText('0.1 ETH/day')).toBeInTheDocument();
+    expect(screen.getByText('Owner: testuser')).toBeInTheDocument();
+  });
+
+  it('calls onRentClick when rent button is clicked', () => {
+    const mockOnRentClick = jest.fn();
+    renderWithRouter(
+      <CarCard car={mockCar} onRentClick={mockOnRentClick} />
+    );
+    
+    const rentButton = screen.getByText('Rent Now');
+    fireEvent.click(rentButton);
+    
+    expect(mockOnRentClick).toHaveBeenCalledWith(mockCar);
+  });
+});
+\end{lstlisting}
+
+\section{Deployment}
+
+\subsection{Docker Configuration}
+\begin{lstlisting}[caption=Frontend Dockerfile]
+# Dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+\end{lstlisting}
+
+\section{SEO và Accessibility}
+
+\subsection{Meta Tags và SEO}
+\begin{lstlisting}[caption=SEO Optimization]
+// src/hooks/useSEO.js
+import { useEffect } from 'react';
+
+export const useSEO = ({ title, description, keywords, image }) => {
+  useEffect(() => {
+    // Update document title
+    document.title = title ? `${title} | Car Rental DApp` : 'Car Rental DApp';
+
+    // Update meta tags
+    updateMetaTag('description', description);
+    updateMetaTag('keywords', keywords);
+    
+    // Open Graph tags
+    updateMetaTag('og:title', title, 'property');
+    updateMetaTag('og:description', description, 'property');
+    updateMetaTag('og:image', image, 'property');
+    
+    // Twitter tags
+    updateMetaTag('twitter:title', title, 'name');
+    updateMetaTag('twitter:description', description, 'name');
+    updateMetaTag('twitter:image', image, 'name');
+  }, [title, description, keywords, image]);
+};
+
+const updateMetaTag = (name, content, attribute = 'name') => {
+  if (!content) return;
+  
+  let element = document.querySelector(`meta[${attribute}="${name}"]`);
+  
+  if (!element) {
+    element = document.createElement('meta');
+    element.setAttribute(attribute, name);
+    document.head.appendChild(element);
+  }
+  
+  element.setAttribute('content', content);
+};
+\end{lstlisting}
+
+\section{Kết luận}
+
+Frontend system được thiết kế với kiến trúc component-based, tích hợp Web3 và blockchain interaction. Hệ thống cung cấp:
+
+\begin{itemize}
+    \item \textbf{User Experience}: Responsive design, loading states, error handling
+    \item \textbf{Web3 Integration}: MetaMask connection, smart contract interaction
+    \item \textbf{Performance}: Code splitting, lazy loading, image optimization
+    \item \textbf{Security}: Input validation, XSS protection, secure API calls
+    \item \textbf{Maintainability}: Component reusability, clean code structure
+    \item \textbf{Accessibility}: ARIA labels, keyboard navigation, screen reader support
+\end{itemize}
+
+Frontend đã sẵn sàng tích hợp với backend API và smart contract để tạo thành một DApp hoàn chỉnh cho hệ thống thuê xe blockchain.
+
+\end{document}

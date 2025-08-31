@@ -1,0 +1,552 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+% Thiết lập geometry
+\geometry{left=2.5cm,right=2cm,top=2.5cm,bottom=2cm}
+
+% Thiết lập header và footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Báo Cáo Smart Contract}
+\fancyhead[R]{Blockchain Car Rental DApp}
+\fancyfoot[C]{\thepage}
+
+% Thiết lập màu sắc cho code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Thiết lập style cho listings
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{\textbf{BÁO CÁO CHI TIẾT SMART CONTRACT}\\
+\large Hệ Thống Thuê Xe Blockchain DApp}
+\author{Nhóm Phát Triển Blockchain}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Tổng Quan Smart Contract}
+
+\subsection{Giới Thiệu}
+Smart Contract \texttt{FixedRentalContract} được phát triển trên nền tảng Ethereum sử dụng Solidity version 0.8.28. Contract này quản lý toàn bộ quy trình thuê xe bao gồm đặt cọc, thuê xe, báo cáo hư hỏng, và thanh toán cuối cùng.
+
+\subsection{Mục Tiêu Thiết Kế}
+\begin{itemize}
+\item Tự động hóa quy trình thuê xe thông qua blockchain
+\item Đảm bảo tính minh bạch và bảo mật trong giao dịch
+\item Quản lý đặt cọc và thanh toán một cách an toàn
+\item Hỗ trợ báo cáo và định giá thiệt hại
+\item Xử lý các trường hợp đặc biệt như hủy thuê, quá hạn
+\end{itemize}
+
+\section{Kiến Trúc Smart Contract}
+
+\subsection{Cấu Trúc Dữ Liệu}
+
+\subsubsection{State Variables}
+\begin{lstlisting}[language=Solidity, caption=Các biến trạng thái chính]
+contract FixedRentalContract {
+    address public lessor;           // Chủ xe
+    address public lessee;           // Người thuê xe
+    address public damageAssessor;   // Người định giá thiệt hại
+
+    string public assetName;         // Tên xe
+    uint public rentalFeePerDay;     // Phí thuê mỗi ngày
+    uint public durationDays;        // Thời gian thuê (ngày)
+    uint public insuranceFee;        // Phí bảo hiểm
+
+    uint public startTime;           // Thời gian bắt đầu thuê
+    bool public isRented;            // Trạng thái đang được thuê
+    bool public isDamaged;           // Trạng thái hư hỏng
+
+    bool public renterRequestedReturn;  // Người thuê yêu cầu trả xe
+    bool public ownerConfirmedReturn;   // Chủ xe xác nhận nhận xe
+
+    uint public actualDays;          // Số ngày thực tế sử dụng
+    uint public assessedDamageAmount; // Số tiền thiệt hại được định giá
+}
+\end{lstlisting}
+
+\subsubsection{Events}
+\begin{lstlisting}[language=Solidity, caption=Các sự kiện trong contract]
+event RentalStarted(address lessee, uint deposit);
+event RentalCancelled(address lessee);
+event DamageReported(address lessor);
+event FundsTransferred(address to, uint amount);
+event RenterRequestedReturn(address lessee);
+event OwnerConfirmedReturn(address lessor);
+event ActualUsageSet(uint daysUsed);
+event DamageAssessed(address assessor, uint amount);
+\end{lstlisting}
+
+\subsection{Constructor}
+\begin{lstlisting}[language=Solidity, caption=Hàm khởi tạo contract]
+constructor(
+    string memory _assetName,
+    uint _rentalFeePerDay,
+    uint _durationDays,
+    uint _insuranceFee,
+    address _damageAssessor
+) {
+    lessor = msg.sender;
+    assetName = _assetName;
+    rentalFeePerDay = _rentalFeePerDay;
+    durationDays = _durationDays;
+    insuranceFee = _insuranceFee;
+    damageAssessor = _damageAssessor;
+}
+\end{lstlisting}
+
+\section{Chức Năng Chính}
+
+\subsection{Tính Toán Phí}
+
+\subsubsection{Tổng Phí Thuê}
+\begin{lstlisting}[language=Solidity, caption=Tính tổng phí thuê xe]
+function getTotalRentalFee() public view returns (uint) {
+    return (rentalFeePerDay * durationDays) + insuranceFee;
+}
+\end{lstlisting}
+
+\subsubsection{Tiền Đặt Cọc}
+\begin{lstlisting}[language=Solidity, caption=Tính tiền đặt cọc (30% tổng phí)]
+function getDeposit() public view returns (uint) {
+    return (getTotalRentalFee() * 30) / 100;
+}
+\end{lstlisting}
+
+\subsection{Quy Trình Thuê Xe}
+
+\subsubsection{Bắt Đầu Thuê}
+\begin{lstlisting}[language=Solidity, caption=Hàm bắt đầu thuê xe]
+function rent() external payable {
+    require(msg.sender != lessor, "Owner cannot rent own asset");
+    require(!isRented, "Asset already rented");
+    require(msg.value == getDeposit(), "Incorrect deposit");
+
+    lessee = msg.sender;
+    isRented = true;
+    startTime = block.timestamp;
+
+    emit RentalStarted(lessee, msg.value);
+}
+\end{lstlisting}
+
+\subsubsection{Hủy Thuê}
+\begin{lstlisting}[language=Solidity, caption=Hàm hủy thuê xe]
+function cancelRental() external {
+    require(msg.sender == lessee, "Only lessee can cancel");
+    require(isRented, "Not rented");
+
+    uint refund = getDeposit() / 2;
+    payable(lessee).transfer(refund);
+    payable(lessor).transfer(refund);
+
+    emit RentalCancelled(lessee);
+    reset();
+}
+\end{lstlisting}
+
+\subsection{Quy Trình Trả Xe}
+
+\subsubsection{Yêu Cầu Trả Xe}
+\begin{lstlisting}[language=Solidity, caption=Người thuê yêu cầu trả xe]
+function requestReturn() external {
+    require(msg.sender == lessee, "Only lessee can request return");
+    require(isRented, "Not rented");
+
+    renterRequestedReturn = true;
+    emit RenterRequestedReturn(msg.sender);
+}
+\end{lstlisting}
+
+\subsubsection{Xác Nhận Nhận Xe}
+\begin{lstlisting}[language=Solidity, caption=Chủ xe xác nhận nhận xe]
+function confirmReturn() external {
+    require(msg.sender == lessor, "Only lessor can confirm return");
+    require(isRented, "Not rented");
+
+    ownerConfirmedReturn = true;
+    emit OwnerConfirmedReturn(msg.sender);
+}
+\end{lstlisting}
+
+\subsection{Quản Lý Thiệt Hại}
+
+\subsubsection{Báo Cáo Hư Hỏng}
+\begin{lstlisting}[language=Solidity, caption=Chủ xe báo cáo hư hỏng]
+function reportDamage() external {
+    require(msg.sender == lessor, "Only lessor can report");
+    require(isRented, "Not rented");
+
+    isDamaged = true;
+    emit DamageReported(lessor);
+}
+\end{lstlisting}
+
+\subsubsection{Định Giá Thiệt Hại}
+\begin{lstlisting}[language=Solidity, caption=Người định giá đánh giá thiệt hại]
+function assessDamage(uint amountInEther) external {
+    require(msg.sender == damageAssessor, "Only damage assessor allowed");
+    require(isRented, "Rental not active");
+    require(renterRequestedReturn && ownerConfirmedReturn, 
+            "Vehicle must be returned");
+
+    assessedDamageAmount = amountInEther;
+    emit DamageAssessed(msg.sender, amountInEther);
+}
+\end{lstlisting}
+
+\subsection{Thanh Toán Cuối Cùng}
+
+\subsubsection{Tính Số Tiền Còn Lại}
+\begin{lstlisting}[language=Solidity, caption=Tính toán số tiền còn phải trả]
+function getRemainingPayment() public view returns (uint) {
+    require(isRented, "Asset is not rented");
+
+    uint usedDays = actualDays > 0 ? actualDays : durationDays;
+    uint baseFee;
+    uint overdueFee = 0;
+
+    if (usedDays <= durationDays) {
+        baseFee = rentalFeePerDay * usedDays;
+    } else {
+        uint overdue = usedDays - durationDays;
+        baseFee = rentalFeePerDay * durationDays;
+        overdueFee = (rentalFeePerDay * 150 / 100) * overdue;
+    }
+
+    uint finalRentalFee = baseFee + overdueFee + insuranceFee;
+
+    if (isDamaged) {
+        finalRentalFee += assessedDamageAmount;
+    }
+
+    uint deposit = getDeposit();
+    uint remaining = finalRentalFee > deposit ? finalRentalFee - deposit : 0;
+    return remaining;
+}
+\end{lstlisting}
+
+\subsubsection{Hoàn Tất Giao Dịch}
+\begin{lstlisting}[language=Solidity, caption=Hoàn tất và thanh toán cuối cùng]
+function completeRental() external payable {
+    require(isRented, "Not rented");
+    require(msg.sender == lessee || msg.sender == lessor, "Not authorized");
+    require(renterRequestedReturn && ownerConfirmedReturn, 
+            "Both parties must confirm return");
+
+    uint remaining = getRemainingPayment();
+    require(msg.value == remaining * 1 ether, "Incorrect payment");
+
+    uint deposit = getDeposit();
+    uint totalPaid = msg.value + deposit * 1 ether;
+
+    payable(lessor).transfer(totalPaid);
+    emit FundsTransferred(lessor, totalPaid / 1 ether);
+
+    reset();
+}
+\end{lstlisting}
+
+\section{Cấu Hình Development}
+
+\subsection{Hardhat Configuration}
+\begin{lstlisting}[language=JavaScript, caption=hardhat.config.js]
+require("@nomicfoundation/hardhat-toolbox");
+require('dotenv').config();
+
+module.exports = {
+  solidity: {
+    version: "0.8.28",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
+  networks: {
+    hardhat: {
+      chainId: 31337,
+      accounts: {
+        count: 20,
+        accountsBalance: "10000000000000000000000"
+      }
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 31337
+    }
+  }
+};
+\end{lstlisting}
+
+\subsection{Package Dependencies}
+\begin{lstlisting}[language=JSON, caption=Các thư viện cần thiết]
+{
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "dotenv": "^16.0.3",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.13.0"
+  },
+  "devDependencies": {
+    "@ethersproject/providers": "^5.8.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
+    "@nomicfoundation/hardhat-network-helpers": "^1.1.0",
+    "@types/chai": "^4.3.20",
+    "@types/mocha": "^10.0.10",
+    "chai": "^4.5.0",
+    "typescript": "^5.9.2"
+  }
+}
+\end{lstlisting}
+
+\section{Testing Strategy}
+
+\subsection{Test Coverage}
+Hệ thống test bao gồm các trường hợp sau:
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{Test Case} & \textbf{Mô Tả} \\
+\hline
+Contract Deployment & Kiểm tra khởi tạo contract với các giá trị đúng \\
+\hline
+Start Rental & Kiểm tra quy trình bắt đầu thuê xe với deposit chính xác \\
+\hline
+Cancel Rental & Kiểm tra hủy thuê và hoàn tiền deposit \\
+\hline
+Return Process & Kiểm tra quy trình yêu cầu và xác nhận trả xe \\
+\hline
+Damage Assessment & Kiểm tra báo cáo và định giá thiệt hại \\
+\hline
+Complete Rental & Kiểm tra thanh toán cuối cùng và hoàn tất giao dịch \\
+\hline
+Error Handling & Kiểm tra các trường hợp lỗi và validation \\
+\hline
+\end{longtable}
+
+\subsection{Sample Test Code}
+\begin{lstlisting}[language=JavaScript, caption=Ví dụ test case]
+describe("FixedRentalContract", function () {
+  let rentalContract;
+  let lessor, lessee, damageAssessor;
+
+  beforeEach(async function () {
+    [lessor, lessee, damageAssessor] = await ethers.getSigners();
+    
+    const FixedRentalContract = await ethers.getContractFactory(
+      "FixedRentalContract"
+    );
+    rentalContract = await FixedRentalContract.deploy(
+      "Toyota Camry 2023",
+      ethers.utils.parseEther("0.1"),
+      7,
+      ethers.utils.parseEther("0.5"),
+      damageAssessor.address
+    );
+  });
+
+  it("Should allow lessee to start rental", async function () {
+    const deposit = await rentalContract.getDeposit();
+    
+    await expect(
+      rentalContract.connect(lessee).rent({ value: deposit })
+    ).to.emit(rentalContract, "RentalStarted");
+  });
+});
+\end{lstlisting}
+
+\section{Deployment Strategy}
+
+\subsection{Deployment Script}
+\begin{lstlisting}[language=JavaScript, caption=scripts/deploy.js]
+const hre = require("hardhat");
+
+async function main() {
+  const [deployer] = await hre.ethers.getSigners();
+  console.log("Deploying contracts with:", deployer.address);
+
+  const FixedRentalContract = await hre.ethers.getContractFactory(
+    "FixedRentalContract"
+  );
+  
+  const rentalContract = await FixedRentalContract.deploy();
+  await rentalContract.waitForDeployment();
+
+  const contractAddress = await rentalContract.getAddress();
+  console.log("FixedRentalContract deployed to:", contractAddress);
+
+  // Save contract info for integration
+  const contractInfo = {
+    address: contractAddress,
+    abi: FixedRentalContract.interface.formatJson()
+  };
+  
+  require("fs").writeFileSync(
+    "../backend/src/contracts/contract-info.json",
+    JSON.stringify(contractInfo, null, 2)
+  );
+}
+
+main().catch(console.error);
+\end{lstlisting}
+
+\subsection{Network Configuration}
+\begin{itemize}
+\item \textbf{Development}: Hardhat local network (chainId: 31337)
+\item \textbf{Testing}: Hardhat network với 20 accounts
+\item \textbf{Production}: Ethereum mainnet hoặc testnet (Sepolia, Goerli)
+\end{itemize}
+
+\section{Security Considerations}
+
+\subsection{Access Control}
+\begin{itemize}
+\item Chỉ lessor mới có thể báo cáo hư hỏng và set actual usage
+\item Chỉ lessee mới có thể rent, cancel, và request return
+\item Chỉ damage assessor mới có thể đánh giá thiệt hại
+\item Cả lessor và lessee đều có thể complete rental
+\end{itemize}
+
+\subsection{Validation Logic}
+\begin{itemize}
+\item Kiểm tra số tiền gửi chính xác cho deposit
+\item Kiểm tra trạng thái contract trước khi thực hiện action
+\item Kiểm tra quyền truy cập cho từng function
+\item Kiểm tra điều kiện trả xe trước khi assess damage
+\end{itemize}
+
+\subsection{Reentrancy Protection}
+\begin{itemize}
+\item Sử dụng pattern Checks-Effects-Interactions
+\item Reset state variables trước khi transfer funds
+\item Sử dụng transfer() thay vì call() để tránh reentrancy
+\end{itemize}
+
+\section{Gas Optimization}
+
+\subsection{Optimization Techniques}
+\begin{itemize}
+\item Sử dụng Solidity compiler optimizer
+\item Packed structs để tiết kiệm storage
+\item Minimal external calls
+\item Efficient require messages
+\item View/pure functions khi có thể
+\end{itemize}
+
+\subsection{Gas Cost Analysis}
+\begin{longtable}{|p{4cm}|p{3cm}|p{7cm}|}
+\hline
+\textbf{Function} & \textbf{Est. Gas} & \textbf{Description} \\
+\hline
+rent() & ~50,000 & Bắt đầu thuê xe với deposit \\
+\hline
+cancelRental() & ~35,000 & Hủy thuê và hoàn tiền \\
+\hline
+requestReturn() & ~25,000 & Yêu cầu trả xe \\
+\hline
+confirmReturn() & ~25,000 & Xác nhận nhận xe \\
+\hline
+completeRental() & ~45,000 & Thanh toán cuối và hoàn tất \\
+\hline
+reportDamage() & ~25,000 & Báo cáo hư hỏng \\
+\hline
+assessDamage() & ~30,000 & Định giá thiệt hại \\
+\hline
+\end{longtable}
+
+\section{Integration với Backend}
+
+\subsection{Contract Interface}
+Backend sẽ tương tác với smart contract thông qua:
+\begin{itemize}
+\item \textbf{ethers.js}: Library để kết nối và tương tác với Ethereum
+\item \textbf{Contract ABI}: Application Binary Interface cho function calls
+\item \textbf{Event Listeners}: Lắng nghe events từ blockchain
+\item \textbf{Web3 Provider}: Kết nối đến Ethereum node
+\end{itemize}
+
+\subsection{Event Monitoring}
+\begin{lstlisting}[language=JavaScript, caption=Lắng nghe events từ contract]
+// Backend service để monitor contract events
+contract.on("RentalStarted", (lessee, deposit, event) => {
+  console.log(`Rental started by ${lessee} with deposit ${deposit}`);
+  // Update database status
+});
+
+contract.on("RentalCompleted", (contractId, event) => {
+  console.log(`Rental completed for contract ${contractId}`);
+  // Update contract status in database
+});
+\end{lstlisting}
+
+\section{Future Enhancements}
+
+\subsection{Planned Features}
+\begin{itemize}
+\item \textbf{Multi-signature}: Require multiple approvals for large transactions
+\item \textbf{Oracle Integration}: Real-time pricing and damage assessment
+\item \textbf{NFT Integration}: Tokenize rental contracts as NFTs
+\item \textbf{Governance Token}: DAO governance for platform decisions
+\item \textbf{Staking Mechanism}: Stake tokens for better rates
+\end{itemize}
+
+\subsection{Scalability Solutions}
+\begin{itemize}
+\item \textbf{Layer 2}: Deploy on Polygon, Arbitrum cho phí gas thấp
+\item \textbf{State Channels}: Off-chain transactions cho micro-payments
+\item \textbf{IPFS Integration}: Store metadata và documents off-chain
+\item \textbf{Upgradeable Contracts}: Proxy pattern cho contract upgrades
+\end{itemize}
+
+\section{Kết Luận}
+
+Smart contract \texttt{FixedRentalContract} cung cấp một giải pháp hoàn chỉnh và an toàn cho việc quản lý thuê xe trên blockchain. Contract được thiết kế với các nguyên tắc bảo mật cao, tối ưu hóa gas, và dễ dàng tích hợp với hệ thống backend.
+
+Với kiến trúc modular và comprehensive testing, contract này có thể được mở rộng và nâng cấp để đáp ứng các yêu cầu phức tạp hơn trong tương lai.
+
+Việc triển khai trên blockchain Ethereum đảm bảo tính minh bạch, bất biến và decentralization cho toàn bộ quy trình thuê xe.
+
+\end{document}

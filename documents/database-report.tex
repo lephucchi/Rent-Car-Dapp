@@ -1,0 +1,409 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\geometry{left=2.5cm,right=2.5cm,top=3cm,bottom=3cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Blockchain DApp - Database Report}
+\fancyhead[R]{\thepage}
+
+% Code highlighting setup
+\lstset{
+    language=SQL,
+    basicstyle=\footnotesize\ttfamily,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+\title{\textbf{BÁO CÁO CHI TIẾT DATABASE} \\ 
+       \textbf{HỆ THỐNG THUÊ XE BLOCKCHAIN DAPP}}
+\author{Phát triển bởi: GitHub Copilot}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Tổng quan hệ thống Database}
+
+\subsection{Giới thiệu}
+Hệ thống database được thiết kế cho ứng dụng thuê xe phi tập trung (DApp) sử dụng Supabase làm backend database. Database được cấu trúc theo mô hình quan hệ với các bảng chính để quản lý người dùng, xe, hợp đồng thuê và sự kiện hợp đồng.
+
+\subsection{Công nghệ sử dụng}
+\begin{itemize}
+    \item \textbf{Database Engine}: PostgreSQL 15+
+    \item \textbf{Cloud Provider}: Supabase
+    \item \textbf{Security}: Row Level Security (RLS)
+    \item \textbf{Authentication}: Supabase Auth
+    \item \textbf{Real-time}: PostgreSQL triggers và functions
+\end{itemize}
+
+\section{Kiến trúc Database}
+
+\subsection{Sơ đồ quan hệ}
+Database bao gồm 4 bảng chính:
+\begin{enumerate}
+    \item \texttt{users} - Quản lý thông tin người dùng
+    \item \texttt{cars} - Quản lý thông tin xe
+    \item \texttt{contracts} - Quản lý hợp đồng thuê xe
+    \item \texttt{contract\_events} - Lưu trữ các sự kiện của hợp đồng
+\end{enumerate}
+
+\subsection{Mối quan hệ giữa các bảng}
+\begin{itemize}
+    \item \texttt{users} 1:N \texttt{cars} (Một người dùng có thể sở hữu nhiều xe)
+    \item \texttt{users} 1:N \texttt{contracts} (Một người dùng có thể tham gia nhiều hợp đồng)
+    \item \texttt{cars} 1:N \texttt{contracts} (Một xe có thể có nhiều hợp đồng)
+    \item \texttt{contracts} 1:N \texttt{contract\_events} (Một hợp đồng có nhiều sự kiện)
+\end{itemize}
+
+\section{Chi tiết các bảng}
+
+\subsection{Bảng Users}
+\begin{lstlisting}[language=SQL, caption=Cấu trúc bảng users]
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    address TEXT,
+    avatar_url TEXT,
+    wallet_address VARCHAR(42),
+    role user_role DEFAULT 'customer',
+    is_verified BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+\end{lstlisting}
+
+\textbf{Mô tả các trường:}
+\begin{itemize}
+    \item \texttt{id}: Khóa chính UUID
+    \item \texttt{email}: Email người dùng (unique)
+    \item \texttt{username}: Tên đăng nhập (unique)
+    \item \texttt{full\_name}: Họ tên đầy đủ
+    \item \texttt{phone}: Số điện thoại
+    \item \texttt{address}: Địa chỉ
+    \item \texttt{avatar\_url}: URL ảnh đại diện
+    \item \texttt{wallet\_address}: Địa chỉ ví blockchain
+    \item \texttt{role}: Vai trò (customer/admin)
+    \item \texttt{is\_verified}: Trạng thái xác thực
+\end{itemize}
+
+\subsection{Bảng Cars}
+\begin{lstlisting}[language=SQL, caption=Cấu trúc bảng cars]
+CREATE TABLE cars (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    make VARCHAR(100) NOT NULL,
+    model VARCHAR(100) NOT NULL,
+    year INTEGER NOT NULL,
+    license_plate VARCHAR(20) UNIQUE NOT NULL,
+    vin VARCHAR(17) UNIQUE NOT NULL,
+    color VARCHAR(50),
+    fuel_type fuel_type_enum DEFAULT 'gasoline',
+    transmission transmission_enum DEFAULT 'automatic',
+    seats INTEGER DEFAULT 5,
+    daily_rate DECIMAL(10,2) NOT NULL,
+    description TEXT,
+    images TEXT[],
+    location JSONB,
+    is_available BOOLEAN DEFAULT true,
+    insurance_policy VARCHAR(255),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+\end{lstlisting}
+
+\textbf{Đặc điểm nổi bật:}
+\begin{itemize}
+    \item Sử dụng ENUM cho fuel\_type và transmission
+    \item Array PostgreSQL cho lưu trữ nhiều ảnh
+    \item JSONB cho thông tin vị trí
+    \item Constraint kiểm tra năm sản xuất hợp lệ
+\end{itemize}
+
+\subsection{Bảng Contracts}
+\begin{lstlisting}[language=SQL, caption=Cấu trúc bảng contracts]
+CREATE TABLE contracts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    car_id UUID NOT NULL REFERENCES cars(id) ON DELETE CASCADE,
+    lessor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    lessee_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    blockchain_contract_id VARCHAR(255),
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    daily_rate DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    deposit_amount DECIMAL(10,2) NOT NULL,
+    status contract_status DEFAULT 'pending',
+    terms_conditions TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+\end{lstlisting}
+
+\textbf{Các trạng thái hợp đồng:}
+\begin{itemize}
+    \item \texttt{pending}: Chờ xác nhận
+    \item \texttt{active}: Đang hoạt động
+    \item \texttt{completed}: Hoàn thành
+    \item \texttt{cancelled}: Đã hủy
+\end{itemize}
+
+\subsection{Bảng Contract Events}
+\begin{lstlisting}[language=SQL, caption=Cấu trúc bảng contract_events]
+CREATE TABLE contract_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    contract_id UUID NOT NULL REFERENCES contracts(id) ON DELETE CASCADE,
+    event_type event_type_enum NOT NULL,
+    description TEXT,
+    metadata JSONB,
+    transaction_hash VARCHAR(66),
+    block_number BIGINT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+\end{lstlisting}
+
+\section{Row Level Security (RLS)}
+
+\subsection{Chính sách bảo mật Users}
+\begin{lstlisting}[language=SQL, caption=RLS cho bảng users]
+-- Cho phép người dùng xem và cập nhật thông tin của chính mình
+CREATE POLICY "Users can view own profile" ON users
+    FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON users
+    FOR UPDATE USING (auth.uid() = id);
+
+-- Admin có thể xem tất cả
+CREATE POLICY "Admins can view all users" ON users
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+\end{lstlisting}
+
+\subsection{Chính sách bảo mật Cars}
+\begin{lstlisting}[language=SQL, caption=RLS cho bảng cars]
+-- Mọi người có thể xem xe có sẵn
+CREATE POLICY "Anyone can view available cars" ON cars
+    FOR SELECT USING (is_available = true);
+
+-- Chủ xe có thể quản lý xe của mình
+CREATE POLICY "Owners can manage their cars" ON cars
+    FOR ALL USING (owner_id = auth.uid());
+\end{lstlisting}
+
+\section{Triggers và Functions}
+
+\subsection{Function cập nhật updated\_at}
+\begin{lstlisting}[language=SQL, caption=Function tự động cập nhật timestamp]
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+\end{lstlisting}
+
+\subsection{Trigger cho validation}
+\begin{lstlisting}[language=SQL, caption=Trigger validation hợp đồng]
+CREATE OR REPLACE FUNCTION validate_contract_dates()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Kiểm tra ngày bắt đầu phải sau ngày hiện tại
+    IF NEW.start_date <= CURRENT_DATE THEN
+        RAISE EXCEPTION 'Start date must be in the future';
+    END IF;
+    
+    -- Kiểm tra ngày kết thúc phải sau ngày bắt đầu
+    IF NEW.end_date <= NEW.start_date THEN
+        RAISE EXCEPTION 'End date must be after start date';
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validate_contract_dates_trigger
+    BEFORE INSERT OR UPDATE ON contracts
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_contract_dates();
+\end{lstlisting}
+
+\section{Indexes và Performance}
+
+\subsection{Indexes chính}
+\begin{lstlisting}[language=SQL, caption=Các index quan trọng]
+-- Index cho tìm kiếm xe
+CREATE INDEX idx_cars_location ON cars USING GIN (location);
+CREATE INDEX idx_cars_available ON cars (is_available) 
+    WHERE is_available = true;
+CREATE INDEX idx_cars_daily_rate ON cars (daily_rate);
+
+-- Index cho hợp đồng
+CREATE INDEX idx_contracts_status ON contracts (status);
+CREATE INDEX idx_contracts_dates ON contracts (start_date, end_date);
+CREATE INDEX idx_contracts_lessor ON contracts (lessor_id);
+CREATE INDEX idx_contracts_lessee ON contracts (lessee_id);
+
+-- Index cho events
+CREATE INDEX idx_contract_events_contract_id ON contract_events (contract_id);
+CREATE INDEX idx_contract_events_type ON contract_events (event_type);
+CREATE INDEX idx_contract_events_created_at ON contract_events (created_at);
+\end{lstlisting}
+
+\section{Migration Scripts}
+
+\subsection{Migration 001: Create Users Table}
+\begin{lstlisting}[language=SQL, caption=001\_create\_users\_table.sql]
+-- Create ENUM types
+CREATE TYPE user_role AS ENUM ('customer', 'admin');
+
+-- Create users table
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    address TEXT,
+    avatar_url TEXT,
+    wallet_address VARCHAR(42),
+    role user_role DEFAULT 'customer',
+    is_verified BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Users can view own profile" ON users
+    FOR SELECT USING (auth.uid() = id);
+
+-- Add constraints
+ALTER TABLE users ADD CONSTRAINT check_email_format 
+    CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+
+-- Create trigger
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at();
+\end{lstlisting}
+
+\section{Backup và Recovery}
+
+\subsection{Chiến lược Backup}
+\begin{itemize}
+    \item \textbf{Automated Backups}: Supabase tự động backup hàng ngày
+    \item \textbf{Point-in-time Recovery}: Có thể restore đến bất kỳ thời điểm nào trong 7 ngày
+    \item \textbf{Manual Backups}: Backup thủ công trước các thay đổi lớn
+\end{itemize}
+
+\subsection{Script Backup}
+\begin{lstlisting}[language=bash, caption=Script backup database]
+#!/bin/bash
+# Backup script for Blockchain DApp Database
+
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/backups"
+DB_NAME="blockchain_dapp"
+
+# Create backup
+pg_dump $DATABASE_URL > $BACKUP_DIR/backup_$DATE.sql
+
+# Compress backup
+gzip $BACKUP_DIR/backup_$DATE.sql
+
+# Keep only last 30 backups
+find $BACKUP_DIR -name "backup_*.sql.gz" -mtime +30 -delete
+
+echo "Backup completed: backup_$DATE.sql.gz"
+\end{lstlisting}
+
+\section{Monitoring và Maintenance}
+
+\subsection{Các metrics quan trọng}
+\begin{itemize}
+    \item Connection pool usage
+    \item Query performance
+    \item Database size growth
+    \item Index usage statistics
+    \item RLS policy performance
+\end{itemize}
+
+\subsection{Query monitoring}
+\begin{lstlisting}[language=SQL, caption=Monitoring slow queries]
+-- Xem các query chậm
+SELECT query, mean_time, calls, total_time
+FROM pg_stat_statements
+WHERE mean_time > 1000
+ORDER BY mean_time DESC
+LIMIT 10;
+
+-- Kiểm tra index usage
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_tup_read,
+    idx_tup_fetch
+FROM pg_stat_user_indexes
+ORDER BY idx_tup_read DESC;
+\end{lstlisting}
+
+\section{Security Best Practices}
+
+\subsection{Các biện pháp bảo mật}
+\begin{enumerate}
+    \item \textbf{Row Level Security}: Đảm bảo người dùng chỉ truy cập được dữ liệu của mình
+    \item \textbf{Input Validation}: Validate dữ liệu đầu vào qua constraints
+    \item \textbf{Encrypted Connections}: Sử dụng SSL/TLS cho tất cả connections
+    \item \textbf{Audit Logging}: Log tất cả các thay đổi quan trọng
+    \item \textbf{Regular Updates}: Cập nhật PostgreSQL và Supabase thường xuyên
+\end{enumerate}
+
+\section{Troubleshooting}
+
+\subsection{Các vấn đề thường gặp}
+\begin{itemize}
+    \item \textbf{Connection timeout}: Kiểm tra connection pool settings
+    \item \textbf{Slow queries}: Analyze và optimize với EXPLAIN
+    \item \textbf{RLS issues}: Kiểm tra policies và auth context
+    \item \textbf{Lock conflicts}: Monitor và optimize concurrent transactions
+\end{itemize}
+
+\section{Kết luận}
+
+Database được thiết kế với kiến trúc mở rộng, bảo mật cao và hiệu năng tốt. Việc sử dụng Supabase cho phép tận dụng các tính năng cloud modern như auto-scaling, backup tự động và real-time subscriptions. 
+
+Hệ thống RLS đảm bảo tính bảo mật ở cấp độ row, trong khi các triggers và functions cung cấp business logic phức tạp. Việc thiết kế indexes hợp lý đảm bảo hiệu năng tối ưu cho các truy vấn thường xuyên.
+
+\end{document}
