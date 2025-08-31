@@ -440,7 +440,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 If you have any questions or need help with setup, please:
 
-- 📧 **Email**: lephucchi@example.com
 - 🐛 **Issues**: [GitHub Issues](https://github.com/lephucchi/Blockchain-Dapp/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/lephucchi/Blockchain-Dapp/discussions)
 
