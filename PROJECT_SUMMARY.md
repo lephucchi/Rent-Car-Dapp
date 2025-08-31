@@ -280,6 +280,29 @@ Blockchain-Dapp/
 
 ## 🔄 **WORKFLOW & INTEGRATION**
 
+### **📊 System Architecture Overview**
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Frontend  │◄──►│   Backend   │◄──►│  Database   │    │   Smart     │
+│  (React.js) │    │ (Node.js)   │    │ (Supabase)  │    │  Contract   │
+│             │    │             │    │             │    │ (Solidity)  │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                               │
+       └───────────────────┼───────────────────────────────┘
+                          Web3.js / ethers.js
+```
+
+### **🔄 Data Flow Overview**
+```
+User ──► Frontend ──► Backend API ──► Database
+ │           │            │
+ │           │            ▼
+ │           │       Smart Contract
+ │           │            │
+ │           ▼            ▼
+ └──► MetaMask ──► Ethereum Blockchain
+```
+
 ### **User Journey:**
 1. **Register/Login** qua frontend React
 2. **Browse cars** từ database via API
@@ -291,11 +314,143 @@ Blockchain-Dapp/
 8. **Final payment** auto-calculated từ contract
 9. **Complete transaction** và update database
 
-### **Data Flow:**
+### **📊 Biểu đồ luồng dữ liệu (Data Flow Diagram):**
+
+```mermaid
+graph TD
+    A[👤 User Frontend<br/>React.js] --> B[🔐 Authentication<br/>JWT Token]
+    B --> C[🌐 Backend API<br/>Node.js + Express]
+    C --> D[🗄️ Database<br/>Supabase PostgreSQL]
+    
+    A --> E[💰 MetaMask Wallet<br/>Web3 Integration]
+    E --> F[⛓️ Smart Contract<br/>Ethereum Blockchain]
+    F --> G[📝 Contract Events<br/>Event Logs]
+    G --> C
+    
+    C --> H[📊 Business Logic<br/>Services Layer]
+    H --> I[🔍 Data Validation<br/>Middleware]
+    I --> D
+    
+    D --> J[📈 Real-time Updates<br/>Database Triggers]
+    J --> C
+    C --> A
+    
+    F --> K[💳 Payment Processing<br/>ETH Transactions]
+    K --> L[🏦 Deposit Management<br/>Smart Contract]
+    L --> F
+    
+    style A fill:#e1f5fe
+    style F fill:#fff3e0
+    style D fill:#f3e5f5
+    style C fill:#e8f5e8
 ```
-Frontend ←→ Backend API ←→ Supabase Database
-    ↓           ↓
-Web3.js ←→ Smart Contract ←→ Ethereum Blockchain
+
+### **⚙️ Biểu đồ vận hành hệ thống (System Operation Diagram):**
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant F as 🌐 Frontend
+    participant A as 🔐 Auth Service
+    participant B as 🛠️ Backend API
+    participant D as 🗄️ Database
+    participant W as 💰 MetaMask
+    participant S as ⛓️ Smart Contract
+    
+    Note over U,S: 🚀 User Registration & Login
+    U->>F: Register/Login
+    F->>A: Authenticate
+    A->>B: Validate Credentials
+    B->>D: Store/Retrieve User Data
+    D-->>B: User Profile
+    B-->>F: JWT Token
+    F-->>U: Welcome Dashboard
+    
+    Note over U,S: 🚗 Car Browsing & Selection
+    U->>F: Browse Cars
+    F->>B: GET /api/cars
+    B->>D: Query Available Cars
+    D-->>B: Car List
+    B-->>F: Car Data + Images
+    F-->>U: Display Cars
+    
+    U->>F: Select Car
+    F->>B: GET /api/cars/:id
+    B->>D: Car Details
+    D-->>B: Full Car Info
+    B-->>F: Car Details
+    F-->>U: Car Detail Page
+    
+    Note over U,S: 💳 Rental Process & Smart Contract
+    U->>F: Start Rental
+    F->>W: Connect Wallet
+    W-->>F: Wallet Connected
+    
+    F->>B: POST /api/contracts/deploy
+    B->>S: Deploy Rental Contract
+    S-->>B: Contract Address
+    B->>D: Store Contract Info
+    
+    F->>W: Request Payment
+    W->>S: Send Deposit (30%)
+    S-->>W: Transaction Hash
+    W-->>F: Payment Confirmed
+    
+    F->>B: Update Rental Status
+    B->>D: Update Database
+    D-->>B: Success
+    B-->>F: Rental Active
+    F-->>U: Rental Confirmed
+    
+    Note over U,S: 🔄 Rental Management
+    loop During Rental Period
+        B->>S: Monitor Contract Events
+        S-->>B: Event Logs
+        B->>D: Update Status
+        D-->>F: Real-time Updates
+        F-->>U: Status Notifications
+    end
+    
+    Note over U,S: ✅ Return Process
+    U->>F: Request Return
+    F->>W: Confirm Return
+    W->>S: Call returnCar()
+    S-->>W: Return Confirmed
+    
+    S->>B: Emit ReturnEvent
+    B->>D: Update Rental Status
+    
+    F->>W: Final Payment
+    W->>S: Pay Remaining (70%)
+    S-->>W: Payment Complete
+    S-->>B: Rental Completed
+    B->>D: Final Update
+    D-->>F: Completion Status
+    F-->>U: Rental Complete
+    
+    Note over U,S: 📊 Admin Operations
+    U->>F: Admin Dashboard
+    F->>B: GET /api/admin/*
+    B->>D: Aggregate Data
+    D-->>B: Analytics Data
+    B-->>F: Dashboard Metrics
+    F-->>U: Admin Overview
+```
+
+### **🏗️ Kiến trúc luồng dữ liệu chi tiết:**
+```
+Frontend Layer (React.js)
+    ↓ HTTP Requests (REST API)
+Authentication Layer (JWT)
+    ↓ Validated Requests  
+Backend Layer (Node.js + Express)
+    ↓ SQL Queries
+Database Layer (Supabase PostgreSQL)
+    ↓ Real-time Updates
+    
+Frontend Layer ←→ Web3 Layer (ethers.js) ←→ Blockchain Layer (Ethereum)
+    ↓ Event Listening          ↓ Smart Contract Calls        ↓ Transaction Mining
+Backend Layer ←← Event Processing ←← Contract Events ←← Blockchain Events
 ```
 
 ---
