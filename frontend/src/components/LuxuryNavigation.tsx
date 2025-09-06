@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Car,
   Home,
@@ -13,15 +13,20 @@ import {
   Eye,
   EyeOff,
   Palette,
-  Snowflake
+  Snowflake,
+  LogIn,
+  LogOut,
+  User
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { usePreviewMode } from '../contexts/PreviewModeContext';
 import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
+import { useAuthStore } from '../stores/authStore';
 import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
 
 export const LuxuryNavigation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme, isLightMode, isDarkMode } = useTheme();
   const {
     isPreviewMode,
@@ -32,6 +37,7 @@ export const LuxuryNavigation: React.FC = () => {
   const { isConnected, address, connectWallet } = useWalletConnection();
   const { isLoading, error } = useConnectionState();
   const globalUserRole = useGlobalUserRole();
+  const { user, isAuthenticated, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Determine effective role (preview role when in preview mode, otherwise actual role)
@@ -46,6 +52,11 @@ export const LuxuryNavigation: React.FC = () => {
       console.error('Failed to connect wallet:', error);
       // Error is already handled in the store, just log it here
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   const handlePreviewClick = () => {
@@ -185,6 +196,42 @@ export const LuxuryNavigation: React.FC = () => {
               </>
             )}
 
+            {/* Authentication Section */}
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-3">
+                <div className="hidden sm:flex items-center space-x-3">
+                  <div className="text-sm">
+                    <div className="text-foreground font-medium flex items-center">
+                      <User className="w-4 h-4 mr-1" />
+                      {user?.full_name || user?.email}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {user?.user_type}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 px-3 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/auth"
+                  className="flex items-center space-x-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  title="Get Started"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Start</span>
+                </Link>
+              </div>
+            )}
+
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -239,6 +286,44 @@ export const LuxuryNavigation: React.FC = () => {
               <span>{isLightMode ? 'Dark Aurora' : 'Light Aurora'}</span>
               <Palette className="w-4 h-4 text-primary ml-auto" />
             </button>
+
+            {/* Mobile Authentication Section */}
+            {isAuthenticated ? (
+              <div className="border-t border-border/50 pt-4 space-y-2">
+                <div className="flex items-center space-x-3 px-4">
+                  <User className="w-5 h-5" />
+                  <div className="text-sm">
+                    <div className="text-foreground font-medium">
+                      {user?.full_name || user?.email}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {user?.user_type}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="nav-link flex items-center space-x-3 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="border-t border-border/50 pt-4 space-y-2">
+                <Link
+                  to="/auth"
+                  className="nav-link flex items-center space-x-3 w-full bg-gradient-to-r from-blue-500/10 to-purple-600/10 hover:from-blue-500/20 hover:to-purple-600/20 border border-blue-500/20 rounded-lg"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <LogIn className="w-5 h-5 text-blue-500" />
+                  <span className="font-medium">Get Started</span>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile connection status */}
             {isConnected ? (

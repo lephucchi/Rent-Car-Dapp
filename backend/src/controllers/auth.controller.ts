@@ -23,9 +23,12 @@ export class AuthController {
    */
   static async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      console.log('Register request body:', req.body);
+      
       // Check validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         res.status(400).json(createErrorResponse(
           errors.array().map(err => err.msg).join(', '),
           'Validation failed'
