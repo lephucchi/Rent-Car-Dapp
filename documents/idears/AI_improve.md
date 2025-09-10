@@ -9,100 +9,65 @@ Xây dựng hệ thống giám sát rủi ro theo thời gian thực cho các xe
 
 ---
 
-## 🏗 Kiến trúc hệ thống
+## 🏗 Kiến trúc hệ thống (Simplified)
 
 ```mermaid
-graph TB
-    subgraph "Data Sources"
-        A[📍 GPS Tracker]
-        B[📊 Speed Sensor]
-        C[⏰ Time Monitor]
+flowchart TD
+    subgraph "📡 Data Input"
+        A[GPS Tracker]
+        B[Speed Sensor]
+        C[User Messages]
     end
     
-    subgraph "Data Ingestion"
-        D[🔗 IoT Gateway/API]
-        E[📨 Webhook Receiver]
+    subgraph "🔄 Processing"
+        D[n8n Risk Monitor]
+        E[n8n AI Chatbot]
+        F[OpenAI API]
     end
     
-    subgraph "Processing Layer"
-        F[🔄 n8n Risk Monitor]
-        G[🤖 n8n AI Chatbot]
-        H[⚡ Risk Scoring Engine]
-        I[🧠 OpenAI API]
+    subgraph "💾 Storage"
+        G[(PostgreSQL Database)]
+        H[(Vector DB for AI)]
     end
     
-    subgraph "Storage"
-        J[(🗄️ PostgreSQL)]
-        K[(📚 Vector Database)]
-        L[(📋 Risk Events Log)]
+    subgraph "📢 Notifications"
+        I[Telegram Bot]
+        J[Email Service]
+        K[SMS Gateway]
     end
     
-    subgraph "Notification System"
-        M[📱 Telegram Bot]
-        N[📧 Email Service]
-        O[📲 Push Notifications]
-        P[🚨 SMS Gateway]
-    end
-    
-    subgraph "API Layer"
-        Q[🔗 Backend API]
-        R[📊 Risk API]
-        S[💬 Chat API]
-    end
-    
-    subgraph "Users"
-        T[👤 Car Owner]
-        U[🚗 Renter]
-        V[👨‍💼 Admin]
-        W[💬 Customer]
+    subgraph "� Users"
+        L[Car Owner]
+        M[Renter]
+        N[Admin]
     end
     
     A --> D
     B --> D
-    C --> D
-    D --> E
+    C --> E
+    
+    D --> G
+    D --> I
+    D --> J
+    D --> K
+    
     E --> F
     E --> G
+    E --> H
     
-    F --> H
-    H --> J
-    H --> L
+    I --> L
+    I --> M
+    I --> N
+    J --> L
+    K --> M
     
-    G --> I
-    I --> K
-    G --> Q
+    E --> C
     
-    F --> M
-    F --> N
-    F --> O
-    F --> P
-    
-    Q --> R
-    Q --> S
-    
-    M --> T
-    M --> U
-    M --> V
-    N --> T
-    O --> U
-    P --> U
-    
-    W --> G
-    G --> W
-    
-    classDef dataSource fill:#e1f5fe
-    classDef processing fill:#f3e5f5
-    classDef storage fill:#e8f5e8
-    classDef notification fill:#fff3e0
-    classDef api fill:#fce4ec
-    classDef users fill:#f1f8e9
-    
-    class A,B,C dataSource
-    class F,G,H,I processing
-    class J,K,L storage
-    class M,N,O,P notification
-    class Q,R,S api
-    class T,U,V,W users
+    style D fill:#ffebee
+    style E fill:#e8f5e8
+    style F fill:#f3e5f5
+    style G fill:#e1f5fe
+    style H fill:#fff3e0
 ```
 
 ---
@@ -190,32 +155,33 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[📨 Webhook<br/>User Message] --> B[🧠 OpenAI<br/>Intent Classification]
+    A[📨 User Message] --> B[🧠 OpenAI Intent Classification]
     
-    B --> C{🎯 Intent Type}
+    B --> C{Intent Type}
     
-    C -->|FAQ| D[📚 RAG Search<br/>Vector Database]
-    C -->|Booking Status| E[🔗 Backend API<br/>/api/booking/{id}]
-    C -->|Risk Check| F[📊 Risk API<br/>/api/booking/{id}/risk]
-    C -->|Sign Contract| G[🔐 MetaMask<br/>Deep Link Generator]
-    C -->|Report Issue| H[🎫 Support Ticket<br/>Creation]
-    C -->|Unknown| I[❓ Fallback<br/>Human Handoff]
+    C -->|FAQ| D[📚 Search Knowledge Base]
+    C -->|Booking Info| E[🔗 Get Booking Data]
+    C -->|Risk Status| F[📊 Get Risk Report]
+    C -->|Contract Sign| G[🔐 Generate MetaMask Link]
+    C -->|Report Problem| H[🎫 Create Support Ticket]
+    C -->|Other| I[❓ Forward to Human]
     
-    D --> J[🤖 OpenAI<br/>Generate Response]
-    E --> K[📋 Format Booking<br/>Information]
-    F --> L[⚠️ Format Risk<br/>Report]
-    G --> M[🔗 Generate Contract<br/>Signing Link]
-    H --> N[✅ Create Ticket<br/>& Confirmation]
-    I --> O[👨‍💼 Forward to<br/>Human Agent]
+    D --> J[🤖 Generate AI Response]
+    E --> K[📋 Format Booking Info]
+    F --> L[⚠️ Format Risk Data]
+    G --> M[🔗 Create Signing Link]
+    H --> N[✅ Ticket Created]
+    I --> O[👨‍💼 Human Agent]
     
-    J --> P[💬 Send Response<br/>to User]
+    J --> P[💬 Send to User]
     K --> P
     L --> P
     M --> P
     N --> P
     O --> P
     
-    P --> Q[📝 Log Conversation<br/>Analytics]
+    P --> Q[📝 Log Conversation]
+    Q --> R[📊 Analytics Update]
     
     style A fill:#e3f2fd
     style B fill:#f3e5f5
@@ -223,6 +189,16 @@ flowchart TD
     style P fill:#e8f5e8
     style Q fill:#fce4ec
 ```
+
+### **🎯 Chatbot Intent Examples:**
+
+| Intent | User Input Example | Bot Response |
+|--------|-------------------|--------------|
+| **FAQ** | "Làm sao để thuê xe?" | Hướng dẫn step-by-step từ knowledge base |
+| **Booking Info** | "Booking #123 của tôi thế nào?" | Hiển thị trạng thái, thời gian, địa điểm |
+| **Risk Status** | "Xe tôi có vấn đề gì không?" | Báo cáo khoảng cách, tốc độ, thời gian |
+| **Contract Sign** | "Ký hợp đồng ở đâu?" | Deep link MetaMask + hướng dẫn |
+| **Report Problem** | "Xe bị hỏng rồi!" | Tạo ticket + liên hệ emergency |
 
 ---
 
