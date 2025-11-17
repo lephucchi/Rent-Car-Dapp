@@ -5,6 +5,7 @@ import { User, CreateUserDto, UpdateUserDto } from '../types/user.types';
 export interface CreateUserData extends Omit<CreateUserDto, 'password'> {
   password_hash: string;
   verification_token?: string;
+  is_verified?: boolean;
 }
 
 export interface UpdateUserData extends UpdateUserDto {

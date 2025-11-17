@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 export interface RegisterData {
   email: string;
@@ -40,13 +40,6 @@ export interface ApiResponse<T> {
 }
 
 class AuthService {
-  private token: string | null = null;
-
-  constructor() {
-    // Load token from localStorage on initialization
-    this.token = localStorage.getItem('auth_token');
-  }
-
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     const data = await response.json();
     
@@ -58,12 +51,14 @@ class AuthService {
   }
 
   private getAuthHeaders(): HeadersInit {
+    // Always get fresh token from localStorage
+    const token = localStorage.getItem('auth_token');
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     return headers;
@@ -89,8 +84,7 @@ class AuthService {
     const result = await this.handleResponse<AuthResponse>(response);
     
     if (result.success && result.data.token) {
-      this.token = result.data.token;
-      localStorage.setItem('auth_token', this.token);
+      localStorage.setItem('auth_token', result.data.token);
     }
 
     return result;
@@ -105,13 +99,13 @@ class AuthService {
     } catch (error) {
       console.error('Logout request failed:', error);
     } finally {
-      this.token = null;
       localStorage.removeItem('auth_token');
     }
   }
 
   async getProfile(): Promise<ApiResponse<User>> {
-    if (!this.token) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
       throw new Error('No authentication token');
     }
 
@@ -123,7 +117,8 @@ class AuthService {
   }
 
   async updateProfile(updateData: Partial<User>): Promise<ApiResponse<User>> {
-    if (!this.token) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
       throw new Error('No authentication token');
     }
 
@@ -137,7 +132,8 @@ class AuthService {
   }
 
   async linkWallet(walletAddress: string): Promise<ApiResponse<User>> {
-    if (!this.token) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
       throw new Error('No authentication token');
     }
 
@@ -151,7 +147,8 @@ class AuthService {
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<ApiResponse<null>> {
-    if (!this.token) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
       throw new Error('No authentication token');
     }
 
@@ -168,7 +165,8 @@ class AuthService {
   }
 
   async refreshToken(): Promise<ApiResponse<{ token: string }>> {
-    if (!this.token) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
       throw new Error('No authentication token');
     }
 
@@ -180,15 +178,14 @@ class AuthService {
     const result = await this.handleResponse<{ token: string }>(response);
     
     if (result.success && result.data.token) {
-      this.token = result.data.token;
-      localStorage.setItem('auth_token', this.token);
+      localStorage.setItem('auth_token', result.data.token);
     }
 
     return result;
   }
 
   isAuthenticated(): boolean {
-    return !!this.token;
+    return !!localStorage.getItem('auth_token');
   }
 
   getToken(): string | null {

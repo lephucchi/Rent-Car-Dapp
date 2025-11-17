@@ -19,7 +19,6 @@ export interface Car {
 }
 
 export interface CreateCarDto {
-  name: string;
   model: string;
   year: number;
   license_plate: string;
@@ -27,7 +26,7 @@ export interface CreateCarDto {
   insurance_fee: number;
   description?: string;
   location?: string;
-  features?: Record<string, any>;
+  images?: string[];
 }
 
 export interface UpdateCarDto {

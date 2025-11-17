@@ -94,13 +94,9 @@ export const validateLinkWallet: ValidationChain[] = [
 // ============ CAR VALIDATORS ============
 
 export const validateCreateCar: ValidationChain[] = [
-  body('name')
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Car name must be between 2 and 100 characters'),
-  
   body('model')
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Car model must be between 2 and 50 characters'),
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Car model must be between 2 and 100 characters'),
   
   body('year')
     .isInt({ min: 1900, max: new Date().getFullYear() + 2 })
@@ -128,10 +124,10 @@ export const validateCreateCar: ValidationChain[] = [
     .isLength({ min: 2, max: 255 })
     .withMessage('Location must be between 2 and 255 characters'),
   
-  body('features')
+  body('images')
     .optional()
-    .isJSON()
-    .withMessage('Features must be a valid JSON object'),
+    .isArray()
+    .withMessage('Images must be an array'),
 ];
 
 export const validateUpdateCar: ValidationChain[] = [

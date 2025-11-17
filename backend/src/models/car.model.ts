@@ -26,6 +26,10 @@ export class CarModel {
       .from('cars')
       .insert([{
         ...carData,
+        name: carData.model, // Set name = model for compatibility
+        images: carData.images || [],
+        features: {},
+        status: 'available',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }])

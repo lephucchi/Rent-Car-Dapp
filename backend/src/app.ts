@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 // Import routes
 import authRoutes from './routes/auth.routes';
 import carRoutes from './routes/car.routes';
+import contractRoutes from './routes/contract.routes';
 
 // Import middleware
 import { errorHandler, notFoundHandler, requestLogger } from './middleware/error.middleware';
@@ -88,10 +89,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/cars', carRoutes);
-
-// TODO: Add more routes
-// app.use('/api/contracts', contractRoutes);
-// app.use('/api/blockchain', blockchainRoutes);
+app.use('/api/contracts', contractRoutes);
 
 // ============ ERROR HANDLING ============
 

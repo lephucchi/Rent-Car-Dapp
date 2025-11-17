@@ -1,245 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Car, Shield, Clock, CreditCard, ChevronRight, Wallet, Plus, Eye, User, Settings, Bell, X } from 'lucide-react';
-import { usePreviewMode } from '../contexts/PreviewModeContext';
+import React, { useState } from 'react';
+import { Car, Shield, Clock, CreditCard, Wallet, Plus, Eye, User, Settings } from 'lucide-react';
 import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
-import { mockDataService, type MockCar } from '../services/mockDataService';
 import { debugMetaMaskConnection } from '../lib/debugMetaMask';
 import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
 
-interface CarDetailModalProps {
-  car: MockCar;
-  isOpen: boolean;
-  onClose: () => void;
-  onRent: (carId: string) => void;
-  onCancel: (carId: string) => void;
-  onRequestReturn: (carId: string) => void;
-  onCompleteRental: (carId: string) => void;
-  onManageCar: (carId: string) => void;
-  onInspectCar: (carId: string) => void;
-  isPreview: boolean;
-  userRole: string;
-}
-
-const CarDetailModal: React.FC<CarDetailModalProps> = ({
-  car,
-  isOpen,
-  onClose,
-  onRent,
-  onCancel,
-  onRequestReturn,
-  onCompleteRental,
-  onManageCar,
-  onInspectCar,
-  isPreview,
-  userRole
-}) => {
-  if (!isOpen) return null;
-
-  const dailyRate = parseFloat(mockDataService.formatEther(car.rentalFeePerDay));
-  const insurance = parseFloat(mockDataService.formatEther(car.insuranceFee));
-  const totalRental = dailyRate * car.durationDays;
-  const deposit = (totalRental + insurance) * 0.3; // 30% deposit as per user flow
-  const remainingPayment = totalRental + insurance - deposit;
-
-  const getActionButtons = () => {
-    if (userRole === 'admin' && car.lessor.toLowerCase().includes('admin')) {
-      return (
-        <div className="space-y-3">
-          <button
-            onClick={() => onManageCar(car.id)}
-            className="luxury-button w-full"
-          >
-            <Settings className="w-5 h-5 mr-2" />
-            Manage Car {isPreview && '(Preview)'}
-          </button>
-          {car.status === 'Awaiting Return Confirmation' && (
-            <button
-              onClick={() => onCompleteRental(car.id)}
-              className="aurora-button w-full"
-            >
-              Confirm Return {isPreview && '(Preview)'}
-            </button>
-          )}
-        </div>
-      );
-    }
-
-    if (userRole === 'inspector' && car.status === 'Awaiting Return Confirmation') {
-      return (
-        <button
-          onClick={() => onInspectCar(car.id)}
-          className="luxury-button w-full"
-        >
-          <Eye className="w-5 h-5 mr-2" />
-          Inspect Car {isPreview && '(Preview)'}
-        </button>
-      );
-    }
-
-    // User actions
-    if (car.status === 'Available') {
-      return (
-        <button
-          onClick={() => onRent(car.id)}
-          className="ferrari-button w-full"
-        >
-          <Car className="w-5 h-5 mr-2" />
-          Rent Car - {deposit.toFixed(3)} ETH Deposit {isPreview && '(Preview)'}
-        </button>
-      );
-    }
-
-    if (car.status === 'Rented' && car.lessee?.toLowerCase().includes('user')) {
-      return (
-        <div className="space-y-3">
-          <button
-            onClick={() => onCancel(car.id)}
-            className="luxury-button-outline w-full"
-          >
-            Cancel Rental {isPreview && '(Preview)'}
-          </button>
-          <button
-            onClick={() => onRequestReturn(car.id)}
-            className="luxury-button w-full"
-          >
-            <ChevronRight className="w-5 h-5 mr-2" />
-            Request Return {isPreview && '(Preview)'}
-          </button>
-        </div>
-      );
-    }
-
-    if (car.status === 'Awaiting Return Confirmation' && car.lessee?.toLowerCase().includes('user')) {
-      return (
-        <button
-          onClick={() => onCompleteRental(car.id)}
-          className="ferrari-button w-full"
-        >
-          <CreditCard className="w-5 h-5 mr-2" />
-          Complete Rental - {remainingPayment.toFixed(3)} ETH {isPreview && '(Preview)'}
-        </button>
-      );
-    }
-
-    return (
-      <div className="text-center text-muted-foreground py-4">
-        This car is not available for your current role
-      </div>
-    );
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="luxury-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-foreground">{car.assetName}</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-accent rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Car Status */}
-          <div className="mb-6">
-            <div className={`status-indicator inline-block ${
-              car.status === 'Available' ? 'status-active' :
-              car.status === 'Rented' ? 'status-pending' :
-              car.status === 'Awaiting Return Confirmation' ? 'status-pending' :
-              'status-error'
-            }`}>
-              {car.status}
-            </div>
-          </div>
-
-          {/* Pricing Details */}
-          <div className="bg-muted/30 rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Rental Details</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Daily Rate:</span>
-                <span className="font-semibold">{dailyRate.toFixed(3)} ETH</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Duration:</span>
-                <span className="font-semibold">{car.durationDays} days</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Insurance Fee:</span>
-                <span className="font-semibold">{insurance.toFixed(3)} ETH</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Rental Fee:</span>
-                <span className="font-semibold">{(totalRental + insurance).toFixed(3)} ETH</span>
-              </div>
-              <hr className="border-border" />
-              <div className="flex justify-between text-lg">
-                <span className="text-muted-foreground">Deposit Required (30%):</span>
-                <span className="font-bold text-primary">{deposit.toFixed(3)} ETH</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Remaining Payment:</span>
-                <span className="font-semibold">{remainingPayment.toFixed(3)} ETH</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Owner/Renter Information */}
-          <div className="bg-muted/30 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground flex items-center">
-                <User className="w-4 h-4 mr-2" />
-                Owner:
-              </span>
-              <span className="font-mono text-sm">
-                {car.lessor.slice(0, 8)}...{car.lessor.slice(-6)}
-              </span>
-            </div>
-            {car.lessee && (
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-muted-foreground flex items-center">
-                  <User className="w-4 h-4 mr-2" />
-                  Current Renter:
-                </span>
-                <span className="font-mono text-sm">
-                  {car.lessee.slice(0, 8)}...{car.lessee.slice(-6)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          {getActionButtons()}
-
-          {isPreview && (
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/30 dark:border-blue-800">
-              <p className="text-blue-700 dark:text-blue-400 text-sm">
-                🔍 Preview Mode: All transactions are simulated
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default function Home() {
-  const { isPreviewMode, simulatedRole } = usePreviewMode();
   const { isConnected, address, connectWallet } = useWalletConnection();
   const { isLoading, error } = useConnectionState();
   const globalUserRole = useGlobalUserRole();
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [selectedCar, setSelectedCar] = useState<MockCar | null>(null);
 
-  // Determine effective role and connection state
-  const effectiveRole = isPreviewMode ? simulatedRole : 
-    (globalUserRole === 'admin' ? 'admin' : 
-     globalUserRole === 'inspector' ? 'inspector' : 'user');
-  
-  const shouldShowContent = isConnected || isPreviewMode;
+  const userRole = globalUserRole === 'admin' ? 'admin' : 
+    globalUserRole === 'inspector' ? 'inspector' : 'user';
 
   const handleConnectWallet = async () => {
     try {
@@ -252,83 +24,10 @@ export default function Home() {
     }
   };
 
-  // Check if MetaMask is installed
   const isMetaMaskInstalled = checkMetaMaskInstalled();
 
-  // Get cars based on mode and role
-  const getCars = (): MockCar[] => {
-    if (isPreviewMode) {
-      return mockDataService.getCarsForRole(simulatedRole);
-    }
-    
-    // When connected to real blockchain, we would get real data here
-    // For now, return mock data filtered by role
-    if (effectiveRole === 'admin') {
-      return mockDataService.getOwnedCars(address || '0x1234567890123456789012345678901234567890');
-    } else if (effectiveRole === 'inspector') {
-      return mockDataService.getCarsForInspection();
-    } else {
-      return mockDataService.getAvailableCars();
-    }
-  };
-
-  const handleRentCar = (carId: string) => {
-    if (isPreviewMode) {
-      mockDataService.updateCarStatus(carId, 'Rented', '0x9876543210987654321098765432109876543210');
-      alert('Preview Mode: Car rental initiated successfully! Deposit paid.');
-      setSelectedCar(null);
-      return;
-    }
-    // Real rental logic would go here
-    console.log('Renting car:', carId);
-  };
-
-  const handleManageCar = (carId: string) => {
-    if (isPreviewMode) {
-      alert('Preview Mode: This would open car management options');
-      setSelectedCar(null);
-      return;
-    }
-    // Navigate to admin panel or show management modal
-    window.location.href = '/admin';
-  };
-
-  const handleInspectCar = (carId: string) => {
-    if (isPreviewMode) {
-      alert('Preview Mode: This would open inspection interface');
-      setSelectedCar(null);
-      return;
-    }
-    // Navigate to inspector panel
-    window.location.href = '/inspector';
-  };
-
-  const handleCancelRental = (carId: string) => {
-    if (isPreviewMode) {
-      mockDataService.updateCarStatus(carId, 'Available');
-      alert('Preview Mode: Rental cancelled successfully!');
-      setSelectedCar(null);
-    }
-  };
-
-  const handleRequestReturn = (carId: string) => {
-    if (isPreviewMode) {
-      mockDataService.updateCarStatus(carId, 'Awaiting Return Confirmation', '0x9876543210987654321098765432109876543210');
-      alert('Preview Mode: Return request submitted!');
-      setSelectedCar(null);
-    }
-  };
-
-  const handleCompleteRental = (carId: string) => {
-    if (isPreviewMode) {
-      mockDataService.updateCarStatus(carId, 'Available');
-      alert('Preview Mode: Rental completed successfully! Remaining payment processed.');
-      setSelectedCar(null);
-    }
-  };
-
-  // Show connection interface if not connected and not in preview mode
-  if (!shouldShowContent) {
+  // Show connection interface if not connected
+  if (!isConnected) {
     return (
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
@@ -534,9 +233,7 @@ export default function Home() {
     );
   }
 
-  // Main Homepage with Car List Section
-  const cars = getCars();
-
+  // Main Homepage - Connected User
   return (
     <div className="min-h-screen bg-background">
       <div className="luxury-container py-8">
@@ -544,38 +241,36 @@ export default function Home() {
         <div className="luxury-card p-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-blue-500'}`}></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <div>
                 <span className="font-medium text-foreground">
-                  {isPreviewMode ? 'Preview Mode' : 'Connected'} as: 
+                  Connected as: 
                   <span className="ml-1 font-bold text-primary">
-                    {effectiveRole === 'admin' ? 'Car Owner/Admin' : effectiveRole === 'inspector' ? 'Damage Inspector' : 'Renter'}
+                    {userRole === 'admin' ? 'Car Owner/Admin' : userRole === 'inspector' ? 'Damage Inspector' : 'Renter'}
                   </span>
                 </span>
                 <div className="text-sm text-muted-foreground mt-1">
-                  {effectiveRole === 'admin' && 'Manage your cars, confirm returns, report damage'}
-                  {effectiveRole === 'inspector' && 'Assess damage on returned cars'}
-                  {effectiveRole === 'user' && 'Browse and rent available cars'}
+                  Wallet: {address?.slice(0, 8)}...{address?.slice(-6)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {userRole === 'admin' && 'Manage your cars, confirm returns, report damage'}
+                  {userRole === 'inspector' && 'Assess damage on returned cars'}
+                  {userRole === 'user' && 'Browse and rent available cars'}
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              {effectiveRole === 'admin' && (
+              {userRole === 'admin' && (
                 <a href="/admin" className="text-primary hover:underline text-sm">
                   <Settings className="w-4 h-4 inline mr-1" />
                   Admin Panel
                 </a>
               )}
-              {effectiveRole === 'inspector' && (
+              {userRole === 'inspector' && (
                 <a href="/inspector" className="text-primary hover:underline text-sm">
                   <Eye className="w-4 h-4 inline mr-1" />
                   Inspector Panel
                 </a>
-              )}
-              {isPreviewMode && (
-                <span className="text-sm text-primary bg-primary/20 px-2 py-1 rounded border border-primary/30">
-                  Demo Data
-                </span>
               )}
             </div>
           </div>
@@ -592,158 +287,85 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Car List Section */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground mb-2">
-                {effectiveRole === 'admin' ? 'Your Cars' : 
-                 effectiveRole === 'inspector' ? 'Cars Awaiting Inspection' : 
-                 'Available Cars'}
-              </h2>
-              <p className="text-muted-foreground">
-                {isPreviewMode ? 'Preview: Sample car listings' : 'Real-time data from smart contracts'}
-              </p>
-            </div>
-            {effectiveRole === 'admin' && (
-              <a href="/lend" className="luxury-button">
-                <Plus className="w-4 h-4 mr-2" />
-                Register New Car
-              </a>
-            )}
-          </div>
+        {/* Main Content Section */}
+        <div className="luxury-card p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-foreground mb-6">
+            {userRole === 'admin' ? 'Your Cars' : 
+             userRole === 'inspector' ? 'Damage Inspection' : 
+             'Available Rentals'}
+          </h2>
+          
+          <p className="text-muted-foreground mb-6">
+            Connected to real blockchain data. All information is live from smart contracts and backend API.
+          </p>
 
-          {cars.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cars.map((car) => (
-                <div 
-                  key={car.id} 
-                  className="luxury-card p-6 cursor-pointer hover:shadow-lg transition-all duration-300"
-                  onClick={() => setSelectedCar(car)}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 ferrari-gradient rounded-lg flex items-center justify-center">
-                        <Car className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground">{car.assetName}</h3>
-                        <div className={`status-indicator ${
-                          car.status === 'Available' ? 'status-active' :
-                          car.status === 'Rented' ? 'status-pending' :
-                          car.status === 'Awaiting Return Confirmation' ? 'status-pending' :
-                          'status-error'
-                        }`}>
-                          {car.status}
-                        </div>
-                      </div>
-                    </div>
-                    {/* Role-based action indicator */}
-                    {effectiveRole === 'admin' && <Settings className="w-5 h-5 text-muted-foreground" />}
-                    {effectiveRole === 'inspector' && car.status === 'Awaiting Return Confirmation' && <Eye className="w-5 h-5 text-blue-500" />}
-                    {effectiveRole === 'user' && car.status === 'Available' && <Car className="w-5 h-5 text-green-500" />}
-                  </div>
-
-                  <div className="space-y-2 mb-4 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Daily Rate:</span>
-                      <span className="font-semibold">{mockDataService.formatEther(car.rentalFeePerDay)} ETH</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duration:</span>
-                      <span className="font-semibold">{car.durationDays} days</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Owner:</span>
-                      <span className="font-mono text-xs">{car.lessor.slice(0, 6)}...{car.lessor.slice(-4)}</span>
-                    </div>
-                    {car.lessee && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Renter:</span>
-                        <span className="font-mono text-xs">{car.lessee.slice(0, 6)}...{car.lessee.slice(-4)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="text-center">
-                    <span className="text-xs text-muted-foreground">
-                      Click for {effectiveRole === 'admin' ? 'management' : effectiveRole === 'inspector' ? 'inspection' : 'rental'} options
-                    </span>
-                  </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Navigation Card 1 */}
+            <div className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-12 h-12 ferrari-gradient rounded-lg flex items-center justify-center">
+                  <Car className="w-6 h-6 text-white" />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="luxury-card p-12 text-center">
-              <Car className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                {effectiveRole === 'admin' ? 'No Cars Registered' :
-                 effectiveRole === 'inspector' ? 'No Cars Awaiting Inspection' :
-                 'No Cars Available'}
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                {effectiveRole === 'admin' 
-                  ? 'Start by registering your first car on the platform.'
-                  : effectiveRole === 'inspector'
-                  ? 'Check back when cars need damage assessment.'
-                  : 'Check back later for new car listings or browse other pages.'
+                <h3 className="text-lg font-semibold text-foreground">
+                  {userRole === 'admin' ? 'Manage Cars' : userRole === 'inspector' ? 'Inspection Queue' : 'Browse Rentals'}
+                </h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                {userRole === 'admin' 
+                  ? 'Register new cars, manage existing ones, and track their status'
+                  : userRole === 'inspector'
+                  ? 'Review and assess damage on returned vehicles'
+                  : 'Explore available vehicles for rent with real-time pricing'
                 }
               </p>
-              {effectiveRole === 'admin' && (
-                <a href="/lend" className="ferrari-button">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Register Your First Car
-                </a>
-              )}
+              <a 
+                href={userRole === 'admin' ? '/admin' : userRole === 'inspector' ? '/inspector' : '/rent'}
+                className="ferrari-button inline-flex items-center"
+              >
+                <span>Go to {userRole === 'admin' ? 'Dashboard' : userRole === 'inspector' ? 'Inspector Panel' : 'Rentals'}</span>
+                <span className="ml-2">→</span>
+              </a>
             </div>
-          )}
+
+            {/* Navigation Card 2 */}
+            <div className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-12 h-12 aurora-gradient rounded-lg flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">Transaction History</h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                View all your blockchain transactions, rental history, and payment records
+              </p>
+              <a href="/transactions" className="aurora-button inline-flex items-center">
+                <span>View Transactions</span>
+                <span className="ml-2">→</span>
+              </a>
+            </div>
+          </div>
         </div>
 
         {/* Platform Information */}
         <div className="luxury-card p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">CarDapp Platform Info</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Smart Contract:</span>
-              <span className="text-foreground font-mono text-xs">
-                {isPreviewMode ? '0x1234...5678 (Demo)' : '0x5FbDB2...80aa3'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Network:</span>
-              <span className="text-foreground">
-                {isPreviewMode ? 'Demo Network' : 'Localhost Testnet'}
-              </span>
-            </div>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Platform Status</h3>
+          <div className="grid md:grid-cols-3 gap-4 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Status:</span>
-              <span className="text-foreground">
-                {isPreviewMode ? 'Preview Mode' : isConnected ? 'Connected' : 'Disconnected'}
-              </span>
+              <span className="text-foreground font-semibold">Live</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Your Role:</span>
-              <span className="text-foreground capitalize">
-                {effectiveRole === 'admin' ? 'Car Owner/Admin' : effectiveRole === 'inspector' ? 'Inspector' : 'Renter'}
+              <span className="text-foreground font-semibold capitalize">
+                {userRole === 'admin' ? 'Car Owner/Admin' : userRole === 'inspector' ? 'Inspector' : 'Renter'}
               </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Connection:</span>
+              <span className="text-green-600 font-semibold">Connected</span>
             </div>
           </div>
         </div>
-
-        {/* Car Detail Modal */}
-        <CarDetailModal
-          car={selectedCar!}
-          isOpen={!!selectedCar}
-          onClose={() => setSelectedCar(null)}
-          onRent={handleRentCar}
-          onCancel={handleCancelRental}
-          onRequestReturn={handleRequestReturn}
-          onCompleteRental={handleCompleteRental}
-          onManageCar={handleManageCar}
-          onInspectCar={handleInspectCar}
-          isPreview={isPreviewMode}
-          userRole={effectiveRole}
-        />
       </div>
     </div>
   );

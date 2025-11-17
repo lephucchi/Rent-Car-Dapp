@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Phone, MapPin, Wallet, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, MapPin, Wallet, Eye, EyeOff, Phone } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import type { RegisterData } from '../services/authService';
 

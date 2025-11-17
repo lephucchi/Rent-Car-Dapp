@@ -57,3 +57,13 @@ export interface ContractEvent {
   gas_price?: number;
   created_at: string;
 }
+
+export interface CreateContractEventDto {
+  contract_id: string;
+  event_type: string;
+  event_data: Record<string, any>;
+  transaction_hash: string;
+  block_number: number;
+  gas_used?: number;
+  gas_price?: number;
+}

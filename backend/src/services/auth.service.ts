@@ -26,7 +26,7 @@ export class AuthService {
     const passwordHash = await hashPassword(userData.password);
     const verificationToken = generateRandomToken();
 
-    // Prepare user data for database
+    // Prepare user data for database (auto-verified for development)
     const createUserData: CreateUserData = {
       email: userData.email,
       password_hash: passwordHash,
@@ -35,7 +35,8 @@ export class AuthService {
       address: userData.address,
       wallet_address: userData.wallet_address?.toLowerCase(),
       user_type: userData.user_type,
-      verification_token: verificationToken
+      verification_token: verificationToken,
+      is_verified: true  // Auto-verify for development
     };
 
     // Create user
@@ -60,10 +61,10 @@ export class AuthService {
       throw new Error(INVALID_CREDENTIALS);
     }
 
-    // Check if user is verified
-    if (!user.is_verified) {
-      throw new Error('Please verify your email before logging in');
-    }
+    // Email verification check disabled for development
+    // if (!user.is_verified) {
+    //   throw new Error('Please verify your email before logging in');
+    // }
 
     // Generate JWT token
     const tokenPayload: JwtPayload = {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Car,
@@ -10,372 +10,344 @@ import {
   X,
   PlusCircle,
   History,
-  Eye,
-  EyeOff,
-  Palette,
-  Snowflake,
-  LogIn,
   LogOut,
-  User
+  User,
+  LogIn
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { usePreviewMode } from '../contexts/PreviewModeContext';
-import { useGlobalWeb3Store, useWalletConnection, useUserRole as useGlobalUserRole, useConnectionState } from '../stores/globalWeb3Store';
+import { useWalletConnection, useUserRole as useGlobalUserRole, useGlobalWeb3Store } from '../stores/globalWeb3Store';
 import { useAuthStore } from '../stores/authStore';
 import { isMetaMaskInstalled as checkMetaMaskInstalled } from '../utils/metamaskUtils';
+import { authService } from '../services/authService';
 
-export const LuxuryNavigation: React.FC = () => {
+export const LuxuryNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, toggleTheme, isLightMode, isDarkMode } = useTheme();
-  const {
-    isPreviewMode,
-    simulatedRole,
-    setShowPreviewPanel,
-    exitPreviewMode
-  } = usePreviewMode();
-  const { isConnected, address, connectWallet } = useWalletConnection();
-  const { isLoading, error } = useConnectionState();
+  const { toggleTheme, isLightMode } = useTheme();
+  const { isConnected, address, connectWallet, disconnectWallet } = useWalletConnection();
   const globalUserRole = useGlobalUserRole();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Determine effective role (preview role when in preview mode, otherwise actual role)
-  const effectiveRole = isPreviewMode ? simulatedRole :
-    (globalUserRole === 'admin' ? 'admin' :
-     globalUserRole === 'inspector' ? 'inspector' : 'user');
+  const effectiveRole = globalUserRole === 'admin' ? 'admin' :
+    globalUserRole === 'inspector' ? 'inspector' : 'user';
 
   const handleConnectWallet = async () => {
     try {
       await connectWallet();
+      
+      console.log('🔍 Debug - isAuthenticated:', isAuthenticated);
+      console.log('🔍 Debug - user:', user);
+      
+      // Wait a bit for store to update with address
+      setTimeout(async () => {
+        // Get fresh address from store
+        const currentAddress = useGlobalWeb3Store.getState().address;
+        console.log('🔍 Debug - currentAddress:', currentAddress);
+        console.log('🔍 Debug - user.wallet_address:', user?.wallet_address);
+        
+        // Auto-link wallet to user account if authenticated and wallet not linked
+        if (isAuthenticated && currentAddress && (!user?.wallet_address || user.wallet_address !== currentAddress.toLowerCase())) {
+          try {
+            console.log('Attempting to link wallet:', currentAddress);
+            const response = await authService.linkWallet(currentAddress);
+            if (response.success) {
+              console.log('✅ Wallet linked successfully');
+              // Refresh user data
+              window.location.reload();
+            } else {
+              console.error('❌ Failed to link wallet:', response.message);
+            }
+          } catch (linkError) {
+            console.error('❌ Failed to link wallet:', linkError);
+          }
+        } else {
+          console.log('⚠️ Skipped wallet linking - isAuth:', isAuthenticated, 'hasAddress:', !!currentAddress, 'alreadyLinked:', user?.wallet_address === currentAddress?.toLowerCase());
+        }
+      }, 500);
     } catch (error) {
       console.error('Failed to connect wallet:', error);
-      // Error is already handled in the store, just log it here
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleDisconnect = () => {
+    disconnectWallet();
   };
 
-  const handlePreviewClick = () => {
-    if (isPreviewMode) {
-      exitPreviewMode();
-    } else {
-      setShowPreviewPanel(true);
-    }
-  };
-
-  // Check if MetaMask is installed
   const isMetaMaskInstalled = checkMetaMaskInstalled();
-
-  // Navigation items - NO Admin/Inspector links as per specification
-  const navItems = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/rent', label: 'Rent Car', icon: Car },
-    { href: '/lend', label: 'Lend Car', icon: PlusCircle },
-    { href: '/contract', label: 'Contract', icon: Wallet },
-    { href: '/transactions', label: 'Transactions', icon: History },
-  ];
-
-  const isActiveRoute = (href: string) => {
-    return location.pathname === href;
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 aurora-glass border-b border-border/50">
-      <div className="luxury-container">
-        <div className="flex justify-between items-center h-16">
-          {/* Aurora Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 aurora-gradient rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-105 relative overflow-hidden">
-              <Car className="w-6 h-6 text-white relative z-10" />
-              <Snowflake className="w-4 h-4 text-white/30 absolute top-1 right-1" />
+    <nav className="sticky top-0 z-40 bg-background border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="w-8 h-8 ferrari-gradient rounded-lg flex items-center justify-center">
+              <Car className="w-5 h-5 text-white" />
             </div>
-            <span className="text-2xl font-bold text-foreground">
-              Car<span className="text-primary">Dapp</span>
-            </span>
+            <span className="text-xl font-bold gradient-text-aurora hidden sm:inline">CarDapp</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = isActiveRoute(item.href);
-
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={`nav-link ${isActive ? 'active' : ''} flex items-center space-x-2`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Aurora Controls - Theme Toggle + Preview Mode */}
-          <div className="flex items-center space-x-4">
-            {/* Aurora Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-accent transition-colors duration-200"
-              aria-label="Toggle Aurora theme"
-              title={isLightMode ? 'Switch to Dark Aurora' : 'Switch to Light Aurora'}
-            >
-              {isLightMode ? (
-                <Moon className="w-5 h-5 text-foreground" />
-              ) : (
-                <Sun className="w-5 h-5 text-foreground" />
-              )}
-              <Palette className="w-4 h-4 text-primary" />
-            </button>
-
-            {/* Enhanced Preview Mode */}
-            <button
-              onClick={handlePreviewClick}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                isPreviewMode
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'hover:bg-accent border border-transparent'
+          <div className="hidden md:flex items-center space-x-1">
+            <Link
+              to="/"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive('/') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
-              title={isPreviewMode ? 'Exit Preview Mode' : 'Enter Preview Mode'}
             >
-              {isPreviewMode ? (
-                <>
-                  <EyeOff className="w-4 h-4" />
-                  <span className="hidden sm:inline">Exit Preview</span>
-                </>
-              ) : (
-                <>
-                  <Eye className="w-4 h-4" />
-                  <span className="hidden sm:inline">Preview</span>
-                </>
-              )}
-            </button>
+              <Home className="w-4 h-4 inline mr-1" />
+              Home
+            </Link>
 
-            {/* Connection Status & Wallet */}
-            {isConnected ? (
-              <div className="hidden sm:flex items-center space-x-3">
-                <div className="text-sm">
-                  <div className="text-foreground font-medium">
-                    {effectiveRole === 'admin' ? 'Admin' : effectiveRole === 'inspector' ? 'Inspector' : 'User'}
-                    {isPreviewMode && <span className="text-blue-600 ml-1">(Preview)</span>}
-                  </div>
-                  <div className="text-xs text-muted-foreground font-mono">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </div>
-                </div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-            ) : (
+            {isAuthenticated && (
               <>
-                {!isMetaMaskInstalled ? (
-                  <a
-                    href="https://metamask.io/download/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="luxury-button text-sm"
-                    title="Install MetaMask to connect your wallet"
+                <Link
+                  to="/rent"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive('/rent') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Car className="w-4 h-4 inline mr-1" />
+                  Rent Car
+                </Link>
+
+                <Link
+                  to="/lend"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive('/lend') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <PlusCircle className="w-4 h-4 inline mr-1" />
+                  Lend Car
+                </Link>
+
+                <Link
+                  to="/my-rentals"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive('/my-rentals') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Car className="w-4 h-4 inline mr-1" />
+                  My Rentals
+                </Link>
+
+                <Link
+                  to="/my-contracts"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive('/my-contracts') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <PlusCircle className="w-4 h-4 inline mr-1" />
+                  My Contracts
+                </Link>
+
+                {effectiveRole === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive('/admin') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                    }`}
                   >
-                    Install MetaMask
-                  </a>
-                ) : (
-                  <button
-                    onClick={handleConnectWallet}
-                    disabled={isLoading}
-                    className="luxury-button disabled:opacity-50"
-                  >
-                    <Wallet className="w-4 h-4 mr-2" />
-                    {isLoading ? 'Connecting...' : 'Connect'}
-                  </button>
+                    <User className="w-4 h-4 inline mr-1" />
+                    Admin
+                  </Link>
                 )}
+
+                {effectiveRole === 'inspector' && (
+                  <Link
+                    to="/inspector"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive('/inspector') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <User className="w-4 h-4 inline mr-1" />
+                    Inspector
+                  </Link>
+                )}
+
+                <Link
+                  to="/transactions"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive('/transactions') ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <History className="w-4 h-4 inline mr-1" />
+                  Transactions
+                </Link>
               </>
             )}
+          </div>
 
-            {/* Authentication Section */}
-            {isAuthenticated ? (
+          {/* Right Side */}
+          <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              title="Toggle theme"
+            >
+              {isLightMode ? (
+                <Moon className="w-5 h-5" />
+              ) : (
+                <Sun className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* Auth Buttons / User Profile */}
+            {!isAuthenticated ? (
+              <Link
+                to="/auth"
+                className="px-4 py-2 rounded-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all"
+              >
+                <LogIn className="w-4 h-4 inline mr-2" />
+                Login
+              </Link>
+            ) : user ? (
               <div className="flex items-center space-x-3">
-                <div className="hidden sm:flex items-center space-x-3">
-                  <div className="text-sm">
-                    <div className="text-foreground font-medium flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      {user?.full_name || user?.email}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {user?.user_type}
-                    </div>
+                <div className="hidden sm:block text-sm">
+                  <div className="font-semibold text-foreground">
+                    {user.full_name || 'User'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1)}
                   </div>
                 </div>
                 <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 px-3 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200"
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
                   title="Logout"
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span className="hidden sm:inline">Logout</span>
+                  <LogOut className="w-5 h-5 text-red-600" />
                 </button>
               </div>
+            ) : null}
+
+            {/* Wallet Connection */}
+            {!isConnected ? (
+              <button
+                onClick={handleConnectWallet}
+                disabled={!isMetaMaskInstalled}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isMetaMaskInstalled
+                    ? 'aurora-button'
+                    : 'opacity-50 cursor-not-allowed aurora-button'
+                }`}
+              >
+                <Wallet className="w-4 h-4 inline mr-2" />
+                Connect Wallet
+              </button>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Link
-                  to="/auth"
-                  className="flex items-center space-x-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  title="Get Started"
+              <div className="flex items-center space-x-3">
+                <div className="hidden sm:block text-sm">
+                  <div className="font-mono text-xs text-muted-foreground">
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
+                  </div>
+                  <div className="text-xs text-green-600">
+                    Connected
+                  </div>
+                </div>
+                <button
+                  onClick={handleDisconnect}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  title="Disconnect wallet"
                 >
-                  <LogIn className="w-4 h-4" />
-                  <span>Start</span>
-                </Link>
+                  <Wallet className="w-5 h-5 text-orange-600" />
+                </button>
               </div>
             )}
 
-            {/* Mobile menu button */}
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors duration-200"
+              className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
             >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border/50 py-4 space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = isActiveRoute(item.href);
-
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={`nav-link ${isActive ? 'active' : ''} flex items-center space-x-3 w-full`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-
-            {/* Mobile Preview Mode Toggle */}
-            <button
-              onClick={handlePreviewClick}
-              className={`nav-link flex items-center space-x-3 w-full ${
-                isPreviewMode ? 'bg-primary/20 text-primary' : ''
-              }`}
+          <div className="md:hidden pb-4 border-t border-border">
+            <Link
+              to="/"
+              className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+              onClick={() => setMobileMenuOpen(false)}
             >
-              {isPreviewMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              <span>{isPreviewMode ? 'Exit Preview' : 'Preview Mode'}</span>
-            </button>
+              Home
+            </Link>
 
-            {/* Mobile Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="nav-link flex items-center space-x-3 w-full"
-            >
-              {isLightMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              <span>{isLightMode ? 'Dark Aurora' : 'Light Aurora'}</span>
-              <Palette className="w-4 h-4 text-primary ml-auto" />
-            </button>
-
-            {/* Mobile Authentication Section */}
-            {isAuthenticated ? (
-              <div className="border-t border-border/50 pt-4 space-y-2">
-                <div className="flex items-center space-x-3 px-4">
-                  <User className="w-5 h-5" />
-                  <div className="text-sm">
-                    <div className="text-foreground font-medium">
-                      {user?.full_name || user?.email}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {user?.user_type}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="nav-link flex items-center space-x-3 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            ) : (
-              <div className="border-t border-border/50 pt-4 space-y-2">
-                <Link
-                  to="/auth"
-                  className="nav-link flex items-center space-x-3 w-full bg-gradient-to-r from-blue-500/10 to-purple-600/10 hover:from-blue-500/20 hover:to-purple-600/20 border border-blue-500/20 rounded-lg"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <LogIn className="w-5 h-5 text-blue-500" />
-                  <span className="font-medium">Get Started</span>
-                </Link>
-              </div>
-            )}
-
-            {/* Mobile connection status */}
-            {isConnected ? (
-              <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                <div className="text-sm">
-                  <div className="text-foreground font-medium">
-                    {effectiveRole === 'admin' ? 'Admin' : effectiveRole === 'inspector' ? 'Inspector' : 'User'}
-                    {isPreviewMode && <span className="text-blue-600 ml-1">(Preview)</span>}
-                  </div>
-                  <div className="text-xs text-muted-foreground font-mono">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </div>
-                </div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-            ) : (
+            {isAuthenticated && (
               <>
-                {!isMetaMaskInstalled ? (
-                  <a
-                    href="https://metamask.io/download/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="luxury-button w-full mt-4"
+                <Link
+                  to="/rent"
+                  className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Rent Car
+                </Link>
+
+                <Link
+                  to="/lend"
+                  className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Lend Car
+                </Link>
+
+                <Link
+                  to="/my-rentals"
+                  className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Rentals
+                </Link>
+
+                <Link
+                  to="/my-contracts"
+                  className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Contracts
+                </Link>
+
+                {effectiveRole === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+                    onClick={() => setMobileMenuOpen(false)}
                   >
-                    Install MetaMask
-                  </a>
-                ) : (
-                  <button
-                    onClick={handleConnectWallet}
-                    disabled={isLoading}
-                    className="luxury-button w-full mt-4 disabled:opacity-50"
-                  >
-                    <Wallet className="w-4 h-4 mr-2" />
-                    {isLoading ? 'Connecting...' : 'Connect Wallet'}
-                  </button>
+                    Admin Dashboard
+                  </Link>
                 )}
+
+                {effectiveRole === 'inspector' && (
+                  <Link
+                    to="/inspector"
+                    className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Inspector
+                  </Link>
+                )}
+
+                <Link
+                  to="/transactions"
+                  className="block px-3 py-2 text-sm font-medium hover:bg-muted rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Transactions
+                </Link>
               </>
             )}
           </div>
         )}
       </div>
-
-      {/* Aurora Preview Mode Indicator */}
-      {isPreviewMode && (
-        <button
-          onClick={exitPreviewMode}
-          className="bg-primary/20 border-b border-primary/30 text-primary px-4 py-2 text-center text-sm hover:bg-primary/30 transition-colors w-full"
-        >
-          <Eye className="w-4 h-4 inline mr-2" />
-          <strong>Preview Mode Active</strong> - {effectiveRole === 'admin' ? 'Admin/Owner' : effectiveRole === 'inspector' ? 'Inspector' : 'User'} role | Click to exit
-        </button>
-      )}
     </nav>
   );
 };

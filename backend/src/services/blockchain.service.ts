@@ -7,44 +7,13 @@ import {
   Wallet,
   TransactionReceipt
 } from 'ethers';
+import path from 'path';
+import fs from 'fs';
 
-// Simplified ABI for the rental contract
-const contractABI = [
-  "constructor(string memory _assetName, uint _rentalFeePerDay, uint _durationDays, uint _insuranceFee, address _damageAssessor)",
-  "function rent() external payable",
-  "function cancelRental() external",
-  "function requestReturn() external",
-  "function confirmReturn() external",
-  "function completeRental() external payable",
-  "function reportDamage() external",
-  "function assessDamage(uint amountInEther) external",
-  "function setActualUsage(uint _actualDays) external",
-  "function getTotalRentalFee() public view returns (uint)",
-  "function getDeposit() public view returns (uint)",
-  "function getRemainingPayment() public view returns (uint)",
-  "function getFinalPaymentAmount() external view returns (uint)",
-  "function lessor() public view returns (address)",
-  "function lessee() public view returns (address)",
-  "function assetName() public view returns (string)",
-  "function rentalFeePerDay() public view returns (uint)",
-  "function durationDays() public view returns (uint)",
-  "function insuranceFee() public view returns (uint)",
-  "function isRented() public view returns (bool)",
-  "function isDamaged() public view returns (bool)",
-  "function actualDays() public view returns (uint)",
-  "function assessedDamageAmount() public view returns (uint)",
-  "event RentalStarted(address lessee, uint deposit)",
-  "event RentalCancelled(address lessee)",
-  "event DamageReported(address lessor)",
-  "event RenterRequestedReturn(address lessee)",
-  "event OwnerConfirmedReturn(address lessor)",
-  "event ActualUsageSet(uint daysUsed)",
-  "event DamageAssessed(address assessor, uint amount)",
-  "event FundsTransferred(address to, uint amount)"
-];
-
-// Contract bytecode placeholder - should be loaded from compiled artifacts
-const contractBytecode = "0x608060405234801561001057600080fd5b50600436106100415760003560e01c8063445df0ac146100465780638da5cb5b14610064578063fdacd57614610082575b600080fd5b61004e610084565b60405161005b9190610123565b60405180910390f35b61006c61008a565b604051610079919061010e565b60405180910390f35b005b60005481565b60015481565b600080fd5b6000819050919050565b6100a781610094565b81146100b257600080fd5b50565b6000813590506100c48161009e565b92915050565b6000602082840312156100e0576100df61008f565b5b60006100ee848285016100b5565b91505092915050565b610100816100ca565b82525050565b600060208201905061011b60008301846100f7565b92915050565b600060208201905061013660008301846100f7565b9291505056fea264697066735822122068656c6c6f20776f726c64000000000000000000000000000000000000000000600052602260045260246000fd";
+// Load contract ABI from compiled artifacts
+const artifactPath = path.join(__dirname, '../../../smartcontract/artifacts/contracts/FixedRentalContract.sol/FixedRentalContract.json');
+const contractArtifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+const contractABI = contractArtifact.abi;
 
 interface DeploymentResult {
   contractAddress: string;
@@ -83,9 +52,13 @@ export class BlockchainService {
       process.env.BLOCKCHAIN_RPC_URL || 'http://127.0.0.1:8545'
     );
 
-    // Initialize signer if private key is provided
-    if (process.env.PRIVATE_KEY) {
+    // Initialize signer if private key is provided and valid
+    if (process.env.PRIVATE_KEY && 
+        process.env.PRIVATE_KEY !== '0xyour_private_key_here' &&
+        process.env.PRIVATE_KEY.length > 10) {
       this.signer = new Wallet(process.env.PRIVATE_KEY, this.provider);
+    } else {
+      console.warn('⚠️  PRIVATE_KEY not configured - blockchain deployment disabled');
     }
   }
 
@@ -96,28 +69,42 @@ export class BlockchainService {
     assetName: string,
     rentalFeePerDay: number,
     durationDays: number,
-    insuranceFee: number,
-    damageAssessor: string
+    insuranceFee: number
   ): Promise<DeploymentResult> {
     if (!this.signer) {
       throw new Error('Signer not initialized. Please check PRIVATE_KEY environment variable.');
     }
 
     try {
+      // Convert days to minutes for contract (1 day = 1440 minutes)
+      const durationMinutes = durationDays * 1440;
+      // Convert daily fee to per-minute fee
+      const rentalFeePerMinute = rentalFeePerDay / 1440;
+      
       // Convert fees to Wei
-      const rentalFeeWei = parseEther(rentalFeePerDay.toString());
+      const rentalFeeWei = parseEther(rentalFeePerMinute.toFixed(18));
       const insuranceFeeWei = parseEther(insuranceFee.toString());
+      // Insurance compensation = 2x insurance fee (can be adjusted)
+      const insuranceCompensationWei = parseEther((insuranceFee * 2).toString());
 
+      // Load compiled contract ABI and bytecode
+      const artifactPath = path.join(__dirname, '../../../smartcontract/artifacts/contracts/FixedRentalContract.sol/FixedRentalContract.json');
+      const contractArtifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+      
       // Create contract factory
-      const contractFactory = new ContractFactory(contractABI, contractBytecode, this.signer);
+      const contractFactory = new ContractFactory(
+        contractArtifact.abi, 
+        contractArtifact.bytecode, 
+        this.signer
+      );
 
       // Deploy contract
       const contract = await contractFactory.deploy(
         assetName,
         rentalFeeWei,
-        durationDays,
+        durationMinutes,
         insuranceFeeWei,
-        damageAssessor
+        insuranceCompensationWei
       );
 
       // Wait for deployment
@@ -273,18 +260,17 @@ export class BlockchainService {
     try {
       const contract = this.getContract(contractAddress);
       
-      const [totalRentalFee, deposit, remainingPayment, finalPayment] = await Promise.all([
+      // Only get basic costs - don't call methods that require isRented=true
+      const [totalRentalFee, deposit] = await Promise.all([
         contract.getTotalRentalFee(),
-        contract.getDeposit(),
-        contract.getRemainingPayment(),
-        contract.getFinalPaymentAmount()
+        contract.getDeposit()
       ]);
 
       return {
         totalRentalFee: formatEther(totalRentalFee),
         deposit: formatEther(deposit),
-        remainingPayment: formatEther(remainingPayment),
-        finalPayment: formatEther(finalPayment)
+        remainingPayment: "0", // Will be calculated after rental starts
+        finalPayment: "0" // Will be calculated after rental starts
       };
     } catch (error: any) {
       throw new Error(`Failed to get rental costs: ${error.message}`);
@@ -347,22 +333,33 @@ export class BlockchainService {
     assetName: string,
     rentalFeePerDay: number,
     durationDays: number,
-    insuranceFee: number,
-    damageAssessor: string
+    insuranceFee: number
   ): Promise<string> {
     if (!this.signer) {
       throw new Error('Signer not initialized');
     }
 
     try {
-      const contractFactory = new ContractFactory(contractABI, contractBytecode, this.signer);
+      // Convert days to minutes
+      const durationMinutes = durationDays * 1440;
+      const rentalFeePerMinute = rentalFeePerDay / 1440;
+      
+      const rentalFeeWei = parseEther(rentalFeePerMinute.toFixed(18));
+      const insuranceFeeWei = parseEther(insuranceFee.toString());
+      const insuranceCompensationWei = parseEther((insuranceFee * 2).toString());
+
+      // Load artifact
+      const artifactPath = path.join(__dirname, '../../../smartcontract/artifacts/contracts/FixedRentalContract.sol/FixedRentalContract.json');
+      const contractArtifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+      
+      const contractFactory = new ContractFactory(contractArtifact.abi, contractArtifact.bytecode, this.signer);
       
       const deployTransaction = await contractFactory.getDeployTransaction(
         assetName,
-        parseEther(rentalFeePerDay.toString()),
-        durationDays,
-        parseEther(insuranceFee.toString()),
-        damageAssessor
+        rentalFeeWei,
+        durationMinutes,
+        insuranceFeeWei,
+        insuranceCompensationWei
       );
 
       const gasEstimate = await this.provider.estimateGas(deployTransaction);

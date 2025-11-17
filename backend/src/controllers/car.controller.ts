@@ -12,6 +12,7 @@ export class CarController {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('❌ Validation errors:', errors.array());
         res.status(400).json(createErrorResponse(
           errors.array().map(err => err.msg).join(', '),
           'Validation failed'
@@ -21,6 +22,7 @@ export class CarController {
 
       const lessorId = req.user!.userId;
       const carData = req.body;
+      console.log('✅ Request body:', JSON.stringify(carData, null, 2));
 
       // Validate car data
       const validationErrors = CarService.validateCarData(carData);
